@@ -22,7 +22,7 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.zinc,
     height: 120,
     justifyContent: 'flex-start',
-    borderBottomRightRadius: 85,
+    borderBottomRightRadius: 70,
   },
   brandContainer: {
     flexDirection: 'row',
@@ -58,15 +58,19 @@ export const styles = StyleSheet.create({
   },
   optionsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     width: '100%',
     marginBottom: 20,
   },
-  rememberContainer: {
+  rememberMeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'flex-start',
+    width: '100%',
+    marginBottom: 15,
+    marginLeft: 15
   },
-  circle: {
+  radioOuterCircle: {
     width: 20,
     height: 20,
     borderRadius: 10,
@@ -74,18 +78,19 @@ export const styles = StyleSheet.create({
     borderColor: Colors.zinc,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 4,
+    marginRight: 8,
   },
-  innerDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+  radioInnerCircle: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     backgroundColor: Colors.zinc,
   },
-  label: {
+  radioLabel: {
     fontSize: 13,
     color: '#333',
   },
+
   pressedLabel: {
     color: '#222',
     textDecorationLine: 'underline',
@@ -104,7 +109,7 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
-  signupcontainer:{
+  signupcontainer: {
     flexDirection: 'row',
     gap: 5,
     marginTop: 10

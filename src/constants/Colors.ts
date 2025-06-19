@@ -11,7 +11,8 @@ export default {
   lightGray: '#f0f0f0',
   mediumGray: '#d1d5db',
   darkGray: '#6b7280',
-  zinc: '#1C274C', // seu "cinza escuro com toque azulado"
+  zinc: '#1C274C',
+  zincDark: '#27272a',
 
   // Tons de vermelho (erros/avisos)
   red: '#e53935',

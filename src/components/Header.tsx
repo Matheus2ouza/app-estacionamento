@@ -1,4 +1,4 @@
-import Colors from '@/src/constants/colors';
+import Colors from '@/src/constants/Colors';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -11,7 +11,7 @@ interface HeaderProps {
 export default function Header({ title }: HeaderProps) {
   return (
     <LinearGradient
-      colors={[Colors.zinc, '#1C274C']}
+      colors={[Colors.zinc, Colors.blueLight]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.header}
