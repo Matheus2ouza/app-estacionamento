@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   title: {
-    fontSize: 40,
+    fontSize: 30,
     fontWeight: 'bold',
     color: Colors.lightGray,
     textTransform: 'uppercase',

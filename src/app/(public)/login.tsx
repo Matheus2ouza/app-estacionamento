@@ -14,9 +14,9 @@ import { TextInput } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import ApiErrorModal from "@/src/components/ApiErrorModal";
-import { useAuth } from "@/src/context/AuthContext"; // <- IMPORTADO
-import { useUserLogin } from "@/src/hooks/useLogin";
-import { useRouter } from "expo-router"; // <- IMPORTADO
+import { useAuth } from "@/src/context/AuthContext";
+import { useUserLogin } from "@/src/hooks/auth/useLogin";
+import { useRouter } from "expo-router";
 
 export default function Login() {
   const [username, setUsername] = React.useState("");
@@ -44,7 +44,7 @@ export default function Login() {
         router.replace("/home/admin");
       } else {
         console.log("Redirecionando para employee...");
-        router.replace("/home/employee");
+        router.replace("/home/normal");
       }
     } catch (err) {
       console.log("Erro no handleLogin:", err);

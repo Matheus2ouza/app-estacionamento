@@ -1,9 +1,5 @@
+import FontsToLoad from "@/src/constants/Fonts";
 import { AuthProvider } from "@/src/context/AuthContext";
-import {
-  Montserrat_400Regular,
-  Montserrat_700Bold,
-} from "@expo-google-fonts/montserrat";
-import { Roboto_400Regular, Roboto_500Medium } from "@expo-google-fonts/roboto";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -11,30 +7,27 @@ import { useCallback } from "react";
 import { View } from "react-native";
 import { DefaultTheme, Provider as PaperProvider } from "react-native-paper";
 
-// Evita que o splash screen feche automaticamente
 SplashScreen.preventAutoHideAsync();
 
 const theme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary: "#1C274C", // cor de foco
+    primary: "#1C274C",
   },
 };
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
-    Montserrat_400Regular,
-    Montserrat_700Bold,
-    Roboto_400Regular,
-    Roboto_500Medium,
-  });
+  const [fontsLoaded] = useFonts(FontsToLoad);
 
   const onLayoutRootView = useCallback(async () => {
     if (fontsLoaded) {
+      console.log("[RootLayout] Fonts carregadas, escondendo splash");
       await SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
+
+  console.log("[RootLayout] Renderizando. Fonts loaded:", fontsLoaded);
 
   if (!fontsLoaded) return null;
 

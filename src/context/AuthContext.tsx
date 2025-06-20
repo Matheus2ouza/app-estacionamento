@@ -11,7 +11,7 @@ const EXPIRATION_MINUTES = 10;
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
-  const [role, setRole] = useState<"ADMIN" | "EMPLOYEE" | null>(null);
+  const [role, setRole] = useState<"ADMIN" | "NORMAL" | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -34,6 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setToken(storedToken);
             setUserId(decoded.id);
             setRole(decoded.role);
+            console.log("[Auth] Role do usuário restaurado:", decoded.role);
           } else {
             console.log("[Auth] Token expirado, limpando dados...");
             await SecureStore.deleteItemAsync("token");
@@ -46,7 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error("[Auth] Erro ao restaurar sessão:", error);
       } finally {
         setIsLoading(false);
-        console.log("[Auth] Restore session finalizado.");
+        console.log("[Auth] Restore session finalizado. isLoading false.");
       }
     };
 
@@ -60,6 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setToken(newToken);
       setUserId(decoded.id);
       setRole(decoded.role);
+      console.log("[Auth] Role no login:", decoded.role);
 
       const expiresAt = Date.now() + EXPIRATION_MINUTES * 60 * 1000;
       await SecureStore.setItemAsync("token", newToken);
@@ -85,6 +87,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const isAuthenticated = !!token;
+
+  console.log("[Auth] Renderizando AuthContext: isAuthenticated =", isAuthenticated, "role =", role, "isLoading =", isLoading);
 
   return (
     <AuthContext.Provider

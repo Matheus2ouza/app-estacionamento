@@ -1,8 +1,8 @@
 import { loginUser } from "@/src/api/userService";
+import type { DecodedToken, LoginData } from "@/src/types/auth";
 import * as SecureStore from "expo-secure-store";
 import { jwtDecode } from "jwt-decode";
 import { useState } from "react";
-import type { DecodedToken, LoginData } from "../types/auth";
 
 export function useUserLogin() {
   const [loading, setLoading] = useState(false);

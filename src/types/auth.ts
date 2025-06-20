@@ -7,7 +7,7 @@ export type LoginData = {
 export interface AuthContextData {
   token: string | null;
   userId: string | null;
-  role: "ADMIN" | "EMPLOYEE" | null;
+  role: "ADMIN" | "NORMAL" | null;
   login: (token: string) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
@@ -16,7 +16,7 @@ export interface AuthContextData {
 
 export type DecodedToken = {
   id: string;
-  role: "ADMIN" | "EMPLOYEE";
+  role: "ADMIN" | "NORMAL";
   exp: number;
   iat: number;
 };

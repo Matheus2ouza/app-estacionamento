@@ -1,18 +1,15 @@
 import Colors from "@/src/constants/Colors";
-import { useAuth } from "@/src/context/AuthContext";
-import { styles } from "@/src/styles/home/adminHomeStyles";
+import { styles } from "@/src/styles/home/normalHomeStyles";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Entypo from '@expo/vector-icons/Entypo';
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import Ionicons from '@expo/vector-icons/Ionicons';
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
+import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
-export default function AdminHome() {
-  const { role } = useAuth();
-
+export default function NormalHome() {
   return (
     <View style={{ flex: 1 }}>
       <LinearGradient
@@ -26,60 +23,14 @@ export default function AdminHome() {
           <Text style={styles.brandSub}>Estacionamento</Text>
         </View>
 
-        <TouchableOpacity
-          onPress={() => {
-            router.push("/Config/config");
-          }}
-        >
+        <TouchableOpacity onPress={() => router.push("/(panel)/Config/config")}>
           <View style={styles.iconCircle}>
             <AntDesign name="user" size={30} color="#fff" />
           </View>
         </TouchableOpacity>
-
       </LinearGradient>
 
       <View style={styles.body}>
-        <View style={styles.cashData}>
-          <View style={styles.cashDataHeader}>
-            <Text style={styles.cashFont}>Caixa</Text>
-            <View style={styles.refreshIcon}>
-              <FontAwesome name="refresh" size={24} color={Colors.white} />
-            </View>
-          </View>
-
-          <View style={styles.cashDataBody}>
-            <View style={styles.cashDataRow}>
-              <Text>Valor Inicial</Text>
-              <Text style={styles.values}>R$: 999,99</Text>
-            </View>
-            <View style={styles.separatorBar} />
-            <View style={styles.cashDataRow}>
-              <Text>Dinheiro</Text>
-              <Text style={styles.values}>R$: 999,99</Text>
-            </View>
-            <View style={styles.separatorBar} />
-            <View style={styles.cashDataRow}>
-              <Text>Cartão</Text>
-              <Text style={styles.values}>R$: 999,99</Text>
-            </View>
-            <View style={styles.separatorBar} />
-            <View style={styles.cashDataRow}>
-              <Text>PIX</Text>
-              <Text style={styles.values}>R$: 999,99</Text>
-            </View>
-            <View style={styles.separatorBar} />
-            <View style={styles.cashDataRow}>
-              <Text>Saída</Text>
-              <Text style={styles.values}>R$: 999,99</Text>
-            </View>
-            <View style={styles.separatorBar} />
-            <View style={styles.cashDataRow}>
-              <Text>Total</Text>
-              <Text style={styles.values}>R$: 999,99</Text>
-            </View>
-          </View>
-        </View>
-
         <View style={styles.statusPatio}>
           <View style={styles.statusHeader}>
             <Text style={styles.statusFont}>Vagas</Text>
@@ -146,10 +97,6 @@ export default function AdminHome() {
 
         <View style={styles.buttonPatio}>
           <FontAwesome name="product-hunt" size={45} color={Colors.white} />
-        </View>
-
-        <View style={styles.buttonDashboard}>
-          <Ionicons name="bar-chart" size={45} color={Colors.white} />
         </View>
       </LinearGradient>
     </View>

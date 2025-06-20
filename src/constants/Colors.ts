@@ -13,6 +13,7 @@ export default {
   darkGray: '#6b7280',
   zinc: '#1C274C',
   zincDark: '#27272a',
+  zincLight: '#e4e4e7',
 
   // Tons de vermelho (erros/avisos)
   red: '#e53935',
@@ -21,6 +22,15 @@ export default {
   // Tons de verde (sucesso)
   green: '#28a745',
   greenDark: '#1e7e34',
+
+  // Cores do botões
+  buttongreen: "#3AEE26",
+  buttonRed: "#FF2727",
+  buttonBlue: "#0080D9",
+  buttonOrange: "#FFA500",
+
+  // Tons para borda
+  mediumGrayAlpha: "rgb(209, 213, 219, 0.1)",
 
   // Outros
   yellow: '#ffc107',

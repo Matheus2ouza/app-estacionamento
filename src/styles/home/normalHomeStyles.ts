@@ -49,73 +49,12 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 20,
   },
-  cashData: {
-    alignItems: "center",
-    height: 250,
-    width: "90%",
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-
-    // Sombras para iOS
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-
-    // Sombra para Android
-    elevation: 4,
-  },
-  cashDataHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    width: "90%",
-    height: 50,
-    borderBottomWidth: 2,
-    borderBottomColor: Colors.mediumGray,
-  },
-  cashFont: {
-    fontFamily: "Roboto_600SemiBold",
-    fontSize: 25,
-  },
-  refreshIcon: {
-    width: 35,
-    height: 35,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Colors.blueLogo,
-  },
-  cashDataBody: {
-    width: "90%",
-    paddingVertical: 5,
-  },
-  cashDataRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 5,
-  },
-  values: {
-    fontFamily: "Roboto_500Medium",
-  },
-  separatorBar: {
-    height: 2,
-    backgroundColor: Colors.zincLight,
-    borderRadius: 4,
-    marginTop: 2,
-    marginBottom: 4,
-  },
   statusPatio: {
     alignItems: "center",
     height: 200,
     width: "90%",
     backgroundColor: Colors.white,
     borderRadius: 12,
-    marginTop: 50,
-    overflow: "hidden",
 
     // Sombras para iOS
     shadowColor: "#000",
@@ -138,6 +77,14 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: Colors.mediumGray,
   },
+  refreshIcon: {
+    width: 35,
+    height: 35,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.blueLogo,
+  },
   statusFont: {
     fontFamily: "Roboto_600SemiBold",
     fontSize: 25,
@@ -148,6 +95,7 @@ export const styles = StyleSheet.create({
     width: "100%",
     backgroundColor: Colors.white,
     paddingVertical: 10,
+    borderRadius: 12,
   },
   statusColumnFree: {
     flex: 1,
@@ -193,7 +141,7 @@ export const styles = StyleSheet.create({
   iconDescriptionRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginHorizontal: 4,
+    marginHorizontal: 5,
   },
   iconText: {
     fontSize: 12,
@@ -248,13 +196,5 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     borderRadius: 5,
     backgroundColor: Colors.buttonBlue,
-  },
-  buttonDashboard: {
-    width: 60,
-    height: 70,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 5,
-    backgroundColor: Colors.buttonOrange,
-  },
+  }
 });

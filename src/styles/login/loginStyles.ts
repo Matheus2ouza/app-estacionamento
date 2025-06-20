@@ -4,13 +4,14 @@ import { StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    minHeight: '100%'
+    minHeight: '100%',
+    overflow: 'visible'
   },
   heroImage: {
     position: 'absolute',
     top: 80,
-    right: -200,
-    width: '95%',
+    right: -270,
+    width: '130%',
     height: '95%',
     transform: [{ scaleX: -1 }],
     resizeMode: 'cover',
@@ -46,7 +47,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
-    paddingTop: 100,
+    paddingTop: 200,
     paddingHorizontal: 14,
   },
   input: {
