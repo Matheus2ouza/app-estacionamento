@@ -84,7 +84,6 @@ export default function Login() {
               mode="outlined"
               style={styles.input}
               autoCapitalize="none"
-              keyboardType="email-address"
             />
 
             <TextInput

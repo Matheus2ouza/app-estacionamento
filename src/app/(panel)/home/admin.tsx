@@ -8,7 +8,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Pressable, Text, TouchableOpacity, View } from "react-native";
 
 export default function AdminHome() {
   const { role } = useAuth();
@@ -35,7 +35,6 @@ export default function AdminHome() {
             <AntDesign name="user" size={30} color="#fff" />
           </View>
         </TouchableOpacity>
-
       </LinearGradient>
 
       <View style={styles.body}>
@@ -89,7 +88,6 @@ export default function AdminHome() {
           </View>
 
           <View style={styles.statusBody}>
-            {/* Bloco de livres */}
             <View style={styles.statusColumnFree}>
               <Text style={styles.statusNumberFree}>99</Text>
               <Text style={styles.statusLabelFree}>livres</Text>
@@ -101,7 +99,6 @@ export default function AdminHome() {
               <Text style={styles.statusNumberClose}>99</Text>
               <Text style={styles.statusLabelClose}>em uso</Text>
 
-              {/* Nova row horizontal */}
               <View style={styles.descriptionCloseRowHorizontal}>
                 <View style={styles.iconDescriptionRow}>
                   <MaterialCommunityIcons
@@ -136,13 +133,25 @@ export default function AdminHome() {
         end={{ x: 1, y: 0 }}
         style={styles.bottomBar}
       >
-        <View style={styles.buttonEntry}>
-          <Entypo name="login" size={45} color={Colors.white} />
-        </View>
+        <Pressable
+          onPress={() => {
+            router.push("/Functions/entreyRegister");
+          }}
+        >
+          <View style={styles.buttonEntry}>
+            <Entypo name="login" size={45} color={Colors.white} />
+          </View>
+        </Pressable>
 
-        <View style={styles.buttonExit}>
-          <Entypo name="log-out" size={45} color={Colors.white} />
-        </View>
+        <Pressable
+          onPress={() =>{
+            router.push("/Functions/exitRegister")
+          }}
+        >
+          <View style={styles.buttonExit}>
+            <Entypo name="log-out" size={45} color={Colors.white} />
+          </View>
+        </Pressable>
 
         <View style={styles.buttonPatio}>
           <FontAwesome name="product-hunt" size={45} color={Colors.white} />

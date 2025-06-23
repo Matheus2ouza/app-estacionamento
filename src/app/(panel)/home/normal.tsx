@@ -1,13 +1,13 @@
 import Colors from "@/src/constants/Colors";
 import { styles } from "@/src/styles/home/normalHomeStyles";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import Entypo from '@expo/vector-icons/Entypo';
+import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Pressable, Text, TouchableOpacity, View } from "react-native";
 
 export default function NormalHome() {
   return (
@@ -87,13 +87,25 @@ export default function NormalHome() {
         end={{ x: 1, y: 0 }}
         style={styles.bottomBar}
       >
-        <View style={styles.buttonEntry}>
-          <Entypo name="login" size={45} color={Colors.white} />
-        </View>
+        <Pressable
+          onPress={() => {
+            router.push("/Functions/entreyRegister");
+          }}
+        >
+          <View style={styles.buttonEntry}>
+            <Entypo name="login" size={45} color={Colors.white} />
+          </View>
+        </Pressable>
 
-        <View style={styles.buttonExit}>
-          <Entypo name="log-out" size={45} color={Colors.white} />
-        </View>
+        <Pressable
+          onPress={() => {
+            router.push("/Functions/exitRegister");
+          }}
+        >
+          <View style={styles.buttonExit}>
+            <Entypo name="log-out" size={45} color={Colors.white} />
+          </View>
+        </Pressable>
 
         <View style={styles.buttonPatio}>
           <FontAwesome name="product-hunt" size={45} color={Colors.white} />

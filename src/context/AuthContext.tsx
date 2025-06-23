@@ -6,7 +6,7 @@ import type { AuthContextData, DecodedToken } from "../types/auth";
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 // Tempo de sessão em minutos
-const EXPIRATION_MINUTES = 10;
+const EXPIRATION_MINUTES = 60;
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);

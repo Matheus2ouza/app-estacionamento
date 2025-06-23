@@ -21,7 +21,8 @@ export const Fonts = {
   MontserratBold: "Montserrat_700Bold",
   RobotoRegular: "Roboto_400Regular",
   RobotoMedium: "Roboto_500Medium",
-  Roboto_600SemiBold: "Roboto_600SemiBold"
+  Roboto_600SemiBold: "Roboto_600SemiBold",
+  Roboto_700Bold: "Roboto_700Bold"
 };
 
 export default FontsToLoad;

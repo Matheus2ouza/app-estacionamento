@@ -22,7 +22,7 @@ export default function Header({ title }: HeaderProps) {
             name="left"
             size={24}
             color={Colors.white}
-            style={{ transform: [{ scaleY: 1.5 }] }}
+            style={{ transform: [{ scaleY: 1.7 }] }}
           />
         </Pressable>
         <Text style={styles.title}>{title}</Text>
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 40,
-    gap: 10,
+    gap: 15,
   },
   title: {
     fontSize: 30,
