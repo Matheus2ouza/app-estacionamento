@@ -1,15 +1,14 @@
+import { PrimaryButtonProps } from "@/src/types/components";
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, ViewStyle } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 
-interface Props {
-  title: string;
-  onPress: () => void;
-  style?: ViewStyle;
-}
-
-export function PrimaryButton({ title, onPress, style }: Props) {
+export function PrimaryButton({ title, onPress, style, disabled }: PrimaryButtonProps) {
   return (
-    <TouchableOpacity style={[styles.button, style]} onPress={onPress}>
+    <TouchableOpacity
+      style={[styles.button, style, disabled && styles.disabledButton]}
+      onPress={onPress}
+      disabled={disabled}
+    >
       <Text style={styles.buttonText}>{title}</Text>
     </TouchableOpacity>
   );
@@ -24,6 +23,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 10,
+  },
+  disabledButton: {
+    backgroundColor: '#8a8a8a',
   },
   buttonText: {
     color: '#fff',

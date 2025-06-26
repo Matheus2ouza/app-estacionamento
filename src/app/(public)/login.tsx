@@ -24,7 +24,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = React.useState(false);
 
   const { login, loading, error, clearError } = useUserLogin();
-  const auth = useAuth(); // <-- aqui para usar auth.login()
+  const auth = useAuth();
   const router = useRouter();
 
   async function handleLogin() {

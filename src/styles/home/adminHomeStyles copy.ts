@@ -47,17 +47,14 @@ export const styles = StyleSheet.create({
   },
   body: {
     flex: 1,
-    flexDirection: "column",
-    justifyContent: "space-between", // Isso empurra o bottomBar para o final
     alignItems: "center",
+    backgroundColor: Colors.yellow
   },
-  cashBox: {
-    height: "40%",
-    width: "80%",
+  cashData: {
     alignItems: "center",
+    height: 250,
+    width: "90%",
     backgroundColor: Colors.white,
-    marginTop: 10,
-
     borderRadius: 12,
 
     // Sombras para iOS
@@ -72,17 +69,18 @@ export const styles = StyleSheet.create({
     // Sombra para Android
     elevation: 4,
   },
-  BoxHeader: {
-    width: "100%",
-    height: 45,
+  cashDataHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 10,
+    width: "90%",
+    height: 50,
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.mediumGray,
   },
-  title: {
+  cashFont: {
     fontFamily: "Roboto_600SemiBold",
-    fontSize: 27,
+    fontSize: 25,
   },
   refreshIcon: {
     width: 35,
@@ -92,41 +90,33 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: Colors.blueLogo,
   },
-  cashContent: {
+  cashDataBody: {
     width: "90%",
-    marginTop: 6,
-    gap: 6,
-    flexGrow: 1,
+    paddingVertical: 5,
   },
-  cashRow: {
+  cashDataRow: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
+    paddingHorizontal: 5,
   },
-  cashLabel: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: Colors.black,
+  values: {
+    fontFamily: "Roboto_500Medium",
   },
-  cashValue: {
-    fontSize: 15,
-    fontWeight: "bold",
-    color: Colors.black,
+  separatorBar: {
+    height: 2,
+    backgroundColor: Colors.zincLight,
+    borderRadius: 4,
+    marginTop: 2,
+    marginBottom: 4,
   },
-  dottedLine: {
-    flex: 1,
-    borderBottomWidth: 1,
-    borderStyle: "dashed",
-    borderColor: Colors.mediumGray,
-    marginHorizontal: 10,
-  },
-  parkingStatus: {
-    height: "35%",
-    width: "80%",
+  statusPatio: {
     alignItems: "center",
+    height: 200,
+    width: "90%",
     backgroundColor: Colors.white,
-
     borderRadius: 12,
+    marginTop: 50,
+    overflow: "hidden",
 
     // Sombras para iOS
     shadowColor: "#000",
@@ -140,68 +130,86 @@ export const styles = StyleSheet.create({
     // Sombra para Android
     elevation: 4,
   },
-  parkingContent: {
-    flex: 1,
-    width: "100%",
-    flexDirection: "column",
-  },
-  statusParking: {
-    flex: 3,
-    flexDirection: "row", // Lado a lado
-    width: "100%",
-  },
-  freeParking: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  numberFree: {
-    fontFamily: "Roboto_700Bold",
-    fontSize: 50,
-    color: Colors.greenDark
-  },
-  labelFree: {
-    fontFamily: "Roboto_600SemiBold",
-    fontSize: 18,
-    color: Colors.greenDark,
-    marginTop: -10
-  },
-  usedParking: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  numberUsed: {
-    fontFamily: "Roboto_700Bold",
-    fontSize: 50,
-    color: Colors.red
-  },
-  labelUsed: {
-    fontFamily: "Roboto_600SemiBold",
-    fontSize: 18,
-    color: Colors.red,
-    marginTop: -10
-  },
-  detailsParking: {
-    flex: 1,
-    width: "100%",
-    alignItems: "center",
+  statusHeader: {
     flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "90%",
+    height: 50,
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.mediumGray,
+  },
+  statusFont: {
+    fontFamily: "Roboto_600SemiBold",
+    fontSize: 25,
+  },
+  statusBody: {
+    flexDirection: "row",
+    flex: 1,
+    width: "100%",
+    backgroundColor: Colors.white,
+    paddingVertical: 10,
+  },
+  statusColumnFree: {
+    flex: 1,
+    alignItems: "center",
     justifyContent: "center",
-    gap: 15
+  },
+  statusColumnClose: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "flex-end",
+  },
+  statusNumberFree: {
+    fontSize: 55,
+    fontWeight: "bold",
+    color: Colors.green,
+    marginTop: -35,
+  },
+  statusLabelFree: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: Colors.green,
+    marginTop: -15,
+  },
+  statusNumberClose: {
+    fontSize: 55,
+    fontWeight: "bold",
+    color: Colors.red, // cor que representa em uso
+    marginTop: -25,
+  },
+  statusLabelClose: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: Colors.red,
+    marginTop: -15,
+  },
+  descriptionCloseRowHorizontal: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 8,
+    width: "80%",
   },
   iconDescriptionRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginHorizontal: 5,
+    marginHorizontal: 4,
   },
   iconText: {
     fontSize: 12,
     marginLeft: 4,
   },
+  statusDivider: {
+    width: 1,
+    backgroundColor: Colors.mediumGray,
+  },
   bottomBar: {
-    height: "16%",
-    width: "100%",
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 110,
     backgroundColor: Colors.zinc,
     flexDirection: "row",
     alignItems: "center",
@@ -219,32 +227,32 @@ export const styles = StyleSheet.create({
     shadowRadius: 6,
   },
   buttonEntry: {
-    width: 50,
-    height: 60,
+    width: 60,
+    height: 70,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 5,
     backgroundColor: Colors.buttongreen,
   },
   buttonExit: {
-    width: 50,
-    height: 60,
+    width: 60,
+    height: 70,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 5,
     backgroundColor: Colors.buttonRed,
   },
   buttonPatio: {
-    width: 50,
-    height: 60,
+    width: 60,
+    height: 70,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 5,
     backgroundColor: Colors.buttonBlue,
   },
   buttonDashboard: {
-    width: 50,
-    height: 60,
+    width: 60,
+    height: 70,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 5,

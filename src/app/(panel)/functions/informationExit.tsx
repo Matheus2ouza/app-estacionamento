@@ -1,6 +1,7 @@
 import Header from "@/src/components/Header";
 import { PrimaryButton } from "@/src/components/PrimaryButton";
 import { styles } from "@/src/styles/functions/informationStyle";
+import { router } from "expo-router";
 import { Text, View } from "react-native";
 
 function registerExit() {
@@ -52,7 +53,7 @@ export default function InformationExit() {
           </View>
         </View>
 
-          <PrimaryButton title="Gerar pagamento" onPress={registerExit} style={styles.Button}/>
+          <PrimaryButton title="Gerar pagamento" onPress={()=>{router.push("/Functions/registerPayment")}} style={styles.Button}/>
       </View>
     </View>
   );

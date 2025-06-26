@@ -102,7 +102,6 @@ export default function EntreyRegister() {
         </View>
       </View>
 
-      {/* Popup controlado por estado */}
       <PopUp visible={popupVisible} message={popupMessage} onClose={clear} />
     </View>
   );

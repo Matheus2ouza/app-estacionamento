@@ -42,5 +42,6 @@ export const styles = StyleSheet.create({
   },
   Button: {
     width: '90%',
+    marginBottom: 10
   }
 });

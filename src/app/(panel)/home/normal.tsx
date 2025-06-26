@@ -34,9 +34,11 @@ export default function NormalHome() {
         <View style={styles.statusPatio}>
           <View style={styles.statusHeader}>
             <Text style={styles.statusFont}>Vagas</Text>
-            <View style={styles.refreshIcon}>
-              <FontAwesome name="refresh" size={24} color={Colors.white} />
-            </View>
+            <Pressable onPress={() =>{router.push("/FunctionsAdmin/dashboard")}}>
+              <View style={styles.refreshIcon}>
+                <FontAwesome name="refresh" size={24} color={Colors.white} />
+              </View>
+            </Pressable>
           </View>
 
           <View style={styles.statusBody}>
@@ -107,9 +109,15 @@ export default function NormalHome() {
           </View>
         </Pressable>
 
-        <View style={styles.buttonPatio}>
-          <FontAwesome name="product-hunt" size={45} color={Colors.white} />
-        </View>
+        <Pressable
+          onPress={() => {
+            router.push("/Functions/patio");
+          }}
+        >
+          <View style={styles.buttonPatio}>
+            <FontAwesome name="product-hunt" size={45} color={Colors.white} />
+          </View>
+        </Pressable>
       </LinearGradient>
     </View>
   );

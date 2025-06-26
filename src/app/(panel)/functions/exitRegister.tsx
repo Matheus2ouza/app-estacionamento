@@ -8,18 +8,11 @@ import { TextInput } from "react-native-paper";
 export default function ExitRegister() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"placa" | "nome" | "modelo">("placa");
-  const [gender, setGender] = useState<"A" | "O" | "ambos">("ambos");
 
   const filterOptions = [
     { label: "Placa", value: "placa" },
     { label: "Nome", value: "nome" },
     { label: "Modelo", value: "modelo" },
-  ];
-
-  const genderOptions = [
-    { label: "A", value: "A" },
-    { label: "O", value: "O" },
-    { label: "Ambos", value: "ambos" },
   ];
 
   return (

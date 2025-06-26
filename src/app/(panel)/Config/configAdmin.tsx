@@ -3,6 +3,7 @@ import Colors from "@/src/constants/Colors";
 import { useLogout } from "@/src/hooks/auth/useLogout";
 import { styles } from "@/src/styles/config/ConfigStyle";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { router } from "expo-router";
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -42,9 +43,11 @@ export default function ConfigAdmin() {
         </Pressable>
         <View style={styles.separator} />
 
-        <Pressable>
+        <Pressable onPress={() => {
+          router.push("/FunctionsAdmin/methodPayment")
+        }}>
           <View style={styles.optionsRow}>
-            <Text style={styles.label}>Formas de Pagamento</Text>
+            <Text style={styles.label}>Formas de Pagamento e Preços</Text>
             <AntDesign
               name="right"
               size={24}
@@ -55,7 +58,9 @@ export default function ConfigAdmin() {
         </Pressable>
         <View style={styles.separator} />
 
-        <Pressable>
+        <Pressable onPress={() => {
+          router.push("/FunctionsAdmin/patioConfig")
+        }}>
           <View style={styles.optionsRow}>
             <Text style={styles.label}>Configurações do Pátio</Text>
             <AntDesign
@@ -68,7 +73,9 @@ export default function ConfigAdmin() {
         </Pressable>
         <View style={styles.separator} />
 
-        <Pressable>
+        <Pressable onPress={() =>{
+          router.push("/FunctionsAdmin/accountInfo")
+        }}>
           <View style={styles.optionsRow}>
             <Text style={styles.label}>Funcionarios</Text>
             <AntDesign
@@ -81,7 +88,9 @@ export default function ConfigAdmin() {
         </Pressable>
         <View style={styles.separator} />
 
-        <Pressable>
+        <Pressable onPress={() => {
+          router.push("/FunctionsAdmin/historical")
+        }}>
           <View style={styles.optionsRow}>
             <Text style={styles.label}>Histórico</Text>
             <AntDesign
