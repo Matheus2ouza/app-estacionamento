@@ -1,19 +1,44 @@
-import { API_URL } from "@/src/config/api";
-import { LoginData } from "../types/auth";
+// src/services/AuthApi.ts
+import { API_URL } from '@/src/config/api';
+import axios from 'axios';
+import type { DataUser, ListUsers, LoginData, UserData } from '../types/auth';
+import axiosInstance from './axiosInstance';
 
-export async function loginUser(data: LoginData): Promise<any> {
-  const response = await fetch(`${API_URL}/auth/login`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    const errorBody = await response.json();
-    throw new Error(errorBody.message || "Falha ao fazer login");
-  }
-
-  return response.json();
+interface LoginResponse {
+  token: string;
 }
+
+export const AuthApi = {
+  loginUser: async (data: LoginData): Promise<LoginResponse> => {
+    const response = await axios.post<LoginResponse>(
+      `${API_URL}/auth/login`,
+      data,
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  },
+
+  userList: async(): Promise<ListUsers> => {
+    const response = await axiosInstance.get<ListUsers>('/auth/listUsers');
+    return response.data
+  },
+
+  userRegister: async(data: DataUser) => {
+    const response = await axiosInstance.post('/auth/register', data);
+    return response.data
+  },
+
+  editUser: async(data: UserData) => {
+    const response = await axiosInstance.post('/auth/edit', data);
+    return response.data
+  },
+
+  deleteUser: async(id: { id:string } ) => {
+    const response = await axiosInstance.post('/auth/deleteUser', id);
+    return response.data
+  }
+};

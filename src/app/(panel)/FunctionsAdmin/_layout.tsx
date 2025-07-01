@@ -1,4 +1,5 @@
 import { useAuth } from "@/src/context/AuthContext";
+import { SelectedUserProvider } from "@/src/context/SelectedUser";
 import { Stack, useRouter } from "expo-router";
 import { useEffect } from "react";
 import { Image, StyleSheet } from "react-native";
@@ -17,7 +18,9 @@ export default function FunctionsAdminLayout() {
 
     if (!isLoading && isAuthenticated) {
       if (role === "ADMIN") {
-        console.log("[FunctionsAdminLayout] Usuário ADMIN autorizado a acessar.");
+        console.log(
+          "[FunctionsAdminLayout] Usuário ADMIN autorizado a acessar."
+        );
         // Permite continuar, nada a fazer
         return;
       }
@@ -27,7 +30,9 @@ export default function FunctionsAdminLayout() {
       );
 
       if (role === "NORMAL") {
-        console.log("[FunctionsAdminLayout] Redirecionando para /(panel)/home/normal");
+        console.log(
+          "[FunctionsAdminLayout] Redirecionando para /(panel)/home/normal"
+        );
         router.replace("/(panel)/home/normal");
       } else {
         console.log(
@@ -36,26 +41,32 @@ export default function FunctionsAdminLayout() {
         router.replace("/(public)/login");
       }
     } else if (!isLoading && !isAuthenticated) {
-      console.log("[FunctionsAdminLayout] Usuário não autenticado, redirecionando para /(public)/login");
+      console.log(
+        "[FunctionsAdminLayout] Usuário não autenticado, redirecionando para /(public)/login"
+      );
       router.replace("/(public)/login");
     }
   }, [role, isLoading, isAuthenticated]);
 
   if (isLoading || !isAuthenticated) {
-    console.log("[FunctionsAdminLayout] Loading ou não autenticado, não renderiza conteúdo.");
+    console.log(
+      "[FunctionsAdminLayout] Loading ou não autenticado, não renderiza conteúdo."
+    );
     return null;
   }
 
   console.log("[FunctionsAdminLayout] Renderizando telas para ADMIN");
 
-    return (
-    <SafeAreaView style={styles.container}>
-      <Image
-        source={require("@/src/assets/images/splash-icon-blue.png")}
-        style={styles.heroImage}
-      />
-      <Stack screenOptions={{ headerShown: false }} />
-    </SafeAreaView>
+  return (
+    <SelectedUserProvider>
+      <SafeAreaView style={styles.container}>
+        <Image
+          source={require("@/src/assets/images/splash-icon-blue.png")}
+          style={styles.heroImage}
+        />
+        <Stack screenOptions={{ headerShown: false }} />
+      </SafeAreaView>
+    </SelectedUserProvider>
   );
 }
 

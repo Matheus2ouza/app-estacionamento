@@ -3,6 +3,7 @@ import Colors from "@/src/constants/Colors";
 import { useLogout } from "@/src/hooks/auth/useLogout";
 import { styles } from "@/src/styles/config/ConfigStyle";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { router } from "expo-router";
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -16,7 +17,9 @@ export default function Config() {
 
       <View style={styles.options}>
 
-        <Pressable>
+        <Pressable onPress={() => {
+          router.push("/Functions/history")
+        }}>
           <View style={styles.optionsRow}>
             <Text style={styles.label}>Histórico</Text>
             <AntDesign

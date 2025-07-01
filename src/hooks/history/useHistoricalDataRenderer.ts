@@ -9,7 +9,7 @@ export type HistoricalItem = {
   valor: string;
 };
 
-export function useHistoricalDataRenderer(
+export function useHistoryDataRenderer(
   data: HistoricalItem[],
   filter: FilterOption
 ) {

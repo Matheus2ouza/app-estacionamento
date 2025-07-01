@@ -9,6 +9,8 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
+import * as SystemUI from "expo-system-ui";
+import { useEffect, useState } from "react";
 import { Pressable, Text, TouchableOpacity, View } from "react-native";
 
 const cashData = {
@@ -28,6 +30,12 @@ const parkingNumbers = {
 
 export default function AdminHome() {
   const { role } = useAuth();
+  const [drawerVisible, setDrawerVisible] = useState(false);
+
+  useEffect(() => {
+    // Usa uma cor sólida do gradiente (última cor) como base
+    SystemUI.setBackgroundColorAsync(Colors.blueLight);
+  }, []);
 
   return (
     <View style={{ flex: 1 }}>
@@ -95,6 +103,9 @@ export default function AdminHome() {
                 <Text style={styles.numberFree}>{parkingNumbers.free}</Text>
                 <Text style={styles.labelFree}>Livres</Text>
               </View>
+
+              <View style={styles.dividerVertical} />
+
               <View style={styles.usedParking}>
                 <Text style={styles.numberUsed}>{parkingNumbers.used}</Text>
                 <Text style={styles.labelUsed}>Em uso</Text>
@@ -113,10 +124,14 @@ export default function AdminHome() {
                 <Text style={styles.iconText}>{parkingNumbers.details[0]}</Text>
               </View>
 
+              <View style={styles.dividerVertical} />
+
               <View style={styles.iconDescriptionRow}>
                 <FontAwesome name="motorcycle" size={18} color="black" />
                 <Text style={styles.iconText}>{parkingNumbers.details[1]}</Text>
               </View>
+
+              <View style={styles.dividerVertical} />
 
               <View style={styles.iconDescriptionRow}>
                 <MaterialCommunityIcons
@@ -158,7 +173,7 @@ export default function AdminHome() {
 
           <Pressable
             onPress={() => {
-              router.push("/Functions/patio");
+              router.push("/Functions/parking");
             }}
           >
             <View style={styles.buttonPatio}>

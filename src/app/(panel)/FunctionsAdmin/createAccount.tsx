@@ -1,6 +1,11 @@
+import FeedbackModal from "@/src/components/FeedbackModal";
 import Header from "@/src/components/Header";
 import { PrimaryButton } from "@/src/components/PrimaryButton";
+import RoleMenu from "@/src/components/RoleMenu";
+import Colors from "@/src/constants/Colors";
+import { useCreateUser } from "@/src/hooks/auth/useCreateUser";
 import { styles } from "@/src/styles/functions/createAccountStyle";
+
 import { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -9,28 +14,51 @@ import {
   View
 } from "react-native";
 import { Provider as PaperProvider, TextInput } from "react-native-paper";
-import DropDown from "react-native-paper-dropdown";
 
 const ROLE_OPTIONS = [
-  { label: "Administrador", value: "admin" },
-  { label: "Funcionário", value: "employee" },
+  { label: "Administrador", value: "ADMIN" },
+  { label: "Funcionário", value: "NORMAL" },
 ];
 
 export default function CreateAccount() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<string | undefined>("");
-  const [showDropdown, setShowDropdown] = useState(false);
 
-  const handleSubmit = () => {
-    console.log({ username, password, role });
-    // Aqui vai a chamada para o backend ou navegação
-  };
+  const { createUser, loading, error, success } = useCreateUser();
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalSuccess, setModalSuccess] = useState(false);
+
+const handleSubmit = async () => {
+  try {
+    await createUser({
+      username,
+      password,
+      role: role as "ADMIN" | "NORMAL",
+    });
+
+    setModalMessage("Usuário criado com sucesso!");
+    setModalSuccess(true);
+    setModalVisible(true);
+
+    // Limpa os campos
+    setUsername("");
+    setPassword("");
+    setRole("");
+  } catch (err: any) {
+    setModalMessage(err.message || "Erro ao criar usuário.");
+    setModalSuccess(false);
+    setModalVisible(true);
+  }
+};
+
 
   return (
     <PaperProvider>
       <View style={{ flex: 1 }}>
-        <Header title="Criar Conta" />
+        <Header title="Criar usuário" />
 
         <KeyboardAvoidingView
           style={{ flex: 1 }}
@@ -42,12 +70,17 @@ export default function CreateAccount() {
               keyboardShouldPersistTaps="handled"
             >
               <TextInput
-                label="Username"
+                label="Nome"
                 mode="outlined"
                 value={username}
                 onChangeText={setUsername}
                 autoCapitalize="none"
                 style={styles.input}
+                theme={{
+                  colors: {
+                    primary: Colors.blueLogo
+                  }
+                }}
               />
 
               <TextInput
@@ -57,31 +90,38 @@ export default function CreateAccount() {
                 onChangeText={setPassword}
                 secureTextEntry
                 style={styles.input}
+                theme={{
+                  colors: {
+                    primary: Colors.blueLogo
+                  }
+                }}
               />
 
-              <DropDown
-                label="Cargo"
-                mode="outlined"
-                visible={showDropdown}
-                showDropDown={() => setShowDropdown(true)}
-                onDismiss={() => setShowDropdown(false)}
+              <RoleMenu
+                label="Permissão"
                 value={role}
-                setValue={setRole}
-                list={ROLE_OPTIONS}
-                inputProps={{
-                  style: styles.input,
-                }}
+                onChange={setRole}
+                options={ROLE_OPTIONS}
+                style={styles.input}
+                
               />
             </ScrollView>
 
             <PrimaryButton
-              title="Avançar"
+              title={loading ? "Criando..." : "Registrar"}
               onPress={handleSubmit}
               style={[styles.button, { alignSelf: "center" }]}
-              disabled={!username || !password || !role}
+              disabled={!username || !password || !role || !loading}
             />
           </View>
         </KeyboardAvoidingView>
+
+        <FeedbackModal
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          message={modalMessage}
+          isSuccess={modalSuccess}
+        />
       </View>
     </PaperProvider>
   );

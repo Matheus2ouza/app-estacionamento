@@ -2,13 +2,6 @@ import Colors from "@/src/constants/Colors";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: Colors.white,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   header: {
     flexDirection: "row",
     backgroundColor: Colors.zinc,
@@ -43,39 +36,38 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: 10,
-    marginBottom: 10, // Para alinhar com o texto
+    marginBottom: 10,
   },
   body: {
+    flex: 1,
+    flexDirection: "column",
+    justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 20,
+    paddingTop: 20,
   },
-  statusPatio: {
+  parkingStatus: {
+    height: "35%",
+    width: "80%",
     alignItems: "center",
-    height: 200,
-    width: "90%",
     backgroundColor: Colors.white,
     borderRadius: 12,
-
-    // Sombras para iOS
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-
-    // Sombra para Android
     elevation: 4,
   },
-  statusHeader: {
+  BoxHeader: {
+    width: "100%",
+    height: 45,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    width: "90%",
-    height: 50,
-    borderBottomWidth: 2,
-    borderBottomColor: Colors.mediumGray,
+    paddingHorizontal: 10,
+  },
+  title: {
+    fontFamily: "Roboto_600SemiBold",
+    fontSize: 27,
   },
   refreshIcon: {
     width: 35,
@@ -85,58 +77,62 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: Colors.blueLogo,
   },
-  statusFont: {
-    fontFamily: "Roboto_600SemiBold",
-    fontSize: 25,
-  },
-  statusBody: {
-    flexDirection: "row",
+  parkingContent: {
     flex: 1,
     width: "100%",
-    backgroundColor: Colors.white,
-    paddingVertical: 10,
-    borderRadius: 12,
+    flexDirection: "column",
   },
-  statusColumnFree: {
+  statusParking: {
+    flex: 3,
+    flexDirection: "row",
+    width: "100%",
+  },
+  freeParking: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
   },
-  statusColumnClose: {
+  numberFree: {
+    fontFamily: "Roboto_700Bold",
+    fontSize: 50,
+    color: Colors.greenDark,
+  },
+  labelFree: {
+    fontFamily: "Roboto_600SemiBold",
+    fontSize: 18,
+    color: Colors.greenDark,
+    marginTop: -10,
+  },
+  usedParking: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "flex-end",
+    justifyContent: "center",
   },
-  statusNumberFree: {
-    fontSize: 55,
-    fontWeight: "bold",
-    color: Colors.green,
-    marginTop: -35
-  },
-  statusLabelFree: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: Colors.green,
-    marginTop: -15
-  },
-  statusNumberClose: {
-    fontSize: 55,
-    fontWeight: "bold",
-    color: Colors.red, // cor que representa em uso
-    marginTop: -25    
-  },
-  statusLabelClose: {
-    fontSize: 18,
-    fontWeight: "600",
+  numberUsed: {
+    fontFamily: "Roboto_700Bold",
+    fontSize: 50,
     color: Colors.red,
-    marginTop: -15,
   },
-  descriptionCloseRowHorizontal: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  labelUsed: {
+    fontFamily: "Roboto_600SemiBold",
+    fontSize: 18,
+    color: Colors.red,
+    marginTop: -10,
+  },
+  detailsParking: {
+    flex: 1,
+    width: "100%",
     alignItems: "center",
-    marginTop: 8,
-    width: "80%",
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 15,
+  },
+  dividerVertical: {
+    width: 1,
+    height: "60%", // altura proporcional ao container
+    backgroundColor: Colors.mediumGray,
+    alignSelf: "center",
+    marginHorizontal: 8,
   },
   iconDescriptionRow: {
     flexDirection: "row",
@@ -147,16 +143,9 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     marginLeft: 4,
   },
-  statusDivider: {
-    width: 1,
-    backgroundColor: Colors.mediumGray,
-  },
   bottomBar: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 110,
+    height: "16%",
+    width: "100%",
     backgroundColor: Colors.zinc,
     flexDirection: "row",
     alignItems: "center",
@@ -167,34 +156,34 @@ export const styles = StyleSheet.create({
     paddingVertical: 5,
     borderTopRightRadius: 42,
     borderTopLeftRadius: 42,
-    elevation: 8, // sombra Android
+    elevation: 8,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
   },
   buttonEntry: {
-    width: 60,
-    height: 70,
+    width: 50,
+    height: 60,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 5,
     backgroundColor: Colors.buttongreen,
   },
   buttonExit: {
-    width: 60,
-    height: 70,
+    width: 50,
+    height: 60,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 5,
     backgroundColor: Colors.buttonRed,
   },
   buttonPatio: {
-    width: 60,
-    height: 70,
+    width: 50,
+    height: 60,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 5,
     backgroundColor: Colors.buttonBlue,
-  }
+  },
 });

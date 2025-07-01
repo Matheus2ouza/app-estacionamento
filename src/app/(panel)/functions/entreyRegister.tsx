@@ -1,108 +1,133 @@
-// Componente EntreyRegister (ajustes para controlar o popup)
+import FeedbackModal from "@/src/components/FeedbackModal";
 import Header from "@/src/components/Header";
-import PopUp from "@/src/components/PopUp";
 import { PrimaryButton } from "@/src/components/PrimaryButton";
+import useRegisterVehicle from "@/src/hooks/vehicleFlow/useRegisterEntry";
 import { styles } from "@/src/styles/functions/entreyStyle";
-import React, { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Keyboard, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import { TextInput } from "react-native-paper";
 
 export default function EntreyRegister() {
-  const [name, setName] = React.useState("");
-  const [plate, setPlate] = React.useState("");
-  const [selected, setSelected] = useState<string>("carro");
+  const [plate, setPlate] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<
+    "carro" | "moto" | "carroGrande"
+  >("carro");
+  const { registerVehicle, loading, error, success, reset } =
+    useRegisterVehicle();
 
-  // Estados para o popup
-  const [popupVisible, setPopupVisible] = useState(false);
-  const [popupMessage, setPopupMessage] = useState<string | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalIsSuccess, setModalIsSuccess] = useState(false);
 
-  const options = [
-    { label: "Carro", value: "carro" },
-    { label: "Carro Grande", value: "carro_grande" },
-    { label: "Moto", value: "moto" },
-  ];
+  const handleRegister = async () => {
+    const result = await registerVehicle(plate, selectedCategory);
 
-  function handleLogin() {
-    const data = {
-      name: name,
-      plate: plate,
-      model: selected
+    setModalMessage(result.message);
+    setModalIsSuccess(result.success);
+    setModalVisible(true);
+
+    if (result.success) {
+      setPlate("");
     }
+  };
 
-    console.log('dados', data);
-
-    // Abrir popup com mensagem
-    setPopupMessage("Registro Salvo");
-    setPopupVisible(true);
-  }
-
-  function clear() {
-    setPopupVisible(false);
-    setPopupMessage(null);
-  }
+  useEffect(() => {
+    if (error || success) reset();
+  }, [plate]);
 
   return (
-    <View style={{ flex: 1 }}>
-      <Header title="Entrada" />
-
-      <View style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 24 }}>
-        <View>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View style={{ flex: 1 }}>
+        <Header title="Entrada" />
+        <View style={styles.container}>
           <View style={styles.formInputs}>
-            <TextInput
-              label="Nome"
-              value={name}
-              style={styles.input}
-              mode="outlined"
-              autoCapitalize="none"
-              onChangeText={setName}
-            />
-
             <TextInput
               label="Placa"
               value={plate}
               style={styles.input}
               mode="outlined"
-              autoCapitalize="none"
+              autoCapitalize="characters"
               onChangeText={setPlate}
             />
-          </View>
+            <View style={styles.categoryContainer}>
+              <Text style={styles.categoryLabel}>Categoria do Veículo</Text>
 
-          <View style={styles.modelOptions}>
-            <Text style={styles.optionLabel}>Categoria do Veiculo</Text>
-
-            <View style={styles.modelOptionsRow}>
-              {options.map((opt) => {
-                const isSelected = selected === opt.value;
-                return (
-                  <Pressable
-                    key={opt.value}
-                    onPress={() => setSelected(opt.value)}
+              <View style={styles.categoryButtons}>
+                <TouchableOpacity
+                  style={[
+                    styles.categoryButton,
+                    selectedCategory === "carro" && styles.categoryButtonSelected,
+                  ]}
+                  onPress={() => setSelectedCategory("carro")}
+                >
+                  <Text
                     style={[
-                      styles.modelButton,
-                      isSelected && styles.modelButtonSelected,
+                      styles.categoryButtonText,
+                      selectedCategory === "carro" &&
+                        styles.categoryButtonTextSelected,
                     ]}
                   >
-                    <Text
-                      style={[
-                        styles.modelButtonText,
-                        isSelected && styles.modelButtonTextSelected,
-                      ]}
-                    >
-                      {opt.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
+                    Carro
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.categoryButton,
+                    selectedCategory === "carroGrande" &&
+                      styles.categoryButtonSelected,
+                  ]}
+                  onPress={() => setSelectedCategory("carroGrande")}
+                >
+                  <Text
+                    style={[
+                      styles.categoryButtonText,
+                      selectedCategory === "carroGrande" &&
+                        styles.categoryButtonTextSelected,
+                    ]}
+                  >
+                    Carro Grande
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.categoryButton,
+                    selectedCategory === "moto" &&
+                      styles.categoryButtonSelected,
+                  ]}
+                  onPress={() => setSelectedCategory("moto")}
+                >
+                  <Text
+                    style={[
+                      styles.categoryButtonText,
+                      selectedCategory === "moto" &&
+                        styles.categoryButtonTextSelected,
+                    ]}
+                  >
+                    Moto
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
+          </View>
+
+          <View style={styles.buttonContainer}>
+            <PrimaryButton
+              title={loading ? "Registrando..." :"Confirmar Entrada"}
+              onPress={handleRegister}
+              style={styles.buttonConfirm}
+            />
           </View>
         </View>
 
-        <View style={styles.buttonContainer}>
-          <PrimaryButton title="Confirmar Entrada" onPress={handleLogin} style={styles.buttonConfirm} />
-        </View>
+        <FeedbackModal
+          visible={modalVisible}
+          message={modalMessage}
+          isSuccess={modalIsSuccess}
+          onClose={() => setModalVisible(false)}
+        />
       </View>
-
-      <PopUp visible={popupVisible} message={popupMessage} onClose={clear} />
-    </View>
+    </TouchableWithoutFeedback>
   );
 }

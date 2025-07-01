@@ -6,36 +6,32 @@ export default function ConfigLayout() {
   const { role, isLoading, isAuthenticated } = useAuth();
   const router = useRouter();
   const segments = useSegments();
-  const redirected = useRef(false); // <- evita múltiplos redirecionamentos
-
-  console.log(
-    "[ConfigLayout] Renderizando. Role:", role,
-    "isLoading:", isLoading,
-    "isAuthenticated:", isAuthenticated,
-    "segments:", segments
-  );
+  const redirected = useRef(false); // Evita múltiplos redirecionamentos em um mesmo ciclo
 
   useEffect(() => {
+    // Aguarda a autenticação terminar e garante que só redireciona uma vez
     if (!isLoading && isAuthenticated && !redirected.current) {
-      const lastSegment = segments[segments.length - 1];
-      console.log("[ConfigLayout] Verificando role e rota atual", { role, lastSegment });
+      const lastSegment = segments[segments.length - 1]; // Último segmento da rota atual
 
+      // Redireciona ADMIN para configAdmin
       if (role === "ADMIN" && lastSegment !== "configAdmin") {
-        console.log("[ConfigLayout] Redirecionando para configAdmin");
         redirected.current = true;
         router.replace("/(panel)/Config/configAdmin");
-      } else if (role === "NORMAL" && lastSegment !== "config") {
-        console.log("[ConfigLayout] Redirecionando para config");
+      }
+
+      // Redireciona NORMAL para config
+      else if (role === "NORMAL" && lastSegment !== "config") {
         redirected.current = true;
         router.replace("/(panel)/Config/config");
       }
     }
-  }, [isLoading, isAuthenticated, role]); // ❌ removido segments daqui
+  }, [isLoading, isAuthenticated, role]);
 
+  // Evita renderizar antes da autenticação terminar
   if (isLoading || !isAuthenticated) {
-    console.log("[ConfigLayout] Carregando ou não autenticado, não renderiza");
     return null;
   }
 
+  // Renderiza o stack de rotas (sem header)
   return <Stack screenOptions={{ headerShown: false }} />;
 }

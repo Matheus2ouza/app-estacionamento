@@ -7,37 +7,26 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function HomeLayout() {
   const { role, isLoading } = useAuth();
   const router = useRouter();
-  const segments = useSegments(); // Pega os segmentos da rota atual
+  const segments = useSegments();
 
   useEffect(() => {
-    console.log("[HomeLayout] useEffect executado");
-    console.log("[HomeLayout] isLoading:", isLoading, "role:", role);
-    console.log("[HomeLayout] segments:", segments);
+    // Aguarda até que o carregamento da autenticação esteja completo
+    if (isLoading) return;
 
-    if (isLoading) {
-      console.log("[HomeLayout] Está carregando, aguardando...");
-      return;
-    }
+    // Verifica se o usuário está dentro da rota "home"
+    const isHomeRoute = segments[1] === "home";
+    if (!isHomeRoute) return;
 
-    const isHomeRoute = segments[1] === "home"; // ['(panel)', 'home', ...]
-    console.log("[HomeLayout] isHomeRoute:", isHomeRoute);
-    if (!isHomeRoute) {
-      console.log("[HomeLayout] Não está na rota home, não redireciona");
-      return; // não redirecionar se não estiver dentro da pasta home
-    }
+    // Obtém a tela atual a partir dos segmentos da rota
+    const currentScreen = segments[segments.length - 1];
 
-    const currentScreen = segments[segments.length - 1]; // último segmento
-    console.log("[HomeLayout] currentScreen:", currentScreen);
-
+    // Redireciona o usuário para a subpasta correta com base na role
     if (role === "ADMIN" && currentScreen !== "admin") {
-      console.log("[HomeLayout] Redirecionando ADMIN para /home/admin");
       router.replace("/(panel)/home/admin");
     } else if (role === "NORMAL" && currentScreen !== "normal") {
-      console.log("[HomeLayout] Redirecionando NORMAL para /home/normal");
       router.replace("/(panel)/home/normal");
-    } else {
-      console.log("[HomeLayout] Usuário já está na rota correta");
     }
+    // Se já estiver na rota correta, não faz nada
   }, [isLoading, role, segments]);
 
   return (

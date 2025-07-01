@@ -30,7 +30,30 @@ export const styles = StyleSheet.create({
     width: "100%",
     paddingHorizontal: 10,
   },
-  search: {},
+  searchContainer: {
+    flexDirection: "column",
+    gap: 10,
+  },
+  // Novo container para o botão de refresh
+  refreshContainer: {
+    alignItems: "flex-end", // Alinha o botão à direita
+    marginTop: 8, // Espaço entre o input e o botão
+  },
+  // Botão de refresh
+  refreshButton: {
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  // Ícone de refresh
+  refreshIcon: {
+    width: 35,
+    height: 35,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.blueLogo,
+  },
   searchInput: {
     width: "100%",
   },
@@ -82,7 +105,54 @@ export const styles = StyleSheet.create({
     gap: 5,
   },
   list: {
-    marginTop: 30,
+    marginTop: 5,
+    backgroundColor: "transparent",
+  },
+  listContent: {
+    paddingBottom: 20,
+  },
+  listItem: {
+    flexDirection: "row",
+    alignItems: "flex-start", // importante: muda de 'center' para 'flex-start'
+    backgroundColor: Colors.zincLight,
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 10,
+    elevation: 2,
+    position: "relative", // necessário para o posicionamento absoluto do menu
+  },
+  itemNumber: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: Colors.blueLogo,
+    marginRight: 15,
+    minWidth: 30,
+    textAlign: "center",
+  },
+  itemData: {
+    flex: 1,
+  },
+  itemPlate: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: Colors.darkGray,
+    marginBottom: 5,
+  },
+  itemDetails: {
+    flexDirection: "row",
+    flexWrap: 'wrap',
+    justifyContent: "space-between",
+  },
+  detailText: {
+    fontSize: 13,
+    color: Colors.darkGray,
+  },
+  menuButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    padding: 8,
+    zIndex: 10, // garante que fique acima de outros elementos
   },
   listRow: {
     flexDirection: "row",

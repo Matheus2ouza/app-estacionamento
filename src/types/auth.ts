@@ -20,3 +20,24 @@ export type DecodedToken = {
   exp: number;
   iat: number;
 };
+
+export type DataUser = {
+  username: string;
+  password: string;
+  role: "ADMIN" | "NORMAL";
+}
+
+export type ListUsers = {
+  list: {
+    id: string;
+    username: string;
+    role: "ADMIN" | "NORMAL";
+  }[];
+};
+
+export type UserData = {
+  id: string;
+  username: string;
+  password?: string;
+  role: "ADMIN" | "NORMAL";
+}

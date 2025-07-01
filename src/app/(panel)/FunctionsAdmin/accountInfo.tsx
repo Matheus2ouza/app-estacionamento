@@ -1,89 +1,106 @@
 import Header from "@/src/components/Header";
+import Colors from "@/src/constants/Colors";
+import { useEmployees } from "@/src/hooks/auth/useUsersList";
 import { styles } from "@/src/styles/functions/accountInfoStyle";
 import { AntDesign } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
-import { useState } from "react";
-import { Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
-import { IconButton, Menu } from "react-native-paper";
-
-const mockEmployees = [
-  { id: "1", username: "joao123", role: "ADMIN", current: true },
-  { id: "2", username: "maria456", role: "NORMAL", current: false },
-  { id: "3", username: "carlos789", role: "NORMAL", current: false },
-];
+import { useCallback, useRef } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function Employees() {
-  const [selected, setSelected] = useState<string | null>(null);
+  const { employees, loading, error, refetch } = useEmployees();
+  const firstFocus = useRef(true);
 
-  const handleEdit = (username: string) => {
-    Alert.alert("Editar", `Editar funcionário: ${username}`);
-  };
+  useFocusEffect(
+    useCallback(() => {
+      if (firstFocus.current) {
+        firstFocus.current = false;
+        return;
+      }
+      refetch();
+    }, [refetch])
+  );
 
-  const handleDelete = (username: string) => {
-    Alert.alert("Excluir", `Deseja excluir ${username}?`);
-  };
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text>{error}</Text>
+        <TouchableOpacity onPress={refetch} style={{ marginTop: 10 }}>
+          <Text style={{ color: "blue" }}>Tentar novamente</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1 }}>
       <Header title="Funcionários" />
       <View style={styles.searchBody}>
         <FlatList
-          data={mockEmployees}
+          style={{ width: "100%" }}
+          data={employees}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <View style={{ width: "100%" }}>
               <View style={styles.separator} />
 
-              <View style={styles.searchDataRow}>
-                <View style={styles.rowHeader}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.main}>
-                      {item.username} {item.current && "(atual)"}
-                    </Text>
+              <TouchableOpacity onPress={() => {
+                // Passe os dados do usuário como parâmetros de navegação
+                router.push({
+                  pathname: "/FunctionsAdmin/editAccount",
+                  params: {
+                    id: item.id,
+                    username: item.username,
+                    role: item.role
+                  }
+                });
+              }}>
+                <View style={styles.searchDataRow}>
+                  <View style={styles.rowHeader}>
+                    <Text style={styles.main}>{item.username}</Text>
                   </View>
 
-                  <Menu
-                    visible={selected === item.id}
-                    onDismiss={() => setSelected(null)}
-                    anchor={
-                      <IconButton
-                        icon="dots-vertical"
-                        size={20}
-                        onPress={() => setSelected(item.id)}
-                        style={styles.menuAnchor}
-                      />
-                    }
-                  >
-                    <Menu.Item
-                      onPress={() => {
-                        handleEdit(item.username);
-                        setSelected(null);
-                      }}
-                      title="Editar"
-                    />
-                    <Menu.Item
-                      onPress={() => {
-                        handleDelete(item.username);
-                        setSelected(null);
-                      }}
-                      title="Apagar"
-                    />
-                  </Menu>
-                </View>
-
-                <View style={styles.information}>
-                  <View style={styles.informationColumn}>
-                    <Text style={styles.informationValue}>{item.role}</Text>
+                  <View style={styles.information}>
+                    <View style={styles.informationColumn}>
+                      <Text
+                        style={[
+                          styles.informationValue,
+                          { color: Colors.darkGray },
+                        ]}
+                      >
+                        Permissão -
+                      </Text>
+                      <Text style={styles.informationValue}>{item.role}</Text>
+                    </View>
                   </View>
                 </View>
-              </View>
+              </TouchableOpacity>
             </View>
           )}
         />
-        <View style={styles.separator} />
       </View>
 
-      <TouchableOpacity style={styles.floatingButton} onPress={() => {router.push("/FunctionsAdmin/createAccount")}}>
+      <TouchableOpacity
+        style={styles.floatingButton}
+        onPress={() => {
+          router.push("/FunctionsAdmin/createAccount");
+        }}
+      >
         <AntDesign name="adduser" size={24} color="white" />
       </TouchableOpacity>
     </View>

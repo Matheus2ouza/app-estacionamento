@@ -4,7 +4,7 @@ import SearchInput from "@/src/components/SearchInput";
 import Separator from "@/src/components/Separator";
 import {
   HistoricalItem,
-  useHistoricalDataRenderer,
+  useHistoryDataRenderer,
 } from "@/src/hooks/history/useHistoricalDataRenderer";
 import { styles } from "@/src/styles/functions/historicalStyle";
 import { useState } from "react";
@@ -32,11 +32,11 @@ const historicalMock: HistoricalItem[] = [
   },
 ];
 
-export default function Historical() {
+export default function History() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterOption>("placa");
 
-  const displayedData = useHistoricalDataRenderer(historicalMock, filter);
+  const displayedData = useHistoryDataRenderer(historicalMock, filter);
 
   return (
     <View style={{ flex: 1 }}>

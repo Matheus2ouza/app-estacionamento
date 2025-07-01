@@ -18,10 +18,12 @@ export default {
   // Tons de vermelho (erros/avisos)
   red: '#e53935',
   redDark: '#b71c1c',
+  error: '#F44336',
 
   // Tons de verde (sucesso)
   green: '#28a745',
   greenDark: '#1e7e34',
+  success: '#4CAF50',
 
   // Cores do botões
   buttongreen: "#3AEE26",

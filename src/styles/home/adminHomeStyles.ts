@@ -52,7 +52,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
   },
   cashBox: {
-    height: "40%",
+    height: "35%",
     width: "80%",
     alignItems: "center",
     backgroundColor: Colors.white,
@@ -94,22 +94,23 @@ export const styles = StyleSheet.create({
   },
   cashContent: {
     width: "90%",
-    marginTop: 6,
-    gap: 6,
-    flexGrow: 1,
+    marginHorizontal: 6,
+    flex: 1, 
+    justifyContent: "space-around", 
   },
   cashRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    flex: 1,
   },
   cashLabel: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "500",
     color: Colors.black,
   },
   cashValue: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "bold",
     color: Colors.black,
   },
@@ -150,37 +151,44 @@ export const styles = StyleSheet.create({
     flexDirection: "row", // Lado a lado
     width: "100%",
   },
+  dividerVertical: {
+    width: 1,
+    height: "60%", // altura proporcional ao container
+    backgroundColor: Colors.mediumGray,
+    alignSelf: "center",
+    marginHorizontal: 8,
+  },
   freeParking: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
   },
   numberFree: {
     fontFamily: "Roboto_700Bold",
     fontSize: 50,
-    color: Colors.greenDark
+    color: Colors.greenDark,
   },
   labelFree: {
     fontFamily: "Roboto_600SemiBold",
     fontSize: 18,
     color: Colors.greenDark,
-    marginTop: -10
+    marginTop: -10,
   },
   usedParking: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
   },
   numberUsed: {
     fontFamily: "Roboto_700Bold",
     fontSize: 50,
-    color: Colors.red
+    color: Colors.red,
   },
   labelUsed: {
     fontFamily: "Roboto_600SemiBold",
     fontSize: 18,
     color: Colors.red,
-    marginTop: -10
+    marginTop: -10,
   },
   detailsParking: {
     flex: 1,
@@ -188,12 +196,13 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "center",
-    gap: 15
+    gap: 15,
   },
+
   iconDescriptionRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginHorizontal: 5,
+    marginHorizontal: 10,
   },
   iconText: {
     fontSize: 12,

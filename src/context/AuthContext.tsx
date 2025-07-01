@@ -1,11 +1,12 @@
 import * as SecureStore from "expo-secure-store";
 import { jwtDecode } from "jwt-decode";
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { setAuthToken } from "../api/axiosInstance";
 import type { AuthContextData, DecodedToken } from "../types/auth";
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
-// Tempo de sessão em minutos
+// Tempo de sessão
 const EXPIRATION_MINUTES = 60;
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -53,6 +54,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     restoreSession();
   }, []);
+
+    useEffect(() => {
+    setAuthToken(token);
+  }, [token]);
 
   const login = async (newToken: string) => {
     try {

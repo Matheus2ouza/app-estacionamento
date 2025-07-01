@@ -1,4 +1,4 @@
-import { loginUser } from "@/src/api/userService";
+import { AuthApi } from "@/src/api/userService";
 import type { DecodedToken, LoginData } from "@/src/types/auth";
 import * as SecureStore from "expo-secure-store";
 import { jwtDecode } from "jwt-decode";
@@ -13,7 +13,7 @@ export function useUserLogin() {
     setError(null);
 
     try {
-      const response = await loginUser(data); // espera { token: string }
+      const response = await AuthApi.loginUser(data); // espera { token: string }
       const token = response.token;
 
       // Salva token localmente
@@ -32,8 +32,9 @@ export function useUserLogin() {
       };
     } catch (err: any) {
       setLoading(false);
-      setError(err.message || "Erro desconhecido");
-      throw err;
+      const message = err.response?.data?.message || "Erro desconhecido";
+      setError(message);
+      throw new Error(message); // importante para os modais também
     }
   }
 

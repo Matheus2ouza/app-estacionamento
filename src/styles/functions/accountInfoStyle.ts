@@ -3,9 +3,11 @@ import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   searchBody: {
+    height: "80%",
     alignItems: "center",
     marginTop: 10,
     gap: 10,
+    width: "100%",
   },
   separator: {
     width: "100%",
@@ -18,14 +20,17 @@ export const styles = StyleSheet.create({
     alignItems: "flex-start",
     width: "100%",
     backgroundColor: "#f2f2f2",
-    borderRadius: 10,
+    paddingVertical: 5,
     gap: 5,
   },
   main: {
     fontFamily: "Roboto_500Medium",
-    fontSize: 24,
+    fontSize: 25,
     color: "#000",
-    marginLeft: 15
+    marginLeft: 15,
+    textTransform: "uppercase",
+    flex: 1,
+    flexShrink: 1,
   },
   information: {
     flexDirection: "row",
@@ -37,16 +42,16 @@ export const styles = StyleSheet.create({
     width: "48%",
     flexDirection: "row",
     alignItems: "center",
-    gap: 7,
+    gap: 5,
+    marginLeft: 20,
   },
   informationValue: {
-    fontSize: 13,
-    marginLeft: 20
+    fontSize: 15,
   },
   rowHeader: {
     width: "100%",
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     alignItems: "center",
   },
   floatingButton: {
