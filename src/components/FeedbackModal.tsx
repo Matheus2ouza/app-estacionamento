@@ -14,9 +14,16 @@ interface FeedbackModalProps {
   message: string;
   isSuccess?: boolean;
   onClose: () => void;
+  dismissible?: boolean;
 }
 
-const FeedbackModal = ({ visible, message, isSuccess = false, onClose }: FeedbackModalProps) => {
+const FeedbackModal = ({ 
+  visible, 
+  message, 
+  isSuccess = false, 
+  onClose, 
+  dismissible = true // Valor padrão true (comportamento original)
+}: FeedbackModalProps) => {
   useEffect(() => {
     if (visible) {
       const timer = setTimeout(() => {
@@ -34,23 +41,40 @@ const FeedbackModal = ({ visible, message, isSuccess = false, onClose }: Feedbac
       visible={visible}
       onRequestClose={onClose}
     >
-      <TouchableWithoutFeedback onPress={onClose}>
+      {/* TouchableWithoutFeedback só funciona se dismissible for true */}
+      {dismissible ? (
+        <TouchableWithoutFeedback onPress={onClose}>
+          <View style={styles.centeredView}>
+            <TouchableWithoutFeedback>
+              <View style={[
+                styles.modalView,
+                isSuccess ? styles.successBackground : styles.errorBackground
+              ]}>
+                <MaterialIcons
+                  name={isSuccess ? "check-circle" : "error"}
+                  size={40}
+                  color="white"
+                />
+                <Text style={styles.modalText}>{message}</Text>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      ) : (
         <View style={styles.centeredView}>
-          <TouchableWithoutFeedback>
-            <View style={[
-              styles.modalView,
-              isSuccess ? styles.successBackground : styles.errorBackground
-            ]}>
-              <MaterialIcons
-                name={isSuccess ? "check-circle" : "error"}
-                size={40}
-                color="white"
-              />
-              <Text style={styles.modalText}>{message}</Text>
-            </View>
-          </TouchableWithoutFeedback>
+          <View style={[
+            styles.modalView,
+            isSuccess ? styles.successBackground : styles.errorBackground
+          ]}>
+            <MaterialIcons
+              name={isSuccess ? "check-circle" : "error"}
+              size={40}
+              color="white"
+            />
+            <Text style={styles.modalText}>{message}</Text>
+          </View>
         </View>
-      </TouchableWithoutFeedback>
+      )}
     </Modal>
   );
 };
@@ -60,6 +84,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'transparent'
   },
   modalView: {
     margin: 20,

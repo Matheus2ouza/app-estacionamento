@@ -1,4 +1,3 @@
-// src/hooks/useRegisterVehicle.ts
 import { VehicleApi } from "@/src/api/vehicleFlowService";
 import { useAuth } from "@/src/context/AuthContext";
 import { useState } from "react";
@@ -19,14 +18,12 @@ const useRegisterVehicle = () => {
         throw new Error("Por favor, insira a placa do veículo.");
       }
 
-      // Validação de formato de placa (antigo e Mercosul)
       const plateRegex = /^[A-Z]{3}[0-9][A-Z][0-9]{2}$|^[A-Z]{3}[0-9]{4}$/i;
       if (!plateRegex.test(plate)) {
         throw new Error("Placa inválida. Formato esperado: ABC1234 ou ABC1D23");
       }
 
       const validCategories = ["carro", "carroGrande", "moto"] as const;
-
       if (!validCategories.includes(category as any)) {
         throw new Error(
           "Categoria inválida. Escolha entre: Carro, Carro Grande ou Moto."
@@ -37,42 +34,42 @@ const useRegisterVehicle = () => {
         throw new Error("Por favor, selecione a categoria do veículo.");
       }
 
-      const register = {
-        plate: plate,
-        category: category,
+      const payload = {
+        plate: plate.toUpperCase().trim(),
+        category,
         operatorId: userId,
       };
 
-      console.log(register);
-      const response = await VehicleApi.registerEntry(register);
+      const response = await VehicleApi.registerEntry(payload);
 
+      // Trata ambos os cenários de sucesso:
+      // 1. Ticket gerado com sucesso
+      // 2. Entrada registrada mas ticket falhou (timeout)
       if (response.success) {
+        console.log(response.ticket)
         setSuccess(true);
-        return { success: true, message: response.message };
+        return {
+          success: true,
+          message: response.message, // Mensagem original do backend
+          pdfBase64: response.ticket || null, // Pode ser null
+          hasTicket: !!response.ticket, // Flag para verificação fácil
+        };
       } else {
-        throw new Error(response.message || "Erro ao registrar entrada");
+        throw new Error(response.message || "Erro ao registrar entrada.");
       }
     } catch (err: any) {
-      let errorMessage = "Erro ao registrar a entrada. Tente novamente.";
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Erro ao registrar a entrada. Tente novamente.";
 
-      if (err.response) {
-        const data = err.response.data;
-
-        // Se houver campos de erro detalhados, junte as mensagens
-        if (data?.fields) {
-          const messages = Object.values(data.fields);
-          errorMessage = messages.join(" \n ");
-        } else if (data?.message) {
-          errorMessage = data.message;
-        }
-      } else if (err instanceof Error) {
-        errorMessage = err.message;
-      } else if (typeof err === "string") {
-        errorMessage = err;
-      }
-
+      console.error("Erro no registerVehicle:", errorMessage);
       setError(errorMessage);
-      return { success: false, message: errorMessage };
+      return { 
+        success: false, 
+        message: errorMessage,
+        hasTicket: false
+      };
     } finally {
       setLoading(false);
     }

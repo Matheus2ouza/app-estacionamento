@@ -1,4 +1,4 @@
-import { PAYMENT_CONFIG } from "@/src/config/storage"; // importa a chave específica
+import { PAYMENT_CONFIG } from "@/src/config/storage";
 import { METHODS } from "@/src/constants/BillingMethods";
 import { BillingMethod, PaymentConfig } from "@/src/types/cash";
 import AsyncStorage from "@react-native-async-storage/async-storage";

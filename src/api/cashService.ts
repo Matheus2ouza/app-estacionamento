@@ -1,7 +1,13 @@
-import axios from "axios";
-import { CashData } from "../types/cash";
+import axiosInstance from "./axiosInstance";
 
-export async function getCashData(): Promise<CashData> {
-  const response = await axios.get<CashData>("/api/cash");
-  return response.data;
-}
+export const cashApi = {
+  statusCash: async (): Promise<{ success: boolean; isOpen: boolean }> => {
+    const response = await axiosInstance.get("/cash/status");
+    return response.data;
+  },
+
+  openCash: async (initialValue: number): Promise<{ success: boolean; isOpen: boolean, message: string }> => {
+    const response = await axiosInstance.post("/cash/open-cash", {initialValue});
+    return response.data
+  }
+};

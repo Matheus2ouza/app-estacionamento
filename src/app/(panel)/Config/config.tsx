@@ -47,6 +47,19 @@ export default function Config() {
 
         <Pressable onPress={handleLogout}>
           <View style={styles.optionsRow}>
+            <Text style={styles.label}>Estoque</Text>
+            <AntDesign
+              name="right"
+              size={24}
+              color={Colors.blueLogo}
+              style={{ transform: [{ scaleY: 1.5 }] }}
+            />
+          </View>
+        </Pressable>
+        <View style={styles.separator} />
+
+        <Pressable onPress={handleLogout}>
+          <View style={styles.optionsRow}>
             <Text style={styles.label}>Sair</Text>
             <AntDesign
               name="right"

@@ -1,8 +1,9 @@
 import Header from "@/src/components/Header";
 import Colors from "@/src/constants/Colors";
-import useParking from "@/src/hooks/vehicleFlow/useParking";
+import useParking from "@/src/hooks/parking/useParking";
 import { styles } from "@/src/styles/functions/parkingStyle";
 import { FontAwesome } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -15,8 +16,14 @@ import { TextInput } from "react-native-paper";
 
 export default function Parking() {
   const [search, setSearch] = useState("");
-  const [menuVisible, setMenuVisible] = useState(false);
+  const [filter, setFilter] = useState<"plate" | "category" | "operator">("plate");
   const { cars, loading, refresh, occupancyPercentage } = useParking();
+  
+  const filterOptions = [
+    { label: "Placa", value: "plate" },
+    { label: "Categoria", value: "category" },
+    { label: "Operador", value: "operator" },
+  ];
 
   const getPercentageColor = (percentage: number) => {
     if (percentage < 50) return Colors.green;
@@ -24,9 +31,19 @@ export default function Parking() {
     return Colors.red;
   };
 
-  const filteredCars = cars.filter((car) =>
-    car.plate.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredCars = cars.filter((car) => {
+    const searchTerm = search.toLowerCase();
+    switch(filter) {
+      case "plate":
+        return car.plate.toLowerCase().includes(searchTerm);
+      case "category":
+        return car.category.toLowerCase().includes(searchTerm);
+      case "operator":
+        return car.operator.toLowerCase().includes(searchTerm);
+      default:
+        return true;
+    }
+  });
 
   if (loading) {
     return (
@@ -67,12 +84,34 @@ export default function Parking() {
               style={styles.searchInput}
             />
 
-            {/* Botão de Refresh */}
-            <View style={styles.refreshContainer}>
-              <Pressable onPress={refresh}>
-                <View style={styles.refreshIcon}>
-                  <FontAwesome name="refresh" size={24} color={Colors.white} />
-                </View>
+            {/* Filtros e botão de Refresh */}
+            <View style={styles.filterRow}>
+              
+              <View style={styles.filterGroup}>
+                {filterOptions.map((opt) => {
+                  const isSelected = filter === opt.value;
+                  return (
+                    <Pressable
+                      key={opt.value}
+                      onPress={() => setFilter(opt.value as any)}
+                      style={styles.radioItem}
+                    >
+                      <View
+                        style={[
+                          styles.radioOuter,
+                          isSelected && styles.radioOuterSelected,
+                        ]}
+                      >
+                        {isSelected && <View style={styles.radioInner} />}
+                      </View>
+                      <Text style={styles.radioLabel}>{opt.label}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+
+              <Pressable onPress={refresh} style={styles.refreshButton}>
+                <FontAwesome name="refresh" size={20} color={Colors.white} />
               </Pressable>
             </View>
           </View>
@@ -82,35 +121,43 @@ export default function Parking() {
             contentContainerStyle={styles.listContent}
           >
             {filteredCars.map((car, index) => (
-              <View key={`${car.plate}-${index}`} style={styles.listItem}>
-                <Text style={styles.itemNumber}>{index + 1}</Text>
+              <Pressable
+                key={`${car.plate}-${index}`}
+                onPress={() => {
+                  router.push({
+                    pathname: "/Functions/editRegister",
+                    params: {
+                      id: car.id,
+                      plate: car.plate,
+                      category: car.category,
+                    },
+                  });
+                }}
+                style={({ pressed }) => [pressed && { opacity: 0.9 }]}
+              >
+                <View style={styles.listItem}>
+                  <Text style={styles.itemNumber}>{index + 1}</Text>
 
-                <View style={styles.itemData}>
-                  <Text style={styles.itemPlate}>{car.plate}</Text>
+                  <View style={styles.itemData}>
+                    <Text style={styles.itemPlate}>{car.plate}</Text>
 
-                  <View style={styles.itemDetails}>
-                    <Text style={styles.detailText}>
-                      Entrada: {car.formattedEntryTime}
-                    </Text>
-                    <Text style={styles.detailText}>
-                      Tempo: {car.elapsedTime}
-                    </Text>
-                  <Text style={styles.detailText}>Operador: {car.operator}</Text>
-                  <Text style={styles.detailText}>Categoria: {car.category}</Text>
+                    <View style={styles.itemDetails}>
+                      <Text style={styles.detailText}>
+                        Entrada: {car.formattedEntryTime}
+                      </Text>
+                      <Text style={styles.detailText}>
+                        Tempo: {car.elapsedTime}
+                      </Text>
+                      <Text style={styles.detailText}>
+                        Operador: {car.operator}
+                      </Text>
+                      <Text style={styles.detailText}>
+                        Categoria: {car.category}
+                      </Text>
+                    </View>
                   </View>
                 </View>
-
-                <Pressable
-                  style={styles.menuButton}
-                  onPress={() => setMenuVisible(true)}
-                >
-                  <FontAwesome
-                    name="ellipsis-v"
-                    size={20}
-                    color={Colors.darkGray}
-                  />
-                </Pressable>
-              </View>
+              </Pressable>
             ))}
           </ScrollView>
         </View>

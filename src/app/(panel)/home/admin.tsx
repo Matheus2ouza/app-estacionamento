@@ -1,16 +1,18 @@
+import CashRegisterModal from "@/src/components/CashRegisterModal";
+import FeedbackModal from "@/src/components/FeedbackModal";
 import Separator from "@/src/components/Separator";
 import Colors from "@/src/constants/Colors";
 import { useAuth } from "@/src/context/AuthContext";
+import useCashService from "@/src/hooks/cash/useCashStatus";
 import { styles } from "@/src/styles/home/adminHomeStyles";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import * as SystemUI from "expo-system-ui";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Pressable, Text, TouchableOpacity, View } from "react-native";
 
 const cashData = {
@@ -29,13 +31,90 @@ const parkingNumbers = {
 };
 
 export default function AdminHome() {
-  const { role } = useAuth();
-  const [drawerVisible, setDrawerVisible] = useState(false);
+  const { role, userId } = useAuth();
+  const { getStatusCash, postOpenCash, loading, isOpen, error } =
+    useCashService();
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [cashStatusLoaded, setCashStatusLoaded] = useState(false);
+  const [feedbackModal, setFeedbackModal] = useState({
+    visible: false,
+    message: "",
+    isSuccess: false,
+  });
 
   useEffect(() => {
     // Usa uma cor sólida do gradiente (última cor) como base
     SystemUI.setBackgroundColorAsync(Colors.blueLight);
   }, []);
+
+  const fetchCashStatus = async () => {
+    await getStatusCash();
+    setCashStatusLoaded(true);
+  };
+
+  // Verifica o status do caixa toda vez que a tela entra em foco
+  useFocusEffect(
+    useCallback(() => {
+      fetchCashStatus();
+    }, [])
+  );
+
+  useEffect(() => {
+    console.log("cashStatusLoaded:", cashStatusLoaded);
+    console.log("isOpen:", isOpen);
+
+    if (cashStatusLoaded && isOpen === false) {
+      console.log("-> Abrindo modal");
+      setIsModalVisible(true);
+    } else {
+      console.log("-> Fechando modal");
+      setIsModalVisible(false);
+    }
+  }, [isOpen, cashStatusLoaded]);
+
+  const handleOpenCash = async (initialValue: string) => {
+    try {
+      const parsedValue = parseFloat(initialValue);
+
+      if (isNaN(parsedValue)) {
+        setFeedbackModal({
+          visible: true,
+          message: "Valor inválido.",
+          isSuccess: false,
+        });
+        return;
+      }
+
+      await postOpenCash(parsedValue);
+
+      if (isOpen) {
+        setFeedbackModal({
+          visible: true,
+          message: `Caixa aberto com valor inicial: R$ ${parsedValue.toFixed(
+            2
+          )}`,
+          isSuccess: true,
+        });
+        setIsModalVisible(false);
+      } else {
+        setFeedbackModal({
+          visible: true,
+          message: "Já existe um caixa aberto para hoje.",
+          isSuccess: false,
+        });
+      }
+    } catch (err) {
+      setFeedbackModal({
+        visible: true,
+        message: "Não foi possível abrir o caixa.",
+        isSuccess: false,
+      });
+      console.error(err);
+    } finally {
+      // Atualiza o status do caixa depois da tentativa
+      await getStatusCash();
+    }
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -61,11 +140,27 @@ export default function AdminHome() {
         </TouchableOpacity>
       </LinearGradient>
 
+      {/* Modal para controle de abertura de caixa */}
+      <CashRegisterModal
+        visible={isModalVisible}
+        role={role}
+        onClose={() => setIsModalVisible(false)}
+        onOpenCashRegister={handleOpenCash}
+      />
+
+      {/* Feedback Modal */}
+      <FeedbackModal
+        visible={feedbackModal.visible}
+        message={feedbackModal.message}
+        isSuccess={feedbackModal.isSuccess}
+        onClose={() => setFeedbackModal({ ...feedbackModal, visible: false })}
+      />
+
       <View style={styles.body}>
         <View style={styles.cashBox}>
           <View style={styles.BoxHeader}>
             <Text style={styles.title}>Caixa</Text>
-            <Pressable>
+            <Pressable onPress={fetchCashStatus}>
               <View style={styles.refreshIcon}>
                 <FontAwesome name="refresh" size={24} color={Colors.white} />
               </View>
@@ -163,7 +258,7 @@ export default function AdminHome() {
 
           <Pressable
             onPress={() => {
-              router.push("/Functions/exitRegister");
+              router.push("/Functions/scanExit");
             }}
           >
             <View style={styles.buttonExit}>
@@ -182,11 +277,11 @@ export default function AdminHome() {
           </Pressable>
           <Pressable
             onPress={() => {
-              router.push("/FunctionsAdmin/dashboard");
+              router.push("/Functions/inventory");
             }}
           >
             <View style={styles.buttonDashboard}>
-              <Ionicons name="bar-chart" size={40} color={Colors.white} />
+              <MaterialCommunityIcons name="food-fork-drink" size={40} color={Colors.white} />
             </View>
           </Pressable>
         </LinearGradient>

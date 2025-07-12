@@ -1,42 +1,59 @@
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-    container: {
+  container: {
     flex: 1,
-    alignItems: 'center'
+    padding: 16,
   },
   data: {
-    flex: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingVertical: 10,
-    paddingHorizontal: 5
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 24,
   },
-  dataColumn: {
-    width: '49%',
-    paddingVertical: 15
+  column: {
+    width: "48%",
+  },
+  dataItem: {
+    marginBottom: 20,
   },
   informationTitle: {
-    fontFamily: 'Roboto_300Light',
-    fontSize: 15
+    fontFamily: "Roboto_500Medium",
+    fontSize: 14,
+    color: "#616161",
+    marginBottom: 4,
   },
   informationValue: {
-    fontFamily: 'Roboto_500Medium',
-    fontSize: 19,
-    marginLeft: 5
+    fontFamily: "Roboto_400Regular",
+    fontSize: 16,
+    color: "#212121",
   },
   input: {
-  backgroundColor: "transparent",
-  fontSize: 18,
-  height: 40,
-  width: 150,
-  paddingHorizontal: 0,
+    backgroundColor: "white",
+    fontSize: 16,
+    height: 50,
   },
-  menu: {
-    marginTop: 30
+  dropDown: {
+    backgroundColor: "white",
+    borderRadius: 4,
+    marginTop: 25,
+  },
+  dropDownItem: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+  },
+  dropDownItemText: {
+    fontSize: 16,
+    fontFamily: "Roboto_400Regular",
+  },
+  dropDownItemSelectedText: {
+    fontFamily: "Roboto_500Medium",
+    color: "#3F51B5",
+  },
+  dropDownItemSelected: {
+    backgroundColor: "#EDE7F6",
   },
   Button: {
-    width: '90%',
-    marginBottom: 10
-  }
+    width: "100%",
+    marginTop: 16,
+  },
 });

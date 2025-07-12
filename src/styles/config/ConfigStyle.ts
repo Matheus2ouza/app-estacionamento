@@ -23,6 +23,9 @@ export const styles = StyleSheet.create({
     fontSize: 20,
     color: Colors.blueLogo,
   },
+  exit: {
+    color: Colors.red
+  },
   separator: {
     width: "90%",
     height: 2,

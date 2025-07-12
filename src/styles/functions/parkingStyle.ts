@@ -34,40 +34,20 @@ export const styles = StyleSheet.create({
     flexDirection: "column",
     gap: 10,
   },
-  // Novo container para o botão de refresh
-  refreshContainer: {
-    alignItems: "flex-end", // Alinha o botão à direita
-    marginTop: 8, // Espaço entre o input e o botão
-  },
-  // Botão de refresh
-  refreshButton: {
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 10,
-  },
-  // Ícone de refresh
-  refreshIcon: {
-    width: 35,
-    height: 35,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Colors.blueLogo,
-  },
   searchInput: {
     width: "100%",
   },
-  radioGroup: {
+  filterRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  filterGroup: {
     flexDirection: "row",
     alignItems: "center",
     flexWrap: "wrap",
-    marginLeft: 5,
-    gap: 10,
-  },
-  groupTitle: {
-    fontSize: 15,
-    fontWeight: "600",
-    marginBottom: 8,
+    gap: 12,
     marginLeft: 5,
   },
   radioItem: {
@@ -75,34 +55,33 @@ export const styles = StyleSheet.create({
     alignItems: "center",
   },
   radioOuter: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     borderWidth: 2,
-    borderColor: "#444",
+    borderColor: Colors.zinc,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 6,
+    marginRight: 4,
   },
   radioOuterSelected: {
     borderColor: Colors.blueLogo,
   },
   radioInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: Colors.blueLogo,
   },
   radioLabel: {
-    fontSize: 15,
-    fontFamily: "Roboto_400Regular",
+    fontSize: 14,
+    color: Colors.zinc,
   },
-  inlineRadioContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
-    marginTop: 5,
-    gap: 5,
+  refreshButton: {
+    backgroundColor: Colors.blueLogo,
+    padding: 8,
+    borderRadius: 8,
+    marginLeft: 10,
   },
   list: {
     marginTop: 5,
@@ -113,13 +92,13 @@ export const styles = StyleSheet.create({
   },
   listItem: {
     flexDirection: "row",
-    alignItems: "flex-start", // importante: muda de 'center' para 'flex-start'
+    alignItems: "flex-start",
     backgroundColor: Colors.zincLight,
     borderRadius: 10,
     padding: 15,
     marginBottom: 10,
     elevation: 2,
-    position: "relative", // necessário para o posicionamento absoluto do menu
+    position: "relative",
   },
   itemNumber: {
     fontSize: 28,
@@ -140,55 +119,11 @@ export const styles = StyleSheet.create({
   },
   itemDetails: {
     flexDirection: "row",
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
     justifyContent: "space-between",
   },
   detailText: {
     fontSize: 13,
     color: Colors.darkGray,
-  },
-  menuButton: {
-    position: "absolute",
-    top: 10,
-    right: 10,
-    padding: 8,
-    zIndex: 10, // garante que fique acima de outros elementos
-  },
-  listRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start", // alinhamento no topo das colunas
-    width: "100%",
-    padding: 5,
-  },
-  number: {
-    fontFamily: "Montserrat_700Bold",
-    fontSize: 40,
-    marginRight: 10,
-    width: 50, // espaço fixo para coluna 1
-    textAlign: "center",
-  },
-  data: {
-    flex: 1, // ocupa o máximo de espaço possível na segunda coluna
-    flexDirection: "column",
-    justifyContent: "flex-start",
-    marginTop: 8, // deixa os dados mais para baixo em relação a número e menu
-  },
-  placa: {
-    fontFamily: "Roboto_500Medium",
-    fontSize: 30,
-  },
-  details: {
-    flexDirection: "row",
-    marginTop: 5,
-    gap: 20,
-  },
-  detailsLabel: {
-    color: Colors.darkGray,
-  },
-  menuAnchor: {
-    marginTop: 0, // pode ajustar para alinhar com o número (ex: -2, 0, 2)
-    width: 40, // largura fixa para o ícone da terceira coluna
-    marginLeft: 10,
   },
 });

@@ -1,13 +1,18 @@
+import CashRegisterModal from "@/src/components/CashRegisterModal"; // Adicionado
+import FeedbackModal from "@/src/components/FeedbackModal";
 import Separator from "@/src/components/Separator";
 import Colors from "@/src/constants/Colors";
-import { styles } from "@/src/styles/home/normalHomeStyles"; // ✅ Deve estar atualizado para seguir o padrão visual do admin
+import { useAuth } from "@/src/context/AuthContext"; // Adicionado
+import useCashService from "@/src/hooks/cash/useCashStatus"; // Adicionado
+import { styles } from "@/src/styles/home/normalHomeStyles";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { Pressable, Text, TouchableOpacity, View } from "react-native";
+import { useEffect, useState } from "react"; // Adicionado
+import { Alert, Pressable, Text, TouchableOpacity, View } from "react-native"; // Adicionado Alert
 
 const parkingNumbers = {
   free: 23,
@@ -16,6 +21,44 @@ const parkingNumbers = {
 };
 
 export default function NormalHome() {
+  const { role } = useAuth(); // Obtém o role do usuário
+  const { getStatusCash, loading, isOpen, error } = useCashService(); // Hook para verificar o caixa
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [cashStatusLoaded, setCashStatusLoaded] = useState(false);
+  const [feedbackModal, setFeedbackModal] = useState({
+    visible: false,
+    message: "",
+    isSuccess: false,
+  });
+
+  // Verifica o status do caixa ao carregar a tela
+  useEffect(() => {
+    fetchCashStatus();
+  }, []);
+
+  // Controla a exibição do modal
+  useEffect(() => {
+    if (cashStatusLoaded && isOpen === false) {
+      setIsModalVisible(true);
+    } else {
+      setIsModalVisible(false);
+    }
+  }, [isOpen, cashStatusLoaded]);
+
+  const fetchCashStatus = async () => {
+    await getStatusCash();
+    setCashStatusLoaded(true);
+  };
+
+  const handleOpenCash = (initialValue: string) => {
+    setFeedbackModal({
+      visible: true,
+      message: "Somente administradores podem abrir o caixa",
+      isSuccess: false
+    })
+    setIsModalVisible(true)
+  };
+
   return (
     <View style={{ flex: 1 }}>
       <LinearGradient
@@ -36,11 +79,26 @@ export default function NormalHome() {
         </TouchableOpacity>
       </LinearGradient>
 
+      {/* Modal para controle de caixa */}
+      <CashRegisterModal
+        visible={isModalVisible}
+        role={role}
+        onClose={() => setIsModalVisible(false)}
+        onOpenCashRegister={handleOpenCash}
+      />
+
+      <FeedbackModal
+        visible={feedbackModal.visible}
+        message={feedbackModal.message}
+        isSuccess={feedbackModal.isSuccess}
+        onClose={() => setFeedbackModal({ ...feedbackModal, visible: false })}
+      />
+
       <View style={styles.body}>
         <View style={styles.parkingStatus}>
           <View style={styles.BoxHeader}>
             <Text style={styles.title}>Vagas</Text>
-            <Pressable onPress={() => {}}>
+            <Pressable onPress={fetchCashStatus}>
               <View style={styles.refreshIcon}>
                 <FontAwesome name="refresh" size={24} color={Colors.white} />
               </View>
@@ -103,13 +161,37 @@ export default function NormalHome() {
           end={{ x: 1, y: 0 }}
           style={styles.bottomBar}
         >
-          <Pressable onPress={() => router.push("/Functions/entreyRegister")}>
+          <Pressable
+            onPress={() => {
+              // Bloqueia acesso se o caixa não estiver aberto
+              if (isOpen) {
+                router.push("/Functions/entreyRegister");
+              } else {
+                Alert.alert(
+                  "Caixa fechado",
+                  "O caixa não está aberto. Contate o administrador."
+                );
+              }
+            }}
+          >
             <View style={styles.buttonEntry}>
               <Entypo name="login" size={40} color={Colors.white} />
             </View>
           </Pressable>
 
-          <Pressable onPress={() => router.push("/Functions/exitRegister")}>
+          <Pressable
+            onPress={() => {
+              // Bloqueia acesso se o caixa não estiver aberto
+              if (isOpen) {
+                router.push("/Functions/exitRegister");
+              } else {
+                Alert.alert(
+                  "Caixa fechado",
+                  "O caixa não está aberto. Contate o administrador."
+                );
+              }
+            }}
+          >
             <View style={styles.buttonExit}>
               <Entypo name="log-out" size={40} color={Colors.white} />
             </View>

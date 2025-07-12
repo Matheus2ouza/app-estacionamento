@@ -17,77 +17,53 @@ export default function ConfigAdmin() {
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.options}>
-          <Pressable onPress={() => {
-            router.push("/Functions/entreyRegister")
-          }}>
+          <Pressable
+            onPress={() => {
+              router.push("/Functions/entreyRegister");
+            }}
+          >
             <View style={styles.optionsRow}>
               <Text style={styles.label}>Entrada</Text>
-              <AntDesign name="right" size={24} color={Colors.blueLogo} style={{ transform: [{ scaleY: 1.5 }] }} />
+              <AntDesign
+                name="right"
+                size={24}
+                color={Colors.blueLogo}
+                style={{ transform: [{ scaleY: 1.5 }] }}
+              />
+            </View>
+          </Pressable>
+
+          <View style={styles.separator} />
+
+          <Pressable
+            onPress={() => {
+              router.push("/Functions/scanExit");
+            }}
+          >
+            <View style={styles.optionsRow}>
+              <Text style={styles.label}>Saída</Text>
+              <AntDesign
+                name="right"
+                size={24}
+                color={Colors.blueLogo}
+                style={{ transform: [{ scaleY: 1.5 }] }}
+              />
             </View>
           </Pressable>
 
           <View style={styles.separator} />
 
           <Pressable onPress={() => {
-            router.push("/Functions/exitRegister")
+            router.push("/Functions/inventory")
           }}>
             <View style={styles.optionsRow}>
-              <Text style={styles.label}>Saída</Text>
-              <AntDesign name="right" size={24} color={Colors.blueLogo} style={{ transform: [{ scaleY: 1.5 }] }} />
-            </View>
-          </Pressable>
-
-          <View style={styles.separator} />
-
-          <Pressable>
-            <View style={styles.optionsRow}>
-              <Text style={styles.label}>Dashboard</Text>
-              <AntDesign name="right" size={24} color={Colors.blueLogo} style={{ transform: [{ scaleY: 1.5 }] }} />
-            </View>
-          </Pressable>
-
-          <View style={styles.separator} />
-
-          <Pressable>
-            <View style={styles.optionsRow}>
-              <Text style={styles.label}>Relatorio</Text>
-              <AntDesign name="right" size={24} color={Colors.blueLogo} style={{ transform: [{ scaleY: 1.5 }] }} />
-            </View>
-          </Pressable>
-
-          <View style={styles.separator} />
-
-          <Pressable onPress={() => router.push("/FunctionsAdmin/methodPayment")}>
-            <View style={styles.optionsRow}>
-              <Text style={styles.label}>Formas de Pagamento e Preços</Text>
-              <AntDesign name="right" size={24} color={Colors.blueLogo} style={{ transform: [{ scaleY: 1.5 }] }} />
-            </View>
-          </Pressable>
-
-          <View style={styles.separator} />
-
-          <Pressable onPress={() => router.push("/FunctionsAdmin/patioConfig")}>
-            <View style={styles.optionsRow}>
-              <Text style={styles.label}>Configurações do Pátio</Text>
-              <AntDesign name="right" size={24} color={Colors.blueLogo} style={{ transform: [{ scaleY: 1.5 }] }} />
-            </View>
-          </Pressable>
-
-          <View style={styles.separator} />
-
-          <Pressable onPress={() => router.push("/FunctionsAdmin/accountInfo")}>
-            <View style={styles.optionsRow}>
-              <Text style={styles.label}>Funcionarios</Text>
-              <AntDesign name="right" size={24} color={Colors.blueLogo} style={{ transform: [{ scaleY: 1.5 }] }} />
-            </View>
-          </Pressable>
-
-          <View style={styles.separator} />
-
-          <Pressable onPress={() => router.push("/Functions/history")}>
-            <View style={styles.optionsRow}>
-              <Text style={styles.label}>Histórico</Text>
-              <AntDesign name="right" size={24} color={Colors.blueLogo} style={{ transform: [{ scaleY: 1.5 }] }} />
+              <Text style={styles.label}>Estoque</Text>
+              <AntDesign
+                name="right"
+                size={24}
+                color={Colors.blueLogo}
+                style={{ transform: [{ scaleY: 1.5 }] }}
+              />
             </View>
           </Pressable>
 
@@ -96,7 +72,98 @@ export default function ConfigAdmin() {
           <Pressable>
             <View style={styles.optionsRow}>
               <Text style={styles.label}>Despesas</Text>
-              <AntDesign name="right" size={24} color={Colors.blueLogo} style={{ transform: [{ scaleY: 1.5 }] }} />
+              <AntDesign
+                name="right"
+                size={24}
+                color={Colors.blueLogo}
+                style={{ transform: [{ scaleY: 1.5 }] }}
+              />
+            </View>
+          </Pressable>
+
+          <View style={styles.separator} />
+
+          <Pressable>
+            <View style={styles.optionsRow}>
+              <Text style={styles.label}>Caixa</Text>
+              <AntDesign
+                name="right"
+                size={24}
+                color={Colors.blueLogo}
+                style={{ transform: [{ scaleY: 1.5 }] }}
+              />
+            </View>
+          </Pressable>
+
+          <View style={styles.separator} />
+
+          <Pressable>
+            <View style={styles.optionsRow}>
+              <Text style={styles.label}>Relatorio</Text>
+              <AntDesign
+                name="right"
+                size={24}
+                color={Colors.blueLogo}
+                style={{ transform: [{ scaleY: 1.5 }] }}
+              />
+            </View>
+          </Pressable>
+
+          <View style={styles.separator} />
+
+          <Pressable
+            onPress={() => router.push("/FunctionsAdmin/methodPayment")}
+          >
+            <View style={styles.optionsRow}>
+              <Text style={styles.label}>Formas de Pagamento e Preços</Text>
+              <AntDesign
+                name="right"
+                size={24}
+                color={Colors.blueLogo}
+                style={{ transform: [{ scaleY: 1.5 }] }}
+              />
+            </View>
+          </Pressable>
+
+          <View style={styles.separator} />
+
+          <Pressable onPress={() => router.push("/FunctionsAdmin/patioConfig")}>
+            <View style={styles.optionsRow}>
+              <Text style={styles.label}>Configurações do Pátio</Text>
+              <AntDesign
+                name="right"
+                size={24}
+                color={Colors.blueLogo}
+                style={{ transform: [{ scaleY: 1.5 }] }}
+              />
+            </View>
+          </Pressable>
+
+          <View style={styles.separator} />
+
+          <Pressable onPress={() => router.push("/FunctionsAdmin/accountInfo")}>
+            <View style={styles.optionsRow}>
+              <Text style={styles.label}>Funcionarios</Text>
+              <AntDesign
+                name="right"
+                size={24}
+                color={Colors.blueLogo}
+                style={{ transform: [{ scaleY: 1.5 }] }}
+              />
+            </View>
+          </Pressable>
+
+          <View style={styles.separator} />
+
+          <Pressable onPress={() => router.push("/Functions/history")}>
+            <View style={styles.optionsRow}>
+              <Text style={styles.label}>Histórico</Text>
+              <AntDesign
+                name="right"
+                size={24}
+                color={Colors.blueLogo}
+                style={{ transform: [{ scaleY: 1.5 }] }}
+              />
             </View>
           </Pressable>
 
@@ -104,8 +171,13 @@ export default function ConfigAdmin() {
 
           <Pressable onPress={handleLogout}>
             <View style={styles.optionsRow}>
-              <Text style={styles.label}>Sair</Text>
-              <AntDesign name="right" size={24} color={Colors.blueLogo} style={{ transform: [{ scaleY: 1.5 }] }} />
+              <Text style={[styles.label, styles.exit]}>Sair</Text>
+              <AntDesign
+                name="right"
+                size={24}
+                color={Colors.red}
+                style={{ transform: [{ scaleY: 1.5 }] }}
+              />
             </View>
           </Pressable>
 

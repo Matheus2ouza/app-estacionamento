@@ -1,0 +1,117 @@
+import Colors from "@/src/constants/Colors";
+import { StyleSheet } from "react-native";
+
+export const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.white,
+    height: "8%",
+    marginHorizontal: 16,
+    marginVertical: 12,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  searchIcon: {
+    marginLeft: 12,
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    fontSize: 16,
+    color: Colors.black,
+  },
+  refreshButton: {
+    backgroundColor: Colors.blueLogo,
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 8,
+    borderRadius: 8,
+    marginLeft: "auto",
+    marginRight: 25,
+  },
+  separator: {
+    width: "90%",
+    alignSelf: "center",
+    height: 2,
+    backgroundColor: Colors.zincLight,
+    marginTop: 5,
+    marginBottom: 10,
+  },
+  productList: {
+    paddingHorizontal: 16,
+    paddingBottom: 80, // Space for floating button
+  },
+  productCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 8,
+    padding: 16,
+    marginVertical: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  productName: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: Colors.blueLogo,
+    marginBottom: 8,
+  },
+  productDetails: {
+    justifyContent: "flex-start",
+    gap: 20,
+    marginBottom: 5,
+    flexDirection: "row",
+  },
+  productDetailText: {
+    fontSize: 14,
+    color: Colors.blueLight,
+    marginVertical: 2,
+  },
+  addButton: {
+    position: "absolute",
+    bottom: 24,
+    right: 16,
+    backgroundColor: Colors.blueLogo,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: Colors.gray,
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  emptyLink: {
+    color: Colors.blueLight,
+    fontWeight: "bold",
+    fontSize: 19,
+  },
+});
