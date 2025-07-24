@@ -1,0 +1,180 @@
+Listagem de caminhos de pasta
+O n£mero de s‚rie do volume ‚ 5CF0-7F1F
+C:.
+³   estrutura.txt
+³   
+ÃÄÄÄapi
+³       axiosInstance.ts
+³       cashService.ts
+³       parkingService.ts
+³       productsService.ts
+³       userService.ts
+³       vehicleFlowService.ts
+³       
+ÃÄÄÄapp
+³   ³   index.tsx
+³   ³   _layout.tsx
+³   ³   
+³   ÃÄÄÄ(panel)
+³   ³   ³   _layout.tsx
+³   ³   ³   
+³   ³   ÃÄÄÄConfig
+³   ³   ³       config.tsx
+³   ³   ³       configAdmin.tsx
+³   ³   ³       _layout.tsx
+³   ³   ³       
+³   ³   ÃÄÄÄFunctions
+³   ³   ³       addProduct.tsx
+³   ³   ³       editRegister.tsx
+³   ³   ³       entreyRegister.tsx
+³   ³   ³       exitRegister.tsx
+³   ³   ³       history.tsx
+³   ³   ³       informationExit.tsx
+³   ³   ³       inventory.tsx
+³   ³   ³       parking.tsx
+³   ³   ³       registerPayment.tsx
+³   ³   ³       scanExit.tsx
+³   ³   ³       _layout.tsx
+³   ³   ³       
+³   ³   ÃÄÄÄFunctionsAdmin
+³   ³   ³   ³   accountInfo.tsx
+³   ³   ³   ³   createAccount.tsx
+³   ³   ³   ³   createPayment.tsx
+³   ³   ³   ³   dashboard.tsx
+³   ³   ³   ³   editAccount.tsx
+³   ³   ³   ³   methodPayment.tsx
+³   ³   ³   ³   patioConfig.tsx
+³   ³   ³   ³   _layout.tsx
+³   ³   ³   ³   
+³   ³   ³   ÀÄÄÄ(tabs)
+³   ³   ³           cashPanel.tsx
+³   ³   ³           detailsCash.tsx
+³   ³   ³           graphicsData.tsx
+³   ³   ³           listData.tsx
+³   ³   ³           _layout.tsx
+³   ³   ³           
+³   ³   ÀÄÄÄhome
+³   ³           admin.tsx
+³   ³           normal.tsx
+³   ³           _layout.tsx
+³   ³           
+³   ÀÄÄÄ(public)
+³           login.tsx
+³           
+ÃÄÄÄassets
+³   ÀÄÄÄimages
+³           adaptive-icon-black.png
+³           adaptive-icon-blue.png
+³           adaptive-icon-white.png
+³           favico-blue.png
+³           favicon-black.png
+³           favicon-white.png
+³           splash-icon-black.png
+³           splash-icon-blue.png
+³           splash-icon-white.png
+³           
+ÃÄÄÄcomponents
+³       ApiErrorModal.tsx
+³       BarcodeScanner.tsx
+³       CashRegisterModal.tsx
+³       CashStatusModal.tsx
+³       ConfirmationModal.tsx
+³       CustomTabBar.tsx
+³       FeedbackModal.tsx
+³       FilterByField.tsx
+³       Header.tsx
+³       PopUp.tsx
+³       previewPDF.tsx
+³       PrimaryButton.tsx
+³       RoleMenu.tsx
+³       SearchInput.tsx
+³       Separator.tsx
+³       
+ÃÄÄÄconfig
+³       api.ts
+³       storage.ts
+³       
+ÃÄÄÄconstants
+³       BillingMethods.ts
+³       Colors.ts
+³       Fonts.ts
+³       
+ÃÄÄÄcontext
+³       AuthContext.tsx
+³       cashStorage.ts
+³       SelectedUser.tsx
+³       
+ÃÄÄÄhooks
+³   ÃÄÄÄauth
+³   ³       useCreateUser.ts
+³   ³       useLogin.ts
+³   ³       useLogout.ts
+³   ³       useUserActions.ts
+³   ³       useUsersList.ts
+³   ³       
+³   ÃÄÄÄcash
+³   ³       useCashDetails.ts
+³   ³       useCashStatus.ts
+³   ³       usePaymentConfig.ts
+³   ³       
+³   ÃÄÄÄhistory
+³   ³       useHistoricalDataRenderer.ts
+³   ³       
+³   ÃÄÄÄparking
+³   ³       useParking.ts
+³   ³       usePatioConfig.ts
+³   ³       
+³   ÃÄÄÄproducts
+³   ³       useRegisterProduct.ts
+³   ³       useSearchProduc.ts
+³   ³       
+³   ÀÄÄÄvehicleFlow
+³           useEditVehicle.ts
+³           useExitConfirmation.ts
+³           useExitData.ts
+³           useFetchVehicle.ts
+³           usePdfActions.ts
+³           useRegisterEntry.ts
+³           
+ÃÄÄÄstyles
+³   ÃÄÄÄconfig
+³   ³       ConfigStyle.ts
+³   ³       
+³   ÃÄÄÄfunctions
+³   ³       accountInfoStyle.ts
+³   ³       addProductStyle.ts
+³   ³       cashpanelStyle.ts
+³   ³       createAccountStyle.ts
+³   ³       createPaymentStyle.ts
+³   ³       dashboardStyle.ts
+³   ³       editAcccontStyle.ts
+³   ³       editStyle.ts
+³   ³       entreyStyle.ts
+³   ³       exitStyle.ts
+³   ³       historicalStyle.ts
+³   ³       informationStyle.ts
+³   ³       inventoryStyles.ts
+³   ³       methodPaymentStyle.ts
+³   ³       parkingStyle.ts
+³   ³       patioConfigStyle.ts
+³   ³       registerPayment.ts
+³   ³       scanExit.ts
+³   ³       
+³   ÃÄÄÄhome
+³   ³       adminHomeStyles.ts
+³   ³       normalHomeStyles.ts
+³   ³       
+³   ÀÄÄÄlogin
+³           loginStyles.ts
+³           
+ÃÄÄÄtypes
+³       auth.ts
+³       cash.ts
+³       components.d.ts
+³       parking.ts
+³       products.ts
+³       vehicleFlow.ts
+³       
+ÀÄÄÄutils
+        dateUtils.ts
+        

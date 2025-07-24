@@ -1,0 +1,36 @@
+import { cashApi } from "@/src/api/cashService";
+import { useState } from "react";
+
+const useCashDetails = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const generalCashierData = async (id: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await cashApi.geralCashData(id);
+      console.log(response.data)
+      if (response.success) {
+        return response.data;
+      } else {
+        setError(response.message || "Erro ao tentar buscar os dados do caixa");
+        return null;
+      }
+    } catch (err: any) {
+      console.error("[useCashDetails] Erro:", err);
+      setError(err.message || "Erro desconhecido");
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    generalCashierData,
+    loading,
+    error,
+  };
+};
+
+export default useCashDetails;

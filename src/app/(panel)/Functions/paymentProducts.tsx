@@ -1,0 +1,361 @@
+import { useState, useEffect } from "react";
+import {
+  ScrollView,
+  Text,
+  View,
+  TouchableOpacity,
+  ActivityIndicator,
+  Pressable,
+} from "react-native";
+import { TextInput } from "react-native-paper";
+import { useLocalSearchParams } from "expo-router";
+import { MaterialIcons, FontAwesome } from "@expo/vector-icons";
+import Header from "@/src/components/Header";
+import Colors from "@/src/constants/Colors";
+import FeedbackModal from "@/src/components/FeedbackModal";
+import { styles } from "@/src/styles/functions/paymentProductStyle";
+import LoadingModal from "@/src/components/LoadingModal";
+import { useRegisterPayment } from "@/src/hooks/products/useRegisterPayment";
+import useCashService from "@/src/hooks/cash/useCashStatus";
+import { usePdfActions } from "@/src/hooks/vehicleFlow/usePdfActions";
+import PreviewPDF from "@/src/components/PreviewPDF";
+import ProductListModal from "@/src/components/ListProducts";
+import { downloadPdf } from "@/src/utils/downloadPdf";
+
+type PaymentMethod = "Dinheiro" | "Crédito" | "Débito" | "Pix" | "";
+
+export default function PaymentProducts() {
+  const { getStatusCash, openCash, openCashId, cashStatus } = useCashService();
+  const params = useLocalSearchParams();
+
+  console.log(params);
+  const parsedSaleItems = params.saleItems
+    ? JSON.parse(String(params.saleItems))
+    : [];
+
+  console.log(parsedSaleItems);
+
+  const [isProductListVisible, setIsProductListVisible] = useState(false);
+  const [discount, setDiscount] = useState("");
+  const [paidValue, setPaidValue] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("Dinheiro");
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalIsSuccess, setModalIsSuccess] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [loadingModal, setLoadingModal] = useState(false);
+  const [textLoading, setTextLoading] = useState("");
+  const [transactionId, setTransactionId] = useState<string | null>(null);
+  const [dotText, setDotText] = useState(".");
+  const { registerPayment, error } = useRegisterPayment();
+  const [pdfBase64, setPdfBase64] = useState<string | null>(null);
+  const [pdfPreviewVisible, setPdfPreviewVisible] = useState(false);
+  const { downloadPdf, printPdf } = usePdfActions();
+
+  // Extrair parâmetros do produto
+  const quantityProducts = params.totalItems
+    ? String(params.totalItems)
+    : "Produto Desconhecido";
+  const totalAmount = params.totalAmount
+    ? parseFloat(String(params.totalAmount).replace(",", "."))
+    : 0;
+
+  // Calcular valores
+  const discountValue = parseFloat(discount.replace(",", ".")) || 0;
+  const paid = parseFloat(paidValue.replace(",", ".")) || 0;
+  const finalPrice = totalAmount - discountValue;
+  const change = paid - finalPrice;
+
+  useEffect(() => {
+    const fetchCashStatus = async () => {
+      setTextLoading("Buscando Dados...");
+      setLoadingModal(true);
+
+      try {
+        await getStatusCash();
+      } finally {
+        setLoadingModal(false);
+      }
+    };
+
+    fetchCashStatus();
+  }, []);
+
+  useEffect(() => {
+    if (!isProcessing) return;
+
+    const interval = setInterval(() => {
+      setDotText((prev) => {
+        if (prev.length >= 3) return ".";
+        return prev + ".";
+      });
+    }, 400);
+
+    return () => clearInterval(interval);
+  }, [isProcessing]);
+
+  const handlePayment = async () => {
+    if (!paymentMethod) {
+      setModalMessage("Selecione um método de pagamento");
+      setModalIsSuccess(false);
+      setModalVisible(true);
+      return;
+    }
+
+    if (paid < finalPrice) {
+      setModalMessage("Valor pago é menor que o valor final");
+      setModalIsSuccess(false);
+      setModalVisible(true);
+      return;
+    }
+
+    if (!openCashId) {
+      setModalMessage("Nenhum caixa aberto. Abra um caixa para continuar.");
+      setModalIsSuccess(false);
+      setModalVisible(true);
+      return;
+    }
+
+    setTextLoading("Registrando pagamento...");
+    setLoadingModal(true);
+    setIsProcessing(true);
+
+    const paymentData = {
+      paymentMethod,
+      cashRegisterId: openCashId,
+      totalAmount,
+      discountValue,
+      finalPrice,
+      amountReceived: Number(paidValue),
+      changeGiven: change,
+      saleItems: parsedSaleItems,
+    };
+
+    console.log("OS DADOS DE PAGAMENTO");
+    console.log(JSON.stringify(paymentData, null, 2));
+
+    try {
+      const result = await registerPayment(paymentData);
+
+      if (result.success) {
+        setModalMessage(result.message || "Pagamento registrado com sucesso!");
+        setModalIsSuccess(true);
+        setModalVisible(true);
+
+        setTimeout(() => {
+          setPdfBase64(result.pdfBase64 ?? null);
+          setPdfPreviewVisible(true);
+          setTransactionId(result.transactionId ?? null);
+        });
+      } else {
+        setModalMessage(result.message || "Erro ao registrar o pagamento.");
+        setModalIsSuccess(false);
+        setModalVisible(true);
+      }
+    } catch (error) {
+      console.error("Erro ao registrar pagamento:", error);
+      setModalMessage(
+        typeof error === "string"
+          ? error
+          : "Erro inesperado ao processar pagamento."
+      );
+      setModalIsSuccess(false);
+      setModalVisible(true);
+    } finally {
+      setLoadingModal(false);
+      setIsProcessing(false);
+    }
+  };
+
+const handleDownload = async () => {
+  if (!pdfBase64 || !transactionId) return;
+
+  const dateStr = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+  const filename = `Comprovante-${transactionId}-${dateStr}.pdf`;
+
+  try {
+    await downloadPdf(pdfBase64, filename);
+    console.log("Download feito com sucesso");
+  } catch (err) {
+    console.error("Erro ao baixar o PDF:", err);
+  }
+};
+
+  const handlePrint = () => {};
+
+  const isFormValid = paymentMethod && paidValue;
+  return (
+    <View style={styles.container}>
+      <LoadingModal visible={loadingModal} text={textLoading} />
+
+      <FeedbackModal
+        visible={modalVisible}
+        message={modalMessage}
+        isSuccess={modalIsSuccess}
+        onClose={() => setModalVisible(false)}
+      />
+
+      <ProductListModal
+        visible={isProductListVisible}
+        onClose={() => setIsProductListVisible(false)}
+        products={parsedSaleItems}
+        quantityProducts={Number(quantityProducts)}
+        totalAmount={totalAmount}
+      />
+
+      <PreviewPDF
+        base64={pdfBase64 || ""}
+        visible={pdfPreviewVisible}
+        onClose={() => setPdfPreviewVisible(false)}
+        onDownload={handleDownload}
+        onPrint={handlePrint}
+      />
+
+      <Header title="Pagamento" titleStyle={{ fontSize: 27 }} />
+
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.productInfo}>
+          <Text style={styles.productTitle}>
+            Produtos ({quantityProducts}):
+          </Text>
+          <TouchableOpacity
+            onPress={() => setIsProductListVisible(true)}
+            style={styles.fullListButton}
+          >
+            <FontAwesome name="th-list" size={22} color={Colors.white} />
+            <Text style={styles.fullListButtonText}>Lista Completa</Text>
+          </TouchableOpacity>
+          <Text style={styles.productPrice}>
+            Total: R$ {totalAmount.toFixed(2).replace(".", ",")}
+          </Text>
+        </View>
+
+        <View style={styles.separator} />
+
+        <View style={styles.formContainer}>
+          <TextInput
+            label="Desconto"
+            mode="outlined"
+            style={styles.input}
+            keyboardType="numeric"
+            value={discount}
+            onChangeText={setDiscount}
+            left={<TextInput.Affix text="R$" />}
+          />
+
+          <View style={styles.paymentMethodContainer}>
+            <Text style={styles.label}>Método de Pagamento:</Text>
+            <View style={styles.methodButtons}>
+              {(["Dinheiro", "Crédito", "Débito", "Pix"] as const).map(
+                (method) => (
+                  <TouchableOpacity
+                    key={method}
+                    style={[
+                      styles.methodButton,
+                      paymentMethod === method && styles.methodButtonSelected,
+                    ]}
+                    onPress={() => setPaymentMethod(method)}
+                  >
+                    <MaterialIcons
+                      name={
+                        method === "Dinheiro"
+                          ? "attach-money"
+                          : method === "Crédito"
+                          ? "credit-card"
+                          : method === "Débito"
+                          ? "credit-card"
+                          : "pix"
+                      }
+                      size={24}
+                      color={
+                        paymentMethod === method
+                          ? Colors.white
+                          : Colors.blue.light
+                      }
+                    />
+                    <Text
+                      style={[
+                        styles.methodButtonText,
+                        paymentMethod === method &&
+                          styles.methodButtonTextSelected,
+                      ]}
+                    >
+                      {method}
+                    </Text>
+                  </TouchableOpacity>
+                )
+              )}
+            </View>
+          </View>
+
+          <TextInput
+            label="Valor Pago (R$)"
+            mode="outlined"
+            style={styles.input}
+            keyboardType="numeric"
+            value={paidValue}
+            onChangeText={setPaidValue}
+            left={<TextInput.Affix text="R$" />}
+          />
+
+          <View style={styles.summary}>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Total:</Text>
+              <Text style={[styles.summaryValue, { color: Colors.blue.light }]}>
+                R$ {totalAmount.toFixed(2).replace(".", ",")}
+              </Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Desconto:</Text>
+              <Text style={[styles.summaryValue, { color: Colors.red[500] }]}>
+                - R$ {discountValue.toFixed(2).replace(".", ",")}
+              </Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Valor Final:</Text>
+              <Text style={[styles.summaryValue, { color: Colors.blue.light }]}>
+                R$ {finalPrice.toFixed(2).replace(".", ",")}
+              </Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Valor Recebido:</Text>
+              <Text style={[styles.summaryValue, { color: Colors.blue.light }]}>
+                R$ {Number(paidValue).toFixed(2).replace(".", ",")}
+              </Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Troco:</Text>
+              <Text
+                style={[
+                  styles.summaryValue,
+                  change >= 0 ? styles.positive : styles.negative,
+                ]}
+              >
+                R$ {Math.abs(change).toFixed(2).replace(".", ",")}
+              </Text>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+
+      <Pressable
+        style={[
+          styles.paymentButton,
+          (!isFormValid || isProcessing) && {
+            backgroundColor: Colors.gray.dark,
+          },
+        ]}
+        disabled={!isFormValid || isProcessing}
+        onPress={handlePayment}
+      >
+        {isProcessing ? (
+          <ActivityIndicator color={Colors.white} />
+        ) : (
+          <Text style={styles.paymentButtonText}>
+            {isProcessing ? `Processando${dotText}` : "Confirmar Pagamento"}
+          </Text>
+        )}
+      </Pressable>
+    </View>
+  );
+}
