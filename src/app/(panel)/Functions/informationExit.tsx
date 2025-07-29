@@ -17,7 +17,7 @@ export default function InformationExit() {
         plate: params.plate as string,
         category: params.category as string,
         time: params.time as string, // ISO string
-        entryTime: params.entryTime as string, // Hora formatada
+        entry_time: params.entryTime as string, // Hora formatada
       }
     : null;
 

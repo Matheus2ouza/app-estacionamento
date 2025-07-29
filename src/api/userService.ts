@@ -19,6 +19,7 @@ export const AuthApi = {
         }
       }
     );
+    console.log(response)
     return response.data;
   },
 

@@ -112,7 +112,7 @@ export default function EditAccount() {
                 style={[styles.input, { fontSize: 14 }]}
                 theme={{
                   colors: {
-                    primary: Colors.blueLogo,
+                    primary: Colors.blue.logo,
                   },
                 }}
               />
@@ -128,7 +128,7 @@ export default function EditAccount() {
                   style={[styles.input, { fontSize: 14 }]}
                   theme={{
                     colors: {
-                      primary: Colors.blueLogo,
+                      primary: Colors.blue.logo,
                     },
                   }}
                 />
@@ -155,7 +155,7 @@ export default function EditAccount() {
                 <PrimaryButton
                   title={loadingDelete ? "Excluindo..." : "Excluir"}
                   onPress={handleDeleteUser}
-                  style={[styles.button, { backgroundColor: Colors.red }]}
+                  style={[styles.button, { backgroundColor: Colors.red[500] }]}
                 />
               </View>
             </ScrollView>

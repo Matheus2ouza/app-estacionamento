@@ -5,7 +5,7 @@ interface ExitData {
   plate: string;
   category: string;
   time: string; // Pode ser "10/07/2025 16:58:39" ou "2025-07-10T19:58:39.747Z"
-  entryTime: string; // Ex: "16:58"
+  entry_time: string; // Ex: "16:58"
 }
 
 interface CalculatedExitData {
@@ -76,7 +76,7 @@ export const useExitConfirmation = (initialData: ExitData | null) => {
 
       return {
         ...initialData,
-        formattedEntryTime: initialData.entryTime,
+        formattedEntryTime: initialData.entry_time,
         ...exitData,
       };
     } catch (error) {

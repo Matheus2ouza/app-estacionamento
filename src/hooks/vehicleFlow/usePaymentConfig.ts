@@ -1,119 +1,222 @@
-import { useState, useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { PaymentConfig, BillingMethod } from "@/src/types/cash";
-import { BILLING_METHODS, VEHICLE_TYPES } from "@/src/constants/BillingMethods";
+import { useState, useCallback } from "react";
+import {
+  PaymentConfig,
+  BillingMethod,
+  VehicleCategory,
+  BillingMethodWithRules,
+  ActiveBillingRuleWithMethod,
+} from "@/src/types/cash";
+import { cashApi } from "@/src/api/cashService";
 
-const CONFIG_STORAGE_KEY = "@PaymentConfig";
+// Tipos de veículo baseados no enum do Prisma
+const VEHICLE_TYPES = [
+  { id: VehicleCategory.CARRO, name: "Carro" },
+  { id: VehicleCategory.MOTO, name: "Moto" },
+];
 
 export const usePaymentConfig = () => {
   const [config, setConfig] = useState<PaymentConfig | null>(null);
-  const [selectedMethod, setSelectedMethod] = useState<BillingMethod | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [selectedMethod, setSelectedMethod] =
+    useState<BillingMethodWithRules | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [billingMethods, setBillingMethods] = useState<
+    BillingMethodWithRules[]
+  >([]);
+  const [activeMethods, setActiveMethods] = useState<
+    ActiveBillingRuleWithMethod[]
+  >([]);
 
-  // Carregar configuração ao iniciar
-  useEffect(() => {
-    const loadConfig = async () => {
-      try {
-        const savedConfig = await AsyncStorage.getItem(CONFIG_STORAGE_KEY);
-        if (savedConfig) {
-          const parsedConfig: PaymentConfig = JSON.parse(savedConfig);
-          setConfig(parsedConfig);
-          
-          // Encontrar método correspondente
-          const method = BILLING_METHODS.find(m => m.id === parsedConfig.methodId);
-          if (method) setSelectedMethod(method);
-        }
-      } catch (error) {
-        console.error("Failed to load config", error);
-      } finally {
-        setIsLoading(false);
+  // Carrega todos os métodos de cobrança
+  const loadBillingMethods = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await cashApi.getBillingMethods();
+      console.log("API Response:", response); // Para debug
+
+      if (response.success) {
+        // Ajustado para usar response.methods conforme o log mostra
+        const methods = (response.methods as BillingMethodWithRules[]).map(
+          (method) => ({
+            ...method,
+            // Garantindo que temos um ID (usando name como fallback)
+            id: method.id || method.name,
+            // Garantindo que billing_rule seja um array
+            billing_rule: method.billing_rule || [],
+          })
+        );
+
+        setBillingMethods(methods);
+        return methods;
       }
-    };
-
-    loadConfig();
+      throw new Error("Failed to load billing methods");
+    } catch (error) {
+      console.error("Failed to load billing methods", error);
+      setError("Falha ao carregar métodos de cobrança");
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  // Salvar configuração
-  const saveConfig = async (newConfig: PaymentConfig) => {
+  // Carrega apenas os métodos ativos
+  const loadActiveBillingMethods = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
     try {
-      await AsyncStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(newConfig));
+      const response = await cashApi.getBillingMethodsActive();
+      console.log(response);
+      if (response.success) {
+        setActiveMethods(response.data);
+        return response.data;
+      }
+      throw new Error("Failed to load active billing methods");
+    } catch (error) {
+      console.error("Failed to load active billing methods", error);
+      setError("Falha ao carregar métodos de cobrança ativos");
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Seleciona um método de cobrança
+  const selectMethod = useCallback((method: BillingMethodWithRules) => {
+    setSelectedMethod(method);
+
+    // Define o tempo base baseado no tipo de método
+    const baseTime = method.name.includes("Hora") ? 60 : 30;
+
+    // Inicializa as regras baseadas no método selecionado
+    const initialRules: Partial<
+      Record<
+        VehicleCategory,
+        {
+          price: number;
+          base_time_minutes: number;
+        }
+      >
+    > = {};
+
+    // Verifica se existem regras e itera sobre elas
+    if (method.billing_rule && method.billing_rule.length > 0) {
+      method.billing_rule.forEach(
+        (rule: {
+          vehicle_type: VehicleCategory;
+          price: number;
+          base_time_minutes: number;
+        }) => {
+          initialRules[rule.vehicle_type] = {
+            price: rule.price,
+            base_time_minutes: baseTime, // Usa o valor fixo
+          };
+        }
+      );
+    } else {
+      // Se não houver regras, inicializa com valores padrão para todos os tipos de veículo
+      VEHICLE_TYPES.forEach((vehicle) => {
+        initialRules[vehicle.id] = {
+          price: 0,
+          base_time_minutes: baseTime, // Usa o valor fixo
+        };
+      });
+    }
+
+    setConfig({
+      methodId: method.id || method.name,
+      toleranceMinutes: method.tolerance || 0,
+      rules: initialRules,
+    });
+  }, []);
+
+  const selectMethodById = useCallback(
+    (methodId: string) => {
+      const method = billingMethods.find((m) => m.id === methodId);
+      if (method) {
+        selectMethod(method);
+      }
+    },
+    [billingMethods, selectMethod]
+  );
+
+  // Atualiza uma regra para um tipo de veículo
+  const updateRule = useCallback(
+    (
+      vehicleType: VehicleCategory,
+      field: "price", // Removido "base_time_minutes"
+      value: number
+    ) => {
+      setConfig((prev) => {
+        if (!prev) return null;
+
+        const currentRule = prev.rules[vehicleType] || {
+          price: 0,
+          base_time_minutes: selectedMethod?.name.includes("Hora") ? 60 : 30,
+        };
+
+        return {
+          ...prev,
+          rules: {
+            ...prev.rules,
+            [vehicleType]: {
+              ...currentRule,
+              [field]: value,
+            },
+          },
+        };
+      });
+    },
+    [selectedMethod]
+  );
+
+  // Atualiza a tolerância
+  const updateTolerance = useCallback((minutes: number) => {
+    setConfig((prev) => {
+      if (!prev) return null;
+      return { ...prev, toleranceMinutes: minutes };
+    });
+  }, []);
+
+  // Salva a configuração
+  const saveConfig = useCallback(async (newConfig: PaymentConfig) => {
+    setIsSaving(true);
+    setError(null);
+    try {
+      // Implemente a chamada API para salvar a configuração
+      // const response = await cashApi.savePaymentConfig(newConfig);
+      // if (!response.success) throw new Error(response.message);
+
       setConfig(newConfig);
       return true;
     } catch (error) {
       console.error("Failed to save config", error);
+      setError("Falha ao salvar configuração");
       return false;
+    } finally {
+      setIsSaving(false);
     }
-  };
-
-  // Atualizar valor específico
-  const updateValue = (
-    vehicleType: string,
-    inputKey: string,
-    value: string | number
-  ) => {
-    if (!config) return;
-
-    const newConfig = { ...config };
-    
-    if (!newConfig.values[vehicleType]) {
-      newConfig.values[vehicleType] = {};
-    }
-    
-    newConfig.values[vehicleType][inputKey] = value;
-    setConfig(newConfig);
-  };
-
-  // Atualizar valor global
-  const updateGlobalValue = (inputKey: string, value: string | number) => {
-    if (!config) return;
-
-    const newConfig = { ...config };
-    
-    if (!newConfig.globalValues) {
-      newConfig.globalValues = {};
-    }
-    
-    newConfig.globalValues[inputKey] = value;
-    setConfig(newConfig);
-  };
-
-  // Atualizar tolerância
-  const updateTolerance = (minutes: number) => {
-    if (!config) return;
-    
-    const newConfig = { ...config };
-    newConfig.toleranceMinutes = minutes;
-    setConfig(newConfig);
-  };
-
-  // Selecionar método
-  const selectMethod = (methodId: string) => {
-    const method = BILLING_METHODS.find(m => m.id === methodId);
-    if (method) {
-      setSelectedMethod(method);
-      
-      // Criar nova configuração se necessário
-      if (!config || config.methodId !== methodId) {
-        const newConfig: PaymentConfig = {
-          methodId: method.id,
-          values: {},
-          globalValues: {}
-        };
-        setConfig(newConfig);
-      }
-    }
-  };
+  }, []);
 
   return {
+    // Estado
     config,
     selectedMethod,
+    billingMethods,
+    activeMethods,
     isLoading,
+    isSaving,
+    error,
     vehicleTypes: VEHICLE_TYPES,
-    billingMethods: BILLING_METHODS,
-    saveConfig,
-    updateValue,
-    updateGlobalValue,
+
+    // Métodos
+    loadBillingMethods,
+    loadActiveBillingMethods,
+    selectMethod,
+    selectMethodById,
+    updateRule,
     updateTolerance,
-    selectMethod
+    saveConfig,
   };
 };

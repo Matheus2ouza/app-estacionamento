@@ -5,6 +5,7 @@ import { PrimaryButton } from "@/src/components/PrimaryButton";
 import { usePdfActions } from "@/src/hooks/vehicleFlow/usePdfActions";
 import useRegisterVehicle from "@/src/hooks/vehicleFlow/useRegisterEntry";
 import { styles } from "@/src/styles/functions/entreyStyle";
+import { MaterialIcons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
   Keyboard,
@@ -12,14 +13,20 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  StyleSheet,
+  Image,
 } from "react-native";
 import { TextInput } from "react-native-paper";
+import * as ImagePicker from "expo-image-picker";
+import { router } from "expo-router";
 
 export default function EntreyRegister() {
   const [plate, setPlate] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<
-    "carro" | "moto" | "carroGrande"
-  >("carro");
+  const [observation, setObservation] = useState("");
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<"carro" | "moto">(
+    "carro"
+  );
 
   const { registerVehicle, loading, error, success, reset } =
     useRegisterVehicle();
@@ -27,14 +34,19 @@ export default function EntreyRegister() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [modalIsSuccess, setModalIsSuccess] = useState(false);
-
-  // agora guarda o PDF base64
   const [pdfBase64, setPdfBase64] = useState<string | null>(null);
   const [pdfPreviewVisible, setPdfPreviewVisible] = useState(false);
-  const { downloadPdf, printPdf } = usePdfActions();
+  const { downloadPdf } = usePdfActions();
 
   const handleRegister = async () => {
-    const result = await registerVehicle(plate, selectedCategory);
+    const data = {
+      plate: plate.toUpperCase().trim(),
+      category: selectedCategory,
+      observation,
+      photo,
+    };
+
+    const result = await registerVehicle(data);
 
     setModalMessage(result.message);
     setModalIsSuccess(result.success);
@@ -44,6 +56,32 @@ export default function EntreyRegister() {
       setPdfBase64(result.pdfBase64);
       setPdfPreviewVisible(true);
     }
+  };
+
+  const handleTakePhoto = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (!permissionResult.granted) {
+      setModalMessage("Permissão para acessar a câmera foi negada");
+      setModalIsSuccess(false);
+      setModalVisible(true);
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.7,
+      base64: false,
+    });
+
+    if (!result.canceled && result.assets && result.assets[0].uri) {
+      setPhoto(result.assets[0].uri);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setPhoto(null);
   };
 
   const handleDownload = async () => {
@@ -66,21 +104,65 @@ export default function EntreyRegister() {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View style={{ flex: 1 }}>
+      <View style={styles.container}>
         <Header title="Entrada" />
-        <View style={styles.container}>
-          <View style={styles.formInputs}>
+        <View style={styles.content}>
+          <View style={styles.formContainer}>
             <TextInput
-              label="Placa"
+              label="Placa *"
               value={plate}
               style={styles.input}
               mode="outlined"
               autoCapitalize="characters"
               onChangeText={setPlate}
+              outlineColor="#ddd"
+              activeOutlineColor="#002B50"
             />
-            <View style={styles.categoryContainer}>
-              <Text style={styles.categoryLabel}>Categoria do Veículo</Text>
 
+            <View style={styles.observationContainer}>
+              <TextInput
+                placeholder="Observação (opcional)"
+                value={observation}
+                style={styles.observationInput}
+                mode="outlined"
+                multiline
+                numberOfLines={4}
+                maxLength={150}
+                onChangeText={setObservation}
+                outlineColor="#ddd"
+                activeOutlineColor="#002B50"
+                dense={true}
+              />
+              <Text style={styles.characterCount}>
+                {observation.length}/150
+              </Text>
+            </View>
+
+            <View style={styles.photoSection}>
+              <Text style={styles.sectionLabel}>Foto (opcional)</Text>
+              {photo ? (
+                <View style={styles.photoPreviewContainer}>
+                  <Image source={{ uri: photo }} style={styles.photoPreview} />
+                  <TouchableOpacity
+                    style={styles.removePhotoButton}
+                    onPress={handleRemovePhoto}
+                  >
+                    <MaterialIcons name="close" size={20} color="white" />
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={styles.addPhotoButton}
+                  onPress={handleTakePhoto}
+                >
+                  <MaterialIcons name="add-a-photo" size={24} color="#002B50" />
+                  <Text style={styles.addPhotoText}>Adicionar Foto</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <View style={styles.categoryContainer}>
+              <Text style={styles.sectionLabel}>Categoria do Veículo *</Text>
               <View style={styles.categoryButtons}>
                 <TouchableOpacity
                   style={[
@@ -98,25 +180,6 @@ export default function EntreyRegister() {
                     ]}
                   >
                     Carro
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[
-                    styles.categoryButton,
-                    selectedCategory === "carroGrande" &&
-                      styles.categoryButtonSelected,
-                  ]}
-                  onPress={() => setSelectedCategory("carroGrande")}
-                >
-                  <Text
-                    style={[
-                      styles.categoryButtonText,
-                      selectedCategory === "carroGrande" &&
-                        styles.categoryButtonTextSelected,
-                    ]}
-                  >
-                    Carro Grande
                   </Text>
                 </TouchableOpacity>
 
@@ -142,13 +205,12 @@ export default function EntreyRegister() {
             </View>
           </View>
 
-          <View style={styles.buttonContainer}>
-            <PrimaryButton
-              title={loading ? "Registrando..." : "Confirmar Entrada"}
-              onPress={handleRegister}
-              style={styles.buttonConfirm}
-            />
-          </View>
+          <PrimaryButton
+            title={loading ? "Registrando..." : "Confirmar Entrada"}
+            onPress={handleRegister}
+            style={styles.confirmButton}
+            disabled={!plate || loading}
+          />
         </View>
 
         <FeedbackModal
@@ -157,15 +219,12 @@ export default function EntreyRegister() {
           isSuccess={modalIsSuccess}
           onClose={() => setModalVisible(false)}
         />
-        {/* Modal para abrir o PDF */}
+
         <PreviewPDF
           base64={pdfBase64 || ""}
           visible={pdfPreviewVisible}
           onClose={() => setPdfPreviewVisible(false)}
           onDownload={handleDownload}
-          onPrint={() => {
-            console.log(`Impressao feita!!`);
-          }}
         />
       </View>
     </TouchableWithoutFeedback>

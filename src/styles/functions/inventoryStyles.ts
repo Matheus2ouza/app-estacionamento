@@ -30,7 +30,7 @@ export const styles = StyleSheet.create({
     color: Colors.black,
   },
   refreshButton: {
-    backgroundColor: Colors.blueLogo,
+    backgroundColor: Colors.blue.logo,
     width: 40,
     height: 40,
     alignItems: "center",
@@ -44,7 +44,7 @@ export const styles = StyleSheet.create({
     width: "90%",
     alignSelf: "center",
     height: 2,
-    backgroundColor: Colors.zincLight,
+    backgroundColor: Colors.gray.light,
     marginTop: 5,
     marginBottom: 10,
   },
@@ -66,7 +66,7 @@ export const styles = StyleSheet.create({
   productName: {
     fontSize: 22,
     fontWeight: "bold",
-    color: Colors.blueLogo,
+    color: Colors.blue.logo,
     marginBottom: 8,
   },
   productDetails: {
@@ -77,14 +77,14 @@ export const styles = StyleSheet.create({
   },
   productDetailText: {
     fontSize: 14,
-    color: Colors.blueLight,
+    color: Colors.blue.light,
     marginVertical: 2,
   },
   addButton: {
     position: "absolute",
     bottom: 24,
     right: 16,
-    backgroundColor: Colors.blueLogo,
+    backgroundColor: Colors.blue.logo,
     width: 56,
     height: 56,
     borderRadius: 28,
@@ -93,7 +93,7 @@ export const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 4,
+    shadowRadius: 5,
     elevation: 5,
   },
 
@@ -105,12 +105,12 @@ export const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: Colors.gray,
+    color: Colors.gray.light,
     marginBottom: 8,
     textAlign: "center",
   },
   emptyLink: {
-    color: Colors.blueLight,
+    color: Colors.blue.light,
     fontWeight: "bold",
     fontSize: 19,
   },

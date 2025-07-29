@@ -57,17 +57,6 @@ export default function PatioConfig() {
               style={styles.numericInput}
             />
           </View>
-
-          <View style={styles.inputRow}>
-            <Text style={styles.label}>Vagas Carros Grandes</Text>
-            <TextInput
-              keyboardType="numeric"
-              value={spots.largeCar}
-              onChangeText={(text) => handleChange("largeCar", text)}
-              placeholder="0"
-              style={styles.numericInput}
-            />
-          </View>
         </View>
 
         <View style={styles.button}>

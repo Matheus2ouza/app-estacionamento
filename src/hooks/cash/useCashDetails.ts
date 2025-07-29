@@ -1,4 +1,5 @@
 import { cashApi } from "@/src/api/cashService";
+import { ParkingApi } from "@/src/api/parkingService";
 import { useState } from "react";
 
 const useCashDetails = () => {
@@ -26,8 +27,32 @@ const useCashDetails = () => {
     }
   };
 
+  const dataToHome = async (id: string) => {
+    setError(null)
+    try{
+      const response = await cashApi.dataCashHome(id)
+      return response.data
+    } catch (err: any) {
+      console.error(`[useCashDetails] Erro: ${err}`);
+      setError(err.message || "Erro interno do servidor")
+    }
+  };
+
+  const parkingToHome = async () => {
+    setError(null)
+    try{
+      const response = await ParkingApi.getParkingData()
+      return response.data
+    } catch (err: any) {
+      console.error(`[useCashDetails] Erro: ${err}`);
+      setError(err.message || "Erro interno do servidor")
+    }
+  }
+
   return {
     generalCashierData,
+    dataToHome,
+    parkingToHome,
     loading,
     error,
   };

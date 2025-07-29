@@ -124,7 +124,7 @@ export default function ScanExit() {
         plate: plate,
         category: result?.category,
         entryTime: result?.formattedEntryTime,
-        time: result?.entryTime
+        time: result?.entry_time
       },
     })
   }

@@ -12,7 +12,7 @@ export const styles = StyleSheet.create({
   separator: {
     width: "100%",
     height: 2,
-    backgroundColor: Colors.zincLight,
+    backgroundColor: Colors.gray.light,
     marginTop: 5,
   },
   searchDataRow: {
@@ -61,7 +61,7 @@ export const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: Colors.blueLogo,
+    backgroundColor: Colors.blue.logo,
     justifyContent: "center",
     alignItems: "center",
     elevation: 5,

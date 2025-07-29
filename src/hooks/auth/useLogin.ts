@@ -13,8 +13,10 @@ export function useUserLogin() {
     setError(null);
 
     try {
-      const response = await AuthApi.loginUser(data); // espera { token: string }
+      console.log(data)
+      const response = await AuthApi.loginUser(data);
       const token = response.token;
+      console.log(response)
 
       // Salva token localmente
       await SecureStore.setItemAsync("token", token);

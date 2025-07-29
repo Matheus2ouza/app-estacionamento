@@ -67,7 +67,7 @@ const renderProductItem = ({ item }: { item: any }) => (
     if (loading) {
       return (
         <View style={styles.emptyContainer}>
-          <ActivityIndicator size="large" color={Colors.blueLight} />
+          <ActivityIndicator size="large" color={Colors.blue.light} />
         </View>
       );
     }
@@ -93,13 +93,13 @@ const renderProductItem = ({ item }: { item: any }) => (
         <FontAwesome
           name="search"
           size={20}
-          color={Colors.gray}
+          color={Colors.gray.light}
           style={styles.searchIcon}
         />
         <TextInput
           style={styles.searchInput}
           placeholder="Pesquisar produto..."
-          placeholderTextColor={Colors.gray}
+          placeholderTextColor={Colors.gray[500]}
           value={searchQuery}
           onChangeText={handleSearch}
         />

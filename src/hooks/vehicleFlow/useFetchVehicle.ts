@@ -15,16 +15,17 @@ export const useFetchVehicle = () => {
     return `${hours}:${minutes}`;
   };
 
-  // Função para parsear a string "dd/MM/yyyy HH:mm:ss" em Date corrigido para UTC
   const parseDateTime = (str: string): Date | null => {
-    const [datePart, timePart] = str.split(" ");
-    if (!datePart || !timePart) return null;
+    try {
+      const parsed = new Date(str);
+      if (isNaN(parsed.getTime())) return null;
 
-    const [day, month, year] = datePart.split("/").map(Number);
-    const [hours, minutes, seconds] = timePart.split(":").map(Number);
-
-    // Como a string vem no fuso de Belém (UTC-3), adicionamos 3 horas para armazenar em UTC
-    return new Date(Date.UTC(year, month - 1, day, hours + 3, minutes, seconds));
+      // Subtrai 3 horas para ajustar do UTC para Belém (UTC-3)
+      parsed.setHours(parsed.getHours() - 3);
+      return parsed;
+    } catch {
+      return null;
+    }
   };
 
   const fetchVehicle = async (id: string, plate: string) => {
@@ -44,8 +45,9 @@ export const useFetchVehicle = () => {
         let timeInPatio = "";
         let formattedEntryTime = "";
 
-        if (car.entryTime) {
-          const entry = parseDateTime(car.entryTime);
+        if (car.entry_time) {
+          console.log(car.entry_time);
+          const entry = parseDateTime(car.entry_time);
           if (entry) {
             setEntryTime(entry);
 
@@ -53,7 +55,9 @@ export const useFetchVehicle = () => {
             const now = new Date();
             const diffMs = now.getTime() - entry.getTime();
             const hours = Math.floor(diffMs / (1000 * 60 * 60));
-            const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+            const minutes = Math.floor(
+              (diffMs % (1000 * 60 * 60)) / (1000 * 60)
+            );
             const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
             const pad = (n: number) => n.toString().padStart(2, "0");
             timeInPatio = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
@@ -61,7 +65,7 @@ export const useFetchVehicle = () => {
             // Formata hora de entrada em UTC (HH:mm)
             formattedEntryTime = formatTimeUTC(entry);
           } else {
-            console.warn("Data de entrada inválida:", car.entryTime);
+            console.warn("Data de entrada inválida:", car.entry_time);
           }
         }
 

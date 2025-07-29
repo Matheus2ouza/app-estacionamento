@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 16,
     fontWeight: "500",
-    color: Colors.blueLogo,
+    color: Colors.blue.logo,
     textTransform: 'uppercase',
     marginBottom: 20,
     textAlign: "center",

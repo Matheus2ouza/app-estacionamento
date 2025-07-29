@@ -1,15 +1,14 @@
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 import Colors from '../constants/Colors';
 
-
 interface PreviewPDFProps {
   base64: string;
   visible: boolean;
   onClose: () => void;
-  onDownload: () => void;  // Funções para controle externo
-  onPrint: () => void;
+  onDownload: () => void;
 }
 
 const PreviewPDF: React.FC<PreviewPDFProps> = ({
@@ -17,8 +16,14 @@ const PreviewPDF: React.FC<PreviewPDFProps> = ({
   visible,
   onClose,
   onDownload,
-  onPrint,
 }) => {
+  const router = useRouter();
+  
+  const handleClose = () => {
+    onClose(); // Executa a função de fechar passada via props
+    router.back(); // Navega de volta na pilha de navegação
+  };
+
   const pdfHTML = `
     <!DOCTYPE html>
     <html>
@@ -69,28 +74,25 @@ const PreviewPDF: React.FC<PreviewPDFProps> = ({
   return (
     <Modal visible={visible} animationType="slide">
       <View style={{ flex: 1 }}>
-        {/* WebView só para mostrar o PDF */}
         <WebView
           originWhitelist={['*']}
           source={{ html: pdfHTML }}
-          style={{ flex: 1, backgroundColor: Colors.grayLight }}
+          style={{ flex: 1, backgroundColor: Colors.gray.light }}
           javaScriptEnabled
           domStorageEnabled
           mixedContentMode="always"
           scrollEnabled={true}
         />
 
-        {/* Botões fora do WebView, controle total no RN */}
         <View style={styles.buttonsContainer}>
           <TouchableOpacity style={styles.button} onPress={onDownload}>
             <Text style={styles.buttonText}>Download</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button} onPress={onPrint}>
-            <Text style={styles.buttonText}>Imprimir</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={[styles.button, styles.closeButton]} onPress={onClose}>
+          <TouchableOpacity 
+            style={[styles.button, styles.closeButton]} 
+            onPress={handleClose} // Usa a nova função handleClose
+          >
             <Text style={styles.buttonText}>Fechar</Text>
           </TouchableOpacity>
         </View>
@@ -104,7 +106,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     padding: 12,
-    backgroundColor: Colors.gray,
+    backgroundColor: Colors.gray[500],
   },
   button: {
     backgroundColor: '#007AFF',

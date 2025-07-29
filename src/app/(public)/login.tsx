@@ -51,8 +51,6 @@ export default function Login() {
 
   async function handleLogin() {
     try {
-      console.log("Iniciando login...");
-
       const { token, role } = await login({ username, password });
 
       console.log("Login bem-sucedido. Token:", token);

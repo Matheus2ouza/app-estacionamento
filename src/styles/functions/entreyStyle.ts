@@ -1,60 +1,120 @@
 import { StyleSheet } from "react-native";
+import Colors from "@/src/constants/Colors";
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 24,
-    justifyContent: "space-between",
+    backgroundColor: Colors.white,
   },
-  formInputs: {
-    gap: 16,
-    position: "relative",
+  content: {
+    flex: 1,
+    padding: 20,
+    justifyContent: 'space-between',
+  },
+  formContainer: {
+    gap: 20,
   },
   input: {
-    width: "100%",
+    backgroundColor: 'white',
+    height: 60,
+    fontSize: 16,
+  },
+  observationContainer: {
+    position: 'relative',
+  },
+  observationInputContainer: {
+    position: 'relative',
+  },
+  observationInput: {
+    height: 90,
+    textAlignVertical: 'top',
+  },
+  characterCount: {
+    position: 'absolute',
+    right: 15,
+    bottom: 15,
+    color: Colors.gray[500],
+    fontSize: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)', // Fundo levemente branco para melhor legibilidade
+    paddingHorizontal: 6,
+    borderRadius: 10,
+  },
+  sectionLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 10,
+  },
+  photoSection: {
+    marginBottom: 10,
+  },
+  addPhotoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: Colors.blue.extraLight,
+    borderRadius: 8,
+    backgroundColor: 'white',
+  },
+  addPhotoText: {
+    color: Colors.blue.dark,
+    fontWeight: '500',
+  },
+  photoPreviewContainer: {
+    position: 'relative',
+    width: '100%',
+    height: 200,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  photoPreview: {
+    width: '100%',
+    height: '100%',
+  },
+  removePhotoButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: Colors.gray.alpha,
+    borderRadius: 15,
+    width: 30,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   categoryContainer: {
-  },
-  categoryLabel: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 12,
+    marginTop: 10,
   },
   categoryButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 8,
+    flexDirection: 'row',
+    gap: 10,
   },
   categoryButton: {
-    borderWidth: 1,
-    borderColor: "#000",
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    minWidth: 80,
     flex: 1,
-    alignItems: "center",
-    backgroundColor: "#fff",
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    backgroundColor: 'white',
+    alignItems: 'center',
   },
   categoryButtonSelected: {
-    backgroundColor: "#002B50", // azul escuro
-    borderColor: "#002B50",
+    backgroundColor: Colors.blue.dark,
+    borderColor: Colors.blue.dark,
   },
   categoryButtonText: {
-    fontSize: 13,
-    color: "#000",
-    fontWeight: "500",
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.gray[900],
   },
   categoryButtonTextSelected: {
-    color: "#fff",
+    color: 'white',
   },
-  buttonContainer: {
-    marginBottom: 10,
-    alignItems: "center",
-    width: "100%",
-  },
-  buttonConfirm: {
-    width: "100%",
+  confirmButton: {
+    marginTop: 20,
+    width: '100%',
   },
 });

@@ -1,5 +1,5 @@
-import Colors from "@/src/constants/Colors";
 import { StyleSheet } from "react-native";
+import Colors from "@/src/constants/Colors";
 
 export const styles = StyleSheet.create({
   container: {
@@ -84,15 +84,12 @@ export const styles = StyleSheet.create({
     color: Colors.blue.light,
   },
   saveButton: {
-    position: "absolute",
-    bottom: 20,
-    left: 20,
-    right: 20,
     backgroundColor: Colors.primary,
     borderRadius: 10,
     padding: 16,
     alignItems: "center",
     justifyContent: "center",
+    marginTop: 20,
   },
   saveButtonText: {
     color: "white",

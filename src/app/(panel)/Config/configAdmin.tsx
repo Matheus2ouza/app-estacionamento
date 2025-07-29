@@ -162,20 +162,7 @@ export default function ConfigAdmin() {
               />
             </View>
           </Pressable>
-          <View style={styles.separator} />
-
-          <Pressable onPress={() => router.push("/FunctionsAdmin/accountInfo")}>
-            <View style={styles.optionsRow}>
-              <Text style={styles.label}>Funcionarios</Text>
-              <AntDesign
-                name="right"
-                size={24}
-                color={Colors.blue.logo}
-                style={{ transform: [{ scaleY: 1.5 }] }}
-              />
-            </View>
-          </Pressable>
-
+          
           <View style={styles.separator} />
 
           <Pressable onPress={() => router.push("/Functions/history")}>

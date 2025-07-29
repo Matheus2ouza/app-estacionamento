@@ -1,7 +1,8 @@
 export interface EntryData {
   plate: string;
-  category: string,
-  operatorId: string | null;
+  category: string;
+  observation?: string | null;
+  photo?: string | null
 }
 
 export interface EditData {
@@ -14,7 +15,7 @@ export interface Car {
   id: number,
   plate: string;
   status: string;
-  entryTime: string;
+  entry_time: string;
   operator: string;
   category: string
   description: string;

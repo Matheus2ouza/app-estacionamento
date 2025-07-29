@@ -24,7 +24,7 @@ export const styles = StyleSheet.create({
   },
   passwordHint: {
     fontSize: 12,
-    color: Colors.darkGray,
+    color: Colors.gray.dark,
     marginTop: 4,
     marginLeft: 12,
     marginBottom: -15

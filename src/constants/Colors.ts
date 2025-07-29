@@ -17,7 +17,8 @@ export default {
     logo: "#003153", // Mantendo sua cor específica
     light: "#005B96",
     dark: "#002244",
-    accent: "#2962FF"
+    accent: "#2962FF",
+    extraLight: '#E6F2FF',
   },
 
   // Tons de cinza (escala completa)
@@ -38,6 +39,7 @@ export default {
     zinc: "#1C274C",
     zincDark: "#27272a",
     zincLight: "#e4e4e7",
+    extraLight: '#F5F5F5',
     alpha: "rgb(209, 213, 219, 0.3)"
   },
 
@@ -113,6 +115,12 @@ export default {
   warning: "#FFC107", // = yellow[500]
   success: "#4CAF50", // = green[500]
   info: "#00ACC1",
+
+  button: {
+    green: "#66BB6A",
+    red: "#F44336",
+    blue: "#42A5F5"
+  },
 
   // Cores de texto
   text: {

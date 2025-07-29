@@ -1,43 +1,88 @@
-import { Response, EditData, EntryData, ParkedVehiclesResponse, RegisterVehicleResponse, SecondticketResponse, VehicleResponse } from '../types/vehicleFlow';
-import axiosInstance from './axiosInstance';
-
+import {
+  Response,
+  EditData,
+  EntryData,
+  ParkedVehiclesResponse,
+  RegisterVehicleResponse,
+  SecondticketResponse,
+  VehicleResponse,
+} from "../types/vehicleFlow";
+import axiosInstance from "./axiosInstance";
 
 export const VehicleApi = {
   registerEntry: async (data: EntryData): Promise<RegisterVehicleResponse> => {
+    const formData = new FormData();
+
+    formData.append("plate", data.plate);
+    formData.append("category", data.category);
+    if (data.observation) formData.append("observation", data.observation);
+
+    if (data.photo) {
+      formData.append("photo", {
+        uri: data.photo,
+        name: `${data.plate}.jpg`,
+        type: "image/jpeg",
+      } as any);
+    }
+
     const response = await axiosInstance.post<RegisterVehicleResponse>(
-      '/vehicles/entries', data);
+      "/vehicles/entries",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
     return response.data;
   },
 
   editdataVehicle: async (data: EditData): Promise<RegisterVehicleResponse> => {
     const response = await axiosInstance.post<RegisterVehicleResponse>(
-      '/vehicles/editVehicle', data);
+      "/vehicles/editVehicle",
+      data
+    );
     return response.data;
   },
 
-  deleteVehicle: async (data:{id: string}): Promise<Response> => {
+  deleteVehicle: async (data: { id: string }): Promise<Response> => {
     const response = await axiosInstance.post<Response>(
-      '/vehicles/deleteVehicle', data);
-      return response.data;
+      "/vehicles/deleteVehicle",
+      data
+    );
+    return response.data;
   },
 
   secondTicket: async (id: string): Promise<SecondticketResponse> => {
     const response = await axiosInstance.get(`/vehicles/${id}/ticket`);
-    return response.data
+    return response.data;
   },
 
-  reactivateVehicle: async (data: {id: string, plate: string}): Promise<Response> => {
-    const response = await axiosInstance.post<Response>('/vehicles/reactivate-vehicle', data);
-    return response.data
+  reactivateVehicle: async (data: {
+    id: string;
+    plate: string;
+  }): Promise<Response> => {
+    const response = await axiosInstance.post<Response>(
+      "/vehicles/reactivate-vehicle",
+      data
+    );
+    return response.data;
   },
 
-  getUniquevehicle: async (id: string, plate: string): Promise<VehicleResponse> => {
-    const response =  await axiosInstance.get(`/vehicles/${id}/${plate}/vehicle`);
-    return response.data
+  getUniquevehicle: async (
+    id: string,
+    plate: string
+  ): Promise<VehicleResponse> => {
+    const response = await axiosInstance.get(
+      `/vehicles/${id}/${plate}/vehicle`
+    );
+    return response.data;
   },
 
   getParked: async (): Promise<ParkedVehiclesResponse> => {
-    const response = await axiosInstance.get<ParkedVehiclesResponse>('/vehicles/parked');
+    const response = await axiosInstance.get<ParkedVehiclesResponse>(
+      "/vehicles/parked"
+    );
     return response.data;
   },
 };

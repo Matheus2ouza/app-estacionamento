@@ -11,7 +11,7 @@ export const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     height: 120,
     justifyContent: "space-between",
     alignItems: "center",
@@ -43,7 +43,7 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: 10,
-    marginBottom: 10, // Para alinhar com o texto
+    marginBottom: 10,
   },
   body: {
     flex: 1,
@@ -95,8 +95,8 @@ export const styles = StyleSheet.create({
   cashContent: {
     width: "90%",
     marginHorizontal: 6,
-    flex: 1, 
-    justifyContent: "space-around", 
+    flex: 1,
+    justifyContent: "space-around",
   },
   cashRow: {
     flexDirection: "row",
@@ -180,82 +180,82 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
   },
   numberUsed: {
-  fontFamily: "Roboto_700Bold",
-  fontSize: 50,
-  color: Colors.red[600], // Nível específico da paleta vermelha
-},
-labelUsed: {
-  fontFamily: "Roboto_600SemiBold",
-  fontSize: 18,
-  color: Colors.red[600], // Mesmo nível para consistência
-  marginTop: -10,
-},
-detailsParking: {
-  flex: 1,
-  width: "100%",
-  alignItems: "center",
-  flexDirection: "row",
-  justifyContent: "center",
-  gap: 15,
-},
-iconDescriptionRow: {
-  flexDirection: "row",
-  alignItems: "center",
-  marginHorizontal: 10,
-},
-iconText: {
-  fontSize: 12,
-  marginLeft: 4,
-},
-bottomBar: {
-  height: "16%",
-  width: "100%",
-  backgroundColor: Colors.gray.zinc, // Nível específico do zinc
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "space-around",
-  borderTopWidth: 1,
-  borderTopColor: Colors.gray[300], // Cinza médio
-  paddingHorizontal: 10,
-  paddingVertical: 5,
-  borderTopRightRadius: 42,
-  borderTopLeftRadius: 42,
-  elevation: 8,
-  shadowColor: "#000",
-  shadowOffset: { width: 0, height: -2 },
-  shadowOpacity: 0.1,
-  shadowRadius: 6,
-},
-buttonEntry: {
-  width: 50,
-  height: 60,
-  alignItems: "center",
-  justifyContent: "center",
-  borderRadius: 5,
-  backgroundColor: Colors.green[400], // Verde mais claro
-},
-buttonExit: {
-  width: 50,
-  height: 60,
-  alignItems: "center",
-  justifyContent: "center",
-  borderRadius: 5,
-  backgroundColor: Colors.red[500], // Vermelho primário
-},
-buttonPatio: {
-  width: 50,
-  height: 60,
-  alignItems: "center",
-  justifyContent: "center",
-  borderRadius: 5,
-  backgroundColor: Colors.blue[400], // Azul mais claro
-},
-buttonDashboard: {
-  width: 50,
-  height: 60,
-  alignItems: "center",
-  justifyContent: "center",
-  borderRadius: 5,
-  backgroundColor: Colors.orange[500], // Laranja primário
-}
+    fontFamily: "Roboto_700Bold",
+    fontSize: 50,
+    color: Colors.red[600], // Nível específico da paleta vermelha
+  },
+  labelUsed: {
+    fontFamily: "Roboto_600SemiBold",
+    fontSize: 18,
+    color: Colors.red[600], // Mesmo nível para consistência
+    marginTop: -10,
+  },
+  detailsParking: {
+    flex: 1,
+    width: "100%",
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 15,
+  },
+  iconDescriptionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 10,
+  },
+  iconText: {
+    fontSize: 12,
+    marginLeft: 4,
+  },
+  bottomBar: {
+    height: "16%",
+    width: "100%",
+    backgroundColor: Colors.gray.zinc, // Nível específico do zinc
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
+    borderTopWidth: 1,
+    borderTopColor: Colors.gray[300], // Cinza médio
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderTopRightRadius: 42,
+    borderTopLeftRadius: 42,
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+  },
+  buttonEntry: {
+    width: 50,
+    height: 60,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 5,
+    backgroundColor: Colors.green[400], // Verde mais claro
+  },
+  buttonExit: {
+    width: 50,
+    height: 60,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 5,
+    backgroundColor: Colors.red[500], // Vermelho primário
+  },
+  buttonPatio: {
+    width: 50,
+    height: 60,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 5,
+    backgroundColor: Colors.blue[400], // Azul mais claro
+  },
+  buttonDashboard: {
+    width: 50,
+    height: 60,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 5,
+    backgroundColor: Colors.orange[500], // Laranja primário
+  },
 });

@@ -1,19 +1,19 @@
+// components/CreateAccountForm.tsx
+import { useState } from "react";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  View,
+} from "react-native";
+import { Provider as PaperProvider, TextInput } from "react-native-paper";
 import FeedbackModal from "@/src/components/FeedbackModal";
 import Header from "@/src/components/Header";
 import { PrimaryButton } from "@/src/components/PrimaryButton";
 import RoleMenu from "@/src/components/RoleMenu";
 import Colors from "@/src/constants/Colors";
 import { useCreateUser } from "@/src/hooks/auth/useCreateUser";
-import { styles } from "@/src/styles/functions/createAccountStyle";
-
-import { useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  View
-} from "react-native";
-import { Provider as PaperProvider, TextInput } from "react-native-paper";
+import { styles } from "@/src/styles/functions/createAccountStyle" 
 
 const ROLE_OPTIONS = [
   { label: "Administrador", value: "ADMIN" },
@@ -21,97 +21,138 @@ const ROLE_OPTIONS = [
 ];
 
 export default function CreateAccount() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState<string | undefined>("");
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
+    role: "",
+  });
+  const [formErrors, setFormErrors] = useState({
+    username: false,
+    password: false,
+    role: false,
+  });
 
-  const { createUser, loading, error, success } = useCreateUser();
-
+  const { createUser, loading } = useCreateUser();
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [modalSuccess, setModalSuccess] = useState(false);
 
-const handleSubmit = async () => {
-  try {
-    await createUser({
-      username,
-      password,
-      role: role as "ADMIN" | "NORMAL",
-    });
+  const handleChange = (field: keyof typeof formData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (formErrors[field as keyof typeof formErrors]) {
+      setFormErrors((prev) => ({ ...prev, [field]: false }));
+    }
+  };
 
-    setModalMessage("Usuário criado com sucesso!");
-    setModalSuccess(true);
-    setModalVisible(true);
+  const validateForm = () => {
+    const errors = {
+      username: !formData.username.trim(),
+      password: !formData.password.trim(),
+      role: !formData.role,
+    };
+    setFormErrors(errors);
+    return !Object.values(errors).some(Boolean);
+  };
 
-    // Limpa os campos
-    setUsername("");
-    setPassword("");
-    setRole("");
-  } catch (err: any) {
-    setModalMessage(err.message || "Erro ao criar usuário.");
-    setModalSuccess(false);
-    setModalVisible(true);
-  }
-};
+  const handleSubmit = async () => {
+    if (!validateForm()) {
+      setModalMessage("Preencha todos os campos corretamente");
+      setModalSuccess(false);
+      setModalVisible(true);
+      return;
+    }
 
+    try {
+      await createUser({
+        username: formData.username,
+        password: formData.password,
+        role: formData.role as "ADMIN" | "NORMAL",
+      });
+
+      // Success feedback
+      setModalMessage("Usuário criado com sucesso!");
+      setModalSuccess(true);
+      setModalVisible(true);
+
+      // Reset form
+      setFormData({
+        username: "",
+        password: "",
+        role: "",
+      });
+    } catch (err: any) {
+      setModalMessage(err.message || "Erro ao criar usuário");
+      setModalSuccess(false);
+      setModalVisible(true);
+    }
+  };
+
+  const isFormValid = formData.username && formData.password && formData.role;
 
   return (
     <PaperProvider>
-      <View style={{ flex: 1 }}>
+      <View style={styles.container}>
         <Header title="Criar usuário" />
 
         <KeyboardAvoidingView
-          style={{ flex: 1 }}
+          style={styles.flex}
           behavior={Platform.OS === "ios" ? "padding" : undefined}
         >
-          <View style={{ flex: 1, justifyContent: "space-between" }}>
-            <ScrollView
-              contentContainerStyle={[styles.container, { paddingBottom: 20 }]}
-              keyboardShouldPersistTaps="handled"
-            >
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.formContainer}>
               <TextInput
-                label="Nome"
+                label="Nome de usuário"
                 mode="outlined"
-                value={username}
-                onChangeText={setUsername}
+                value={formData.username}
+                onChangeText={(text) => handleChange("username", text)}
                 autoCapitalize="none"
                 style={styles.input}
+                error={formErrors.username}
                 theme={{
                   colors: {
-                    primary: Colors.blue.logo
-                  }
+                    primary: Colors.blue.logo,
+                    error: Colors.red.error,
+                  },
                 }}
               />
 
               <TextInput
                 label="Senha"
                 mode="outlined"
-                value={password}
-                onChangeText={setPassword}
+                value={formData.password}
+                onChangeText={(text) => handleChange("password", text)}
                 secureTextEntry
                 style={styles.input}
+                error={formErrors.password}
                 theme={{
                   colors: {
-                    primary: Colors.blue.logo
-                  }
+                    primary: Colors.blue.logo,
+                    error: Colors.red.error,
+                  },
                 }}
               />
 
               <RoleMenu
                 label="Permissão"
-                value={role}
-                onChange={setRole}
+                value={formData.role}
+                onChange={(value) => handleChange("role", value)}
                 options={ROLE_OPTIONS}
                 style={styles.input}
-                
+                error={formErrors.role}
               />
-            </ScrollView>
+            </View>
+          </ScrollView>
 
+          <View style={styles.buttonContainer}>
             <PrimaryButton
               title={loading ? "Criando..." : "Registrar"}
               onPress={handleSubmit}
-              style={[styles.button, { alignSelf: "center" }]}
-              disabled={!username || !password || !role || !loading}
+              style={styles.button}
+              disabled={!isFormValid || loading}
             />
           </View>
         </KeyboardAvoidingView>
@@ -121,6 +162,7 @@ const handleSubmit = async () => {
           onClose={() => setModalVisible(false)}
           message={modalMessage}
           isSuccess={modalSuccess}
+          shouldGoBack={true}
         />
       </View>
     </PaperProvider>

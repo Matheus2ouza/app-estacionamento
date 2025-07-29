@@ -1,4 +1,4 @@
-import { CashStatus, ResponseGeralCashData } from "../types/cash";
+import { ResponseCashHome, CashStatus, ResponseGeralCashData, BillingMethodWithRules, ActiveBillingRuleWithMethod } from '@/src/types/cash';
 import axiosInstance from "./axiosInstance";
 
 export const cashApi = {
@@ -20,5 +20,22 @@ export const cashApi = {
   geralCashData: async (id: string): Promise<ResponseGeralCashData> => {
     const response = await axiosInstance.get(`/cash/general-cash-data/${id}`);
     return response.data
+  },
+
+  dataCashHome: async (id: string): Promise<ResponseCashHome> => {
+    const response = await axiosInstance.get(`/cash/cash-data/${id}`);
+    return response.data
+  },
+
+    // Retorna todos os métodos de cobrança com suas regras
+  getBillingMethods: async (): Promise<{ success: boolean; methods: BillingMethodWithRules[] }> => {
+    const response = await axiosInstance.get("/cash/billing-method");
+    return response.data;
+  },
+
+  // Retorna somente as regras ativas com os métodos
+  getBillingMethodsActive: async (): Promise<{ success: boolean; data: ActiveBillingRuleWithMethod[] }> => {
+    const response = await axiosInstance.get("/cash/billing-method-active");
+    return response.data;
   }
 };

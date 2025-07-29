@@ -11,33 +11,140 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useFocusEffect } from "expo-router";
 import { useEffect, useState, useCallback } from "react"; 
-import { Alert, Pressable, Text, TouchableOpacity, View } from "react-native";
+import { Pressable, Text, TouchableOpacity, View } from "react-native";
+import useCashDetails from "@/src/hooks/cash/useCashDetails";
+import LoadingModal from "@/src/components/LoadingModal";
+import React, { ReactNode } from "react";
 
-const parkingNumbers = {
-  free: 23,
-  used: 99,
-  details: [99, 99, 99],
+type ParkingStatus = {
+  free: number;
+  used: number;
+  details: [number, number]; // [carros, motos, outros]
 };
 
 export default function NormalHome() {
+  // Services
   const { getStatusCash, openCash, openCashId } = useCashService();
+  const { parkingToHome } = useCashDetails();
+
+  // State
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [cashStatusLoaded, setCashStatusLoaded] = useState(false);
+  const [loading, setLoading] = useState({
+    visible: false,
+    text: "",
+  });
   const [feedbackModal, setFeedbackModal] = useState({
     visible: false,
     message: "",
     isSuccess: false,
   });
+  const [parkingStatus, setParkingStatus] = useState<ParkingStatus>({
+    free: 0,
+    used: 0,
+    details: [0, 0],
+  });
 
-  const fetchCashStatus = async () => {
-    await getStatusCash();
-    setCashStatusLoaded(true);
+  // Converter dados de estacionamento
+  const convertParkingData = (data: any): ParkingStatus => {
+    if (!data) {
+      return { free: 0, used: 0, details: [0, 0] };
+    }
+    
+    const free = (data.carVacancies + data.motorcycleVacancies) - 
+                 (data.totalCarsInside + data.totalMotosInside);
+    
+    return {
+      free,
+      used: data.totalCarsInside + data.totalMotosInside,
+      details: [data.totalCarsInside, data.totalMotosInside]
+    };
   };
 
+  // Buscar dados de estacionamento
+  const fetchParkingStatus = useCallback(async () => {
+    try {
+      const parkingData = await parkingToHome();
+      if (parkingData) {
+        setParkingStatus(convertParkingData(parkingData));
+      }
+    } catch (err) {
+      console.error("Erro ao buscar status das vagas:", err);
+      showFeedback("Erro ao carregar dados das vagas", false);
+    }
+  }, []);
+
+  // Verificar status do caixa
+  const fetchCashStatus = async () => {
+    try {
+      await getStatusCash();
+      setCashStatusLoaded(true);
+    } catch (error) {
+      console.error("Erro ao verificar status do caixa:", error);
+      showFeedback("Erro ao verificar status do caixa", false);
+    }
+  };
+
+  // Atualizar todos os dados
+  const handleRefreshAll = async () => {
+    setLoading({ visible: true, text: "Atualizando dados..." });
+    try {
+      await Promise.all([fetchCashStatus(), fetchParkingStatus()]);
+    } catch (error) {
+      console.error("Erro ao atualizar:", error);
+      showFeedback("Erro ao atualizar dados", false);
+    } finally {
+      setLoading({ visible: false, text: "" });
+    }
+  };
+
+  // Helpers de UI
+  const showFeedback = (message: string, isSuccess: boolean) => {
+    setFeedbackModal({
+      visible: true,
+      message,
+      isSuccess,
+    });
+  };
+
+  const handleOpenCash = async (initialValue: string) => {
+    try {
+      const parsedValue = parseFloat(initialValue);
+
+      if (isNaN(parsedValue)) {
+        showFeedback("Valor inválido.", false);
+        return;
+      }
+
+      setLoading({ visible: true, text: "Abrindo caixa..." });
+      const { success, message } = await openCash(parsedValue);
+
+      showFeedback(message, success);
+
+      if (success) {
+        setIsModalVisible(false);
+        await fetchCashStatus();
+      }
+    } catch (err) {
+      showFeedback("Não foi possível abrir o caixa.", false);
+      console.error(err);
+    } finally {
+      setLoading({ visible: false, text: "" });
+    }
+  };
+
+  // Efeitos
   useFocusEffect(
     useCallback(() => {
-      setCashStatusLoaded(false);
-      fetchCashStatus();
+      let isActive = true;
+      const loadData = async () => {
+        if (!isActive) return;
+        await handleRefreshAll();
+      };
+      loadData();
+      return () => {
+        isActive = false;
+      };
     }, [])
   );
 
@@ -49,47 +156,36 @@ export default function NormalHome() {
     }
   }, [openCashId, cashStatusLoaded]);
 
-const handleOpenCash = async (initialValue: string) => {
-  try {
-    const parsedValue = parseFloat(initialValue);
-
-    if (isNaN(parsedValue)) {
-      setFeedbackModal({
-        visible: true,
-        message: "Valor inválido.",
-        isSuccess: false,
-      });
-      return;
-    }
-
-    const { success, message } = await openCash(parsedValue);
-
-    setFeedbackModal({
-      visible: true,
-      message,
-      isSuccess: success,
-    });
-
-    if (success) {
-      setIsModalVisible(false);
-    }
-  } catch (err) {
-    setFeedbackModal({
-      visible: true,
-      message: "Não foi possível abrir o caixa.",
-      isSuccess: false,
-    });
-    console.error(err);
-  } finally {
-    await getStatusCash();
-  }
-};
-
+  // Componentes de renderização
+  const renderParkingIcon = (icon: ReactNode, value: number) => (
+    <View style={styles.iconDescriptionRow}>
+      {icon}
+      <Text style={styles.iconText}>{value}</Text>
+    </View>
+  );
 
   return (
     <View style={{ flex: 1 }}>
+      {/* Modals */}
+      <LoadingModal visible={loading.visible} text={loading.text} />
+
+      <CashRegisterModal
+        visible={isModalVisible}
+        mode="open"
+        onClose={() => setIsModalVisible(false)}
+        onSubmitCashRegister={handleOpenCash}
+      />
+
+      <FeedbackModal
+        visible={feedbackModal.visible}
+        message={feedbackModal.message}
+        isSuccess={feedbackModal.isSuccess}
+        onClose={() => setFeedbackModal({ ...feedbackModal, visible: false })}
+      />
+
+      {/* Header */}
       <LinearGradient
-        colors={[Colors.zinc, Colors.blueLight]}
+        colors={[Colors.gray.zinc, Colors.blue.light]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.header}
@@ -106,26 +202,13 @@ const handleOpenCash = async (initialValue: string) => {
         </TouchableOpacity>
       </LinearGradient>
 
-      {/* Modal para controle de caixa */}
-      <CashRegisterModal
-        visible={isModalVisible}
-        mode="open"
-        onClose={() => setIsModalVisible(false)}
-        onSubmitCashRegister={(value) => handleOpenCash(value)}
-      />
-
-      <FeedbackModal
-        visible={feedbackModal.visible}
-        message={feedbackModal.message}
-        isSuccess={feedbackModal.isSuccess}
-        onClose={() => setFeedbackModal({ ...feedbackModal, visible: false })}
-      />
-
+      {/* Conteúdo principal */}
       <View style={styles.body}>
+        {/* Vagas */}
         <View style={styles.parkingStatus}>
           <View style={styles.BoxHeader}>
             <Text style={styles.title}>Vagas</Text>
-            <Pressable onPress={fetchCashStatus}>
+            <Pressable onPress={handleRefreshAll}>
               <View style={styles.refreshIcon}>
                 <FontAwesome name="refresh" size={24} color={Colors.white} />
               </View>
@@ -137,14 +220,14 @@ const handleOpenCash = async (initialValue: string) => {
           <View style={styles.parkingContent}>
             <View style={styles.statusParking}>
               <View style={styles.freeParking}>
-                <Text style={styles.numberFree}>{parkingNumbers.free}</Text>
+                <Text style={styles.numberFree}>{parkingStatus.free}</Text>
                 <Text style={styles.labelFree}>Livres</Text>
               </View>
 
               <View style={styles.dividerVertical} />
 
               <View style={styles.usedParking}>
-                <Text style={styles.numberUsed}>{parkingNumbers.used}</Text>
+                <Text style={styles.numberUsed}>{parkingStatus.used}</Text>
                 <Text style={styles.labelUsed}>Em uso</Text>
               </View>
             </View>
@@ -152,57 +235,35 @@ const handleOpenCash = async (initialValue: string) => {
             <Separator style={{ width: "90%", alignSelf: "center" }} />
 
             <View style={styles.detailsParking}>
-              <View style={styles.iconDescriptionRow}>
-                <MaterialCommunityIcons
-                  name="car-hatchback"
-                  size={22}
-                  color="black"
-                />
-                <Text style={styles.iconText}>{parkingNumbers.details[0]}</Text>
-              </View>
+              {renderParkingIcon(
+                <MaterialCommunityIcons name="car-hatchback" size={22} color="black" />,
+                parkingStatus.details[0]
+              )}
 
               <View style={styles.dividerVertical} />
 
-              <View style={styles.iconDescriptionRow}>
-                <FontAwesome name="motorcycle" size={18} color="black" />
-                <Text style={styles.iconText}>{parkingNumbers.details[1]}</Text>
-              </View>
-
-              <View style={styles.dividerVertical} />
-
-              <View style={styles.iconDescriptionRow}>
-                <MaterialCommunityIcons
-                  name="car-estate"
-                  size={22}
-                  color="black"
-                />
-                <Text style={styles.iconText}>{parkingNumbers.details[2]}</Text>
-              </View>
+              {renderParkingIcon(
+                <FontAwesome name="motorcycle" size={18} color="black" />,
+                parkingStatus.details[1]
+              )}
             </View>
           </View>
         </View>
 
+        {/* Rodapé */}
         <LinearGradient
-          colors={[Colors.zinc, Colors.blueLight]}
+          colors={[Colors.gray.zinc, Colors.blue.light]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.bottomBar}
         >
-          <Pressable
-            onPress={() => {
-              router.push("/Functions/entreyRegister");
-            }}
-          >
+          <Pressable onPress={() => router.push("/Functions/entreyRegister")}>
             <View style={styles.buttonEntry}>
               <Entypo name="login" size={40} color={Colors.white} />
             </View>
           </Pressable>
 
-          <Pressable
-            onPress={() => {
-              router.push("/Functions/exitRegister");
-            }}
-          >
+          <Pressable onPress={() => router.push("/Functions/exitRegister")}>
             <View style={styles.buttonExit}>
               <Entypo name="log-out" size={40} color={Colors.white} />
             </View>

@@ -80,7 +80,7 @@ export default function Employees() {
                       <Text
                         style={[
                           styles.informationValue,
-                          { color: Colors.darkGray },
+                          { color: Colors.gray.dark },
                         ]}
                       >
                         Permissão -
