@@ -40,7 +40,9 @@ export default {
     zincDark: "#27272a",
     zincLight: "#e4e4e7",
     extraLight: '#F5F5F5',
-    alpha: "rgb(209, 213, 219, 0.3)"
+    alpha: "rgb(209, 213, 219, 0.6)",
+    // Adicionando lightGray para consistência com o uso nos componentes
+    lightGray: "#f0f0f0" // Um cinza ainda mais claro para fundos
   },
 
   // Tons de vermelho (escala completa)
@@ -124,14 +126,67 @@ export default {
 
   // Cores de texto
   text: {
-    primary: "#1C274C",
-    secondary: "#6b7280",
+    primary: "#1C274C", // Cor escura para texto principal
+    secondary: "#6b7280", // Cor média para texto secundário
     disabled: "#9E9E9E", // = gray[500]
-    inverted: "#FFFFFF"
+    inverted: "#FFFFFF",
+    // Adicionando aliases diretos para facilitar o acesso
+    textPrimary: "#1C274C", // Mesmo que text.primary
+    textSecondary: "#6b7280" // Mesmo que text.secondary
   },
 
   // Cores de fundo
   background: "#ffffff",
   surface: "#FFFFFF",
-  elevation: "#FAFAFA"
+  elevation: "#FAFAFA",
+  
+  // Sombras (adicionando uma paleta de sombras consistentes)
+  // Sombras como objetos
+  shadow: {
+    sm: {
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 3,
+      elevation: 1,
+    },
+    md: {
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    lg: {
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 6,
+      elevation: 4,
+    },
+    card: {
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 2,
+    },
+    button: {
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    floating: {
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.15,
+      shadowRadius: 12,
+      elevation: 4,
+    }
+  },
+
+  
+  lightGray: "#f0f0f0"
 };

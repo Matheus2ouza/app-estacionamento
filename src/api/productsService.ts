@@ -25,6 +25,21 @@ export const ProductApi = {
     return response.data;
   },
 
+  editingProducts: async (data: Product): Promise<Response> => {
+    const response = await axiosInstance.post<Response>(
+      "/products/edit-product",
+      data
+    );
+    return response.data
+  },
+
+  deletingProducts: async (id: string, barcode: string): Promise<Response> => {
+    const response = await axiosInstance.post<Response>(
+      `/products/delete-product/${id}/${barcode}`
+    );
+    return response.data
+  },
+
   getProductByBarcode: async (
     barcode: string
   ): Promise<OpenFoodFactsProduct | null> => {

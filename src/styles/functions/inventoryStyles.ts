@@ -50,7 +50,7 @@ export const styles = StyleSheet.create({
   },
   productList: {
     paddingHorizontal: 16,
-    paddingBottom: 80, // Space for floating button
+    paddingBottom: 80,
   },
   productCard: {
     backgroundColor: Colors.white,
@@ -105,7 +105,7 @@ export const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: Colors.gray.light,
+    color: Colors.gray.dark,
     marginBottom: 8,
     textAlign: "center",
   },

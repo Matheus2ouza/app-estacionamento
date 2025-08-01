@@ -86,11 +86,11 @@ export interface CashDetails {
   status: string;
   operator: string;
   initialValue: number;
-  finalValue: number;
+  final_value: number;
   totalValue: number;
-  vehicleEntryTotal: number;
-  generalSaleTotal: number;
-  outgoingExpenseTotal: number;
+  vehicle_entry_total: number;
+  general_sale_total: number;
+  outgoing_expense_total: number;
 }
 
 export type CashStatus = {
@@ -121,3 +121,68 @@ export type ResponseGeralCashData = {
   data: CashDetails;
   error?: string;
 };
+
+export interface PaymentConfig {
+  methodId: string;
+  toleranceMinutes?: number;
+  rules: {
+    [vehicleType in VehicleCategory]?: {
+      price: number;
+      base_time_minutes: number;
+    };
+  };
+}
+
+// Tipo para o payload da API
+export interface PaymentConfigApiPayload {
+  methodId: string;
+  toleranceMinutes: number;
+  rules: Array<{
+    vehicle_type: VehicleCategory;
+    price: number;
+    base_time_minutes: number;
+  }>;
+}
+
+export interface ActiveBillingMethodResponse {
+  method: {
+    id: string;
+    name: string;
+    description: string;
+    tolerance: number | null;
+    is_active: boolean;
+  };
+  rules: Array<{
+    id: string;
+    price: number;
+    base_time_minutes: number;
+    vehicle_type: VehicleCategory;
+    billing_method_id: string;
+    created_at: string;
+    updated_at: string;
+  }>;
+}
+
+export interface Expense {
+  id: string;
+  amount: number;
+  description: string;
+  date: string;
+  operator: string;
+  method: string;
+}
+
+export type PaymentMethod = "Dinheiro" | "Pix" | "";
+
+export interface registerExpense {
+  description: string;
+  amount: number;
+  method: PaymentMethod;
+  openCashId: string;
+}
+
+export interface ResponseOutgoing {
+  success: boolean;
+  message: string;
+  data: Expense[]
+}

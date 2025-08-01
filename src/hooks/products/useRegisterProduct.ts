@@ -40,15 +40,13 @@ const useRegisterProduct = () => {
   const fetchProductByBarcode = async (
     barcode: string
   ): Promise<OpenFoodFactsProduct | null> => {
-    // Tenta na primeira API
     try {
       const product = await ProductApi.getProductByBarcode(barcode);
-      if (product) return product; // se achar, retorna
+      if (product) return product;
     } catch (error) {
       console.warn("Erro na API OpenFoodFacts:", error);
     }
 
-    // Se não achou, tenta uma segunda API
     try {
       const product = await ProductApi.getProductByBarcodeFromAnotherSource(
         barcode
@@ -58,13 +56,73 @@ const useRegisterProduct = () => {
       console.warn("Erro na API alternativa:", error);
     }
 
-    // Se nada funcionar, retorna null
     return null;
   };
 
+  const editProduct = async (data: Product) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const register = await ProductApi.editingProducts(data);
+      if (register.success) {
+        return {
+          success: true,
+          message: register.message,
+        };
+      } else {
+        throw new Error("Erro ao tentar editar o produto.");
+      }
+    } catch (err: any) {
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Erro ao editar o produto.";
+
+      setError(errorMessage);
+      return {
+        success: false,
+        message: errorMessage,
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteProduct = async (id: string, barcode: string) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const register = await ProductApi.deletingProducts(id, barcode);
+      if (register.success) {
+        return {
+          success: true,
+          message: register.message,
+        };
+      } else {
+        throw new Error("Erro ao tentar excluir o produto.");
+      }
+    } catch (err: any) {
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Erro ao excluir o produto.";
+
+      setError(errorMessage);
+      return {
+        success: false,
+        message: errorMessage,
+      };
+    } finally {
+      setLoading(false);
+    }
+  }
   return {
     registerProduct,
     fetchProductByBarcode,
+    editProduct,
+    deleteProduct,
     loading,
     error,
   };

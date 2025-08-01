@@ -6,6 +6,9 @@ import {
   RegisterVehicleResponse,
   SecondticketResponse,
   VehicleResponse,
+  ResponseCalculateOutstanding,
+  exitData,
+  ResponseRegisterExit
 } from "../types/vehicleFlow";
 import axiosInstance from "./axiosInstance";
 
@@ -85,4 +88,14 @@ export const VehicleApi = {
     );
     return response.data;
   },
+  
+  calculateOutstanding: async(data:{category: string, stayDuration: string}): Promise<ResponseCalculateOutstanding> => {
+    const response = await axiosInstance.post('/vehicles/calculate-outstanding', data);
+    return response.data
+  },
+
+  registerExit: async(data: exitData): Promise<ResponseRegisterExit> => {
+    const response = await axiosInstance.post('/vehicles/exits', data)
+    return response.data
+  }
 };

@@ -25,7 +25,7 @@ export default function Config() {
             <AntDesign
               name="right"
               size={24}
-              color={Colors.blueLogo}
+              color={Colors.blue.logo}
               style={{ transform: [{ scaleY: 1.5 }] }}
             />
           </View>
@@ -38,7 +38,7 @@ export default function Config() {
             <AntDesign
               name="right"
               size={24}
-              color={Colors.blueLogo}
+              color={Colors.blue.logo}
               style={{ transform: [{ scaleY: 1.5 }] }}
             />
           </View>
@@ -51,7 +51,7 @@ export default function Config() {
             <AntDesign
               name="right"
               size={24}
-              color={Colors.blueLogo}
+              color={Colors.blue.logo}
               style={{ transform: [{ scaleY: 1.5 }] }}
             />
           </View>
@@ -64,7 +64,7 @@ export default function Config() {
             <AntDesign
               name="right"
               size={24}
-              color={Colors.blueLogo}
+              color={Colors.blue.logo}
               style={{ transform: [{ scaleY: 1.5 }] }}
             />
           </View>

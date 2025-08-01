@@ -22,6 +22,26 @@ export const styles = StyleSheet.create({
     color: Colors.gray.dark,
     marginBottom: 3,
   },
+  observationContainer: {
+    position: "relative",
+  },
+  observationInputContainer: {
+    position: "relative",
+  },
+  descriptionInput: {
+    height: 90,
+    textAlignVertical: "top",
+  },
+  characterCount: {
+    position: "absolute",
+    right: 15,
+    bottom: 15,
+    color: Colors.gray[500],
+    fontSize: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.7)", // Fundo levemente branco para melhor legibilidade
+    paddingHorizontal: 6,
+    borderRadius: 10,
+  },
   vehiclePrice: {
     fontSize: 20,
     color: Colors.blue.light,
@@ -123,17 +143,17 @@ export const styles = StyleSheet.create({
 export const modalStyles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.6)', // Fundo mais escuro para melhor contraste
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.6)", // Fundo mais escuro para melhor contraste
   },
   modalContent: {
     backgroundColor: Colors.white,
     padding: 24,
     borderRadius: 12,
-    width: '85%',
+    width: "85%",
     maxWidth: 400,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -144,16 +164,16 @@ export const modalStyles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: Colors.red[600], // Vermelho mais intenso para atenção
     marginBottom: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
   modalMessage: {
     fontSize: 16,
     color: Colors.gray[800], // Texto mais escuro para melhor legibilidade
     marginBottom: 24,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 24, // Melhor espaçamento entre linhas
   },
   modalButton: {
@@ -161,18 +181,18 @@ export const modalStyles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 8,
-    width: '100%',
+    width: "100%",
   },
   modalButtonText: {
     color: Colors.white,
-    fontWeight: '600', // Semi-bold
+    fontWeight: "600", // Semi-bold
     fontSize: 16,
   },
   // Estilo adicional para o ícone de atenção (opcional)
   iconContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 12,
   },
 });

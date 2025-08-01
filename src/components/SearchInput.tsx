@@ -28,6 +28,6 @@ export default function SearchInput({
 
 const styles = StyleSheet.create({
   searchInput: {
-    borderColor: Colors.blueLogo,
+    borderColor: Colors.blue.logo,
   },
 });

@@ -13,7 +13,7 @@ export const styles = StyleSheet.create({
   label: {
     fontSize: 18,
     fontWeight: "500",
-    color: Colors.blueLogo,
+    color: Colors.blue.logo,
     marginBottom: 8,
     marginTop: 12,
   },
@@ -21,28 +21,13 @@ export const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "500",
     height: 58,
-    backgroundColor: Colors.lightGray,
-    borderColor: Colors.grayLight,
+    backgroundColor: Colors.gray.light,
+    borderColor: Colors.gray.light,
   },
   description: {
     fontSize: 13,
-    color: Colors.gray,
+    color: Colors.gray[500],
     marginLeft: 10,
-  },
-  addButton: {
-    position: "absolute",
-    bottom: 40,
-    left: 16,
-    right: 16,
-    backgroundColor: Colors.blueLight,
-    paddingVertical: 16,
-    borderRadius: 10,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   addButtonText: {
     color: Colors.white,
@@ -71,7 +56,7 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
   scanButton: {
-    backgroundColor: Colors.blueLight,
+    backgroundColor: Colors.blue.light,
     padding: 12,
     borderRadius: 8,
     flexDirection: "row",
@@ -87,5 +72,29 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 20,
+  },
+  buttonsContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+    gap: 12, // Espaço entre os botões
+  },
+
+  addButton: {
+    backgroundColor: Colors.blue.light,
+    paddingVertical: 16,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+
+  deleteButton: {
+    backgroundColor: Colors.red[500],
+    padding: 16,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  deleteButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });

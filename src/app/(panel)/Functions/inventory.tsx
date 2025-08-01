@@ -32,6 +32,7 @@ export default function Inventory() {
 
   const handleSearchProduct = async () => {
     const response = await searchProducts();
+    console.log(response.list)
     if (response.success) {
       setFilteredProducts(response.list || []);
     }
@@ -42,25 +43,34 @@ export default function Inventory() {
   }, []);
 
 const renderProductItem = ({ item }: { item: any }) => (
-  <View style={styles.productCard}>
-    <Text style={styles.productName}>{item.productName}</Text>
+  <Pressable
+    onPress={() =>
+      router.push({
+        pathname: "/Functions/editProduct",
+        params: item,
+      })
+    }
+  >
+    <View style={styles.productCard}>
+      <Text style={styles.productName}>{item.productName}</Text>
 
-    <View style={styles.productDetails}>
-      <Text style={styles.productDetailText}>
-        Valor: R$ {Number(item.unitPrice).toFixed(2)}
-      </Text>
-      <Text style={styles.productDetailText}>
-        Quantidade: {item.quantity}
+      <View style={styles.productDetails}>
+        <Text style={styles.productDetailText}>
+          Valor: R$ {Number(item.unitPrice).toFixed(2)}
+        </Text>
+        <Text style={styles.productDetailText}>
+          Quantidade: {item.quantity}
+        </Text>
+      </View>
+
+      <Text style={[styles.productDetailText, { marginTop: 6 }]}>
+        Validade:{" "}
+        {item.expirationDate
+          ? item.expirationDate.slice(0, 10).split("-").reverse().join("/")
+          : "(Não registrada)"}
       </Text>
     </View>
-
-    <Text style={[styles.productDetailText, { marginTop: 6 }]}>
-      Validade:{" "}
-      {item.expirationDate 
-        ? item.expirationDate.slice(0, 10).split("-").reverse().join("/")
-        : "(Não registrada)"}
-    </Text>
-  </View>
+  </Pressable>
 );
 
   const renderEmptyComponent = () => {
@@ -93,7 +103,7 @@ const renderProductItem = ({ item }: { item: any }) => (
         <FontAwesome
           name="search"
           size={20}
-          color={Colors.gray.light}
+          color={Colors.gray.dark}
           style={styles.searchIcon}
         />
         <TextInput

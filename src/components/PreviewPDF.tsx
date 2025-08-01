@@ -9,6 +9,7 @@ interface PreviewPDFProps {
   visible: boolean;
   onClose: () => void;
   onDownload: () => void;
+  onNavigateBack?: () => void; // <- Nova prop opcional
 }
 
 const PreviewPDF: React.FC<PreviewPDFProps> = ({
@@ -16,12 +17,19 @@ const PreviewPDF: React.FC<PreviewPDFProps> = ({
   visible,
   onClose,
   onDownload,
+  onNavigateBack, // <- Recebendo a prop
 }) => {
   const router = useRouter();
-  
+
   const handleClose = () => {
     onClose(); // Executa a função de fechar passada via props
-    router.back(); // Navega de volta na pilha de navegação
+
+    // Se onNavigateBack for fornecido, executa ela. Senão, volta na navegação padrão
+    if (onNavigateBack && typeof onNavigateBack === 'function') {
+      onNavigateBack();
+    } else {
+      router.back();
+    }
   };
 
   const pdfHTML = `
@@ -91,7 +99,7 @@ const PreviewPDF: React.FC<PreviewPDFProps> = ({
 
           <TouchableOpacity 
             style={[styles.button, styles.closeButton]} 
-            onPress={handleClose} // Usa a nova função handleClose
+            onPress={handleClose}
           >
             <Text style={styles.buttonText}>Fechar</Text>
           </TouchableOpacity>

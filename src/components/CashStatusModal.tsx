@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 15,
-    color: Colors.blueLight,
+    color: Colors.blue.light,
     textAlign: 'center',
   },
   message: {
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     marginBottom: 25,
     textAlign: 'center',
     lineHeight: 24,
-    color: Colors.zinc,
+    color: Colors.gray.zinc,
   },
   buttonGroup: {
     flexDirection: 'row',
@@ -107,10 +107,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.white,
     borderWidth: 1,
-    borderColor: Colors.zinc,
+    borderColor: Colors.gray.zinc,
   },
   cancelButtonText: {
-    color: Colors.zinc,
+    color: Colors.gray.zinc,
   },
   confirmButton: {
     flex: 1,

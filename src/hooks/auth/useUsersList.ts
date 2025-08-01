@@ -1,11 +1,6 @@
 import { AuthApi } from "@/src/api/userService";
 import { useCallback, useEffect, useState } from "react";
-
-interface Employee {
-  id: string;
-  username: string;
-  role: "NORMAL" | "ADMIN";
-}
+import { Employee } from "@/src/types/auth";
 
 export function useEmployees() {
   const [employees, setEmployees] = useState<Employee[]>([]);

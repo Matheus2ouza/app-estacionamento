@@ -29,7 +29,7 @@ export const styles = StyleSheet.create({
   totalValue: {
     fontSize: 35,
     fontWeight: "bold",
-    color: Colors.blueLight,
+    color: Colors.blue.light,
     textAlign: "center",
   },
   cornerTopLeft: {
@@ -40,7 +40,7 @@ export const styles = StyleSheet.create({
     height: cornerSize,
     borderTopWidth: borderWidth,
     borderLeftWidth: borderWidth,
-    borderColor: Colors.blueLight,
+    borderColor: Colors.blue.light,
     borderTopLeftRadius: 6,
   },
   cornerBottomRight: {
@@ -51,7 +51,7 @@ export const styles = StyleSheet.create({
     height: cornerSize,
     borderBottomWidth: borderWidth,
     borderRightWidth: borderWidth,
-    borderColor: Colors.blueLight,
+    borderColor: Colors.blue.light,
     borderBottomRightRadius: 6,
   },
   cashierDetails: {
@@ -72,7 +72,7 @@ export const styles = StyleSheet.create({
     height: 35,
     borderWidth: 1,
     borderRadius: 5,
-    borderColor: Colors.blueLight,
+    borderColor: Colors.blue.light,
   },
   Number: {
     fontSize: 18,
@@ -80,7 +80,7 @@ export const styles = StyleSheet.create({
   },
   Label: {
     fontSize: 13,
-    color: Colors.blueLight,
+    color: Colors.blue.light,
     fontWeight: "700",
   },
   exits: {
@@ -141,12 +141,22 @@ export const styles = StyleSheet.create({
   },
   transactionSubtitle: {
     fontSize: 13,
-    color: Colors.blueLight,
+    color: Colors.blue.light,
+  },
+  transactionValueSNeutral: {
+    fontSize: 17,
+    fontWeight: "bold",
+    color: Colors.black,
   },
   transactionValue: {
     fontSize: 17,
     fontWeight: "bold",
-    color: "#333",
+    color: Colors.green[300],
+  },
+  transactionValueExit: {
+    fontSize: 17,
+    fontWeight: "bold",
+    color: Colors.red[300],
   },
   buttonContainer: {
     alignItems: "center",
@@ -154,18 +164,18 @@ export const styles = StyleSheet.create({
     marginTop: "auto",
   },
   button: {
-    backgroundColor: Colors.red,
+    backgroundColor: Colors.red[500],
     width: "100%",
   },
   bottomBar: {
     height: "12%",
     width: "100%",
-    backgroundColor: Colors.zinc,
+    backgroundColor: Colors.gray.zinc,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-around",
     borderTopWidth: 1,
-    borderTopColor: Colors.mediumGray,
+    borderTopColor: Colors.gray.medium,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderTopRightRadius: 42,

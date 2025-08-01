@@ -4,10 +4,7 @@ import Separator from "@/src/components/Separator";
 import Colors from "@/src/constants/Colors";
 import useCashService from "@/src/hooks/cash/useCashStatus"; 
 import { styles } from "@/src/styles/home/normalHomeStyles";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import Entypo from "@expo/vector-icons/Entypo";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import {AntDesign, Entypo, FontAwesome, MaterialCommunityIcons, Feather} from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useFocusEffect } from "expo-router";
 import { useEffect, useState, useCallback } from "react"; 
@@ -197,7 +194,7 @@ export default function NormalHome() {
 
         <TouchableOpacity onPress={() => router.push("/(panel)/Config/config")}>
           <View style={styles.iconCircle}>
-            <AntDesign name="user" size={30} color="#fff" />
+            <Feather name="settings" size={30} color={Colors.white} />
           </View>
         </TouchableOpacity>
       </LinearGradient>

@@ -2,10 +2,7 @@ import { useCallback, useState } from "react";
 import { View, Text, Pressable, TouchableOpacity } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import Entypo from "@expo/vector-icons/Entypo";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import {AntDesign, Entypo, FontAwesome, MaterialCommunityIcons, Feather} from "@expo/vector-icons";
 import React, { ReactNode } from "react";
 
 import Colors from "@/src/constants/Colors";
@@ -309,7 +306,7 @@ export default function AdminHome() {
         </View>
         <TouchableOpacity onPress={() => router.push("/Config/config")}>
           <View style={styles.iconCircle}>
-            <AntDesign name="user" size={30} color="#fff" />
+            <Feather name="settings" size={29} color={Colors.white} />
           </View>
         </TouchableOpacity>
       </LinearGradient>

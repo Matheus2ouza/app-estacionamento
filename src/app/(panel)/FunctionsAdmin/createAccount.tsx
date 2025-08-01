@@ -4,7 +4,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Text,
   View,
+  Image,
 } from "react-native";
 import { Provider as PaperProvider, TextInput } from "react-native-paper";
 import FeedbackModal from "@/src/components/FeedbackModal";
@@ -13,7 +15,7 @@ import { PrimaryButton } from "@/src/components/PrimaryButton";
 import RoleMenu from "@/src/components/RoleMenu";
 import Colors from "@/src/constants/Colors";
 import { useCreateUser } from "@/src/hooks/auth/useCreateUser";
-import { styles } from "@/src/styles/functions/createAccountStyle" 
+import { styles } from "@/src/styles/functions/createAccountStyle";
 
 const ROLE_OPTIONS = [
   { label: "Administrador", value: "ADMIN" },
@@ -92,18 +94,27 @@ export default function CreateAccount() {
 
   return (
     <PaperProvider>
-      <View style={styles.container}>
-        <Header title="Criar usuário" />
-
+      <View style={styles.screenContainer}>
+        <Image
+          source={require("@/src/assets/images/splash-icon-blue.png")}
+          style={styles.backgroundImage}
+        />
+        
+        <Header title="Criar Usuário" />
+        
         <KeyboardAvoidingView
-          style={styles.flex}
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={styles.keyboardAvoidingView}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
         >
           <ScrollView
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={styles.scrollContainer}
             keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
           >
-            <View style={styles.formContainer}>
+            <View style={styles.card}>
+              <Text style={styles.sectionTitle}>Novo Usuário</Text>
+              
               <TextInput
                 label="Nome de usuário"
                 mode="outlined"
@@ -115,9 +126,12 @@ export default function CreateAccount() {
                 theme={{
                   colors: {
                     primary: Colors.blue.logo,
+                    background: Colors.white,
                     error: Colors.red.error,
                   },
+                  roundness: 8,
                 }}
+                left={<TextInput.Icon icon="account" color={Colors.gray.dark} />}
               />
 
               <TextInput
@@ -131,38 +145,50 @@ export default function CreateAccount() {
                 theme={{
                   colors: {
                     primary: Colors.blue.logo,
+                    background: Colors.white,
                     error: Colors.red.error,
                   },
+                  roundness: 8,
                 }}
+                left={<TextInput.Icon icon="lock" color={Colors.gray.dark} />}
+                right={
+                  formData.password ? (
+                    <TextInput.Icon
+                      icon="close"
+                      color={Colors.gray.dark}
+                      onPress={() => handleChange("password", "")}
+                    />
+                  ) : null
+                }
               />
 
               <RoleMenu
-                label="Permissão"
+                label="Nível de acesso"
                 value={formData.role}
                 onChange={(value) => handleChange("role", value)}
                 options={ROLE_OPTIONS}
-                style={styles.input}
+                style={styles.roleMenu}
                 error={formErrors.role}
               />
             </View>
-          </ScrollView>
+          </ScrollView>          
+        </KeyboardAvoidingView>
 
-          <View style={styles.buttonContainer}>
+          <View style={styles.footer}>
             <PrimaryButton
-              title={loading ? "Criando..." : "Registrar"}
+              title={loading ? "Criando..." : "Criar Usuário"}
               onPress={handleSubmit}
-              style={styles.button}
+              style={styles.createButton}
               disabled={!isFormValid || loading}
             />
           </View>
-        </KeyboardAvoidingView>
 
         <FeedbackModal
           visible={modalVisible}
           onClose={() => setModalVisible(false)}
           message={modalMessage}
           isSuccess={modalSuccess}
-          shouldGoBack={true}
+          shouldGoBack={modalSuccess}
         />
       </View>
     </PaperProvider>

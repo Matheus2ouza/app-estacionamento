@@ -2,53 +2,78 @@ import Colors from "@/src/constants/Colors";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-  header: {
-    fontSize: 24,
-  },
-  container: {
+  screenContainer: {
     flex: 1,
-    paddingTop: 15,
-    paddingHorizontal: 16,
+    backgroundColor: 'transparent',
   },
-  title: {
-    fontFamily: "Roboto_600SemiBold",
-    fontSize: 28,
-    marginBottom: 10,
-    color: Colors.blueLogo,
-    marginTop: 10,
+  heroImage: {
+    position: "absolute",
+    top: 80,
+    right: -270,
+    width: "130%",
+    height: "95%",
+    transform: [{ scaleX: -1 }],
+    resizeMode: "cover",
+    opacity: 0.1,
+    zIndex: -1,
   },
-  inputRow: {
-    flexDirection: "row",
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
-    gap: 12,
+    backgroundColor: Colors.white,
+  },
+  contentContainer: {
+    flex: 1,
+    paddingBottom: 90, // Espaço para o botão flutuante
+  },
+  card: {
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    margin: 16,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  sectionTitle: {
+    fontFamily: "Roboto_700Bold",
+    fontSize: 20,
+    color: Colors.blue.logo,
     marginBottom: 12,
   },
-
+  inputContainer: {
+    marginTop: 8,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
   label: {
     fontSize: 16,
-    fontWeight: "500",
-    color: "#444",
-    width: "50%",
+    fontFamily: "Roboto_500Medium",
+    color: Colors.gray.dark,
+    marginBottom: 8,
   },
-
-  numericInput: {
-    width: 50,
-    height: 40,
-    fontSize: 19,
-    textAlign: "left", 
-    textAlignVertical: "top", 
-    borderBottomWidth: 1,
-    backgroundColor: "transparent",
-    borderColor: Colors.zincDark,
-    paddingVertical: 0,
-    paddingHorizontal: 0,
+  input: {
+    backgroundColor: 'white',
+    fontSize: 16,
+    height: 48,
   },
-  button: {
-    width: "100%",
-    alignItems: "center",
-    marginBottom: 10,
+  footer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
   },
-  primaryButton: {
-    width: "90%",
+  saveButton: {
+    width: '100%',
+    borderRadius: 8,
+    height: 48,
   },
 });

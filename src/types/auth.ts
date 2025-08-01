@@ -41,3 +41,9 @@ export type UserData = {
   password?: string;
   role: "ADMIN" | "NORMAL";
 }
+
+export interface Employee {
+  id: string;
+  username: string;
+  role: "NORMAL" | "ADMIN";
+}

@@ -38,8 +38,8 @@ export const styles = StyleSheet.create({
   topLeft: {
     top: -1,
     left: -1,
-    borderTopWidth: 6,
-    borderLeftWidth: 6,
+    borderTopWidth: 3,
+    borderLeftWidth: 3,
   },
   topRight: {
     top: -1,

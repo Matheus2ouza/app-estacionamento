@@ -12,7 +12,7 @@ export const styles = StyleSheet.create({
   },
   section: {
     marginBottom: 25,
-    backgroundColor: "white",
+    backgroundColor: Colors.white,
     borderRadius: 10,
     padding: 15,
     shadowColor: "#000",
@@ -35,18 +35,26 @@ export const styles = StyleSheet.create({
   methodButton: {
     paddingVertical: 8,
     paddingHorizontal: 15,
-    backgroundColor: Colors.gray.dark,
+    backgroundColor: Colors.gray.light,
     borderRadius: 20,
   },
   selectedMethod: {
     backgroundColor: Colors.primary,
   },
+  activeMethod: {
+    borderColor: Colors.primary,
+    borderWidth: 2,
+  },
   methodText: {
-    color: Colors.white,
+    color: Colors.gray.dark,
   },
   selectedMethodText: {
-    color: "white",
+    color: Colors.white,
     fontWeight: "bold",
+  },
+  activeMethodText: {
+    color: Colors.white,
+    fontWeight: 'bold',
   },
   description: {
     fontSize: 14,
@@ -67,12 +75,12 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: "white",
+    backgroundColor: Colors.white,
   },
   vehicleSection: {
     marginBottom: 20,
     padding: 15,
-    backgroundColor: Colors.gray.light,
+    backgroundColor: Colors.gray.extraLight,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: Colors.gray.light,
@@ -81,7 +89,7 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: 10,
-    color: Colors.blue.light,
+    color: Colors.primary,
   },
   saveButton: {
     backgroundColor: Colors.primary,
@@ -92,8 +100,15 @@ export const styles = StyleSheet.create({
     marginTop: 20,
   },
   saveButtonText: {
-    color: "white",
+    color: Colors.white,
     fontSize: 16,
     fontWeight: "bold",
+  },
+  activeMethodBanner: {
+    backgroundColor: Colors.primary,
+    padding: 12,
+    borderRadius: 6,
+    marginBottom: 16,
+    alignItems: 'center',
   },
 });

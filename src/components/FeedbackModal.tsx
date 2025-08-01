@@ -15,6 +15,7 @@ interface FeedbackModalProps {
   isSuccess?: boolean;
   onClose: () => void;
   shouldGoBack?: boolean;
+  goToRoute?: string; // <- nova prop
 }
 
 const FeedbackModal = ({
@@ -23,22 +24,25 @@ const FeedbackModal = ({
   isSuccess = false,
   onClose,
   shouldGoBack = false,
+  goToRoute,
 }: FeedbackModalProps) => {
   const router = useRouter();
 
   useEffect(() => {
     if (visible) {
       const timer = setTimeout(() => {
-        if (shouldGoBack) {
-          router.back();
+        if (goToRoute) {
+          router.replace(goToRoute as never); // redireciona para a rota informada
+        } else if (shouldGoBack) {
+          router.back(); // comportamento anterior
         } else {
-          onClose();
+          onClose(); // fecha normalmente
         }
-      }, 5000);
+      }, 4000);
 
       return () => clearTimeout(timer);
     }
-  }, [visible, shouldGoBack]);
+  }, [visible, shouldGoBack, goToRoute]);
 
   return (
     <Modal
@@ -71,7 +75,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.gray.alpha,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalView: {
     margin: 20,
@@ -104,3 +108,45 @@ const styles = StyleSheet.create({
 });
 
 export default FeedbackModal;
+
+
+/**
+ * FeedbackModal é um componente React Native que exibe uma modal para mostrar
+ * mensagens de feedback para o usuário, indicando sucesso ou erro.
+ * 
+ * Funcionalidades:
+ * - Aparece quando a prop `visible` é true.
+ * - Mostra uma mensagem e um ícone (check ou erro) baseado em `isSuccess`.
+ * - Fecha automaticamente após 5 segundos, podendo:
+ *    - Redirecionar para uma rota específica (`goToRoute`),
+ *    - Voltar para a página anterior (`shouldGoBack`),
+ *    - Ou apenas fechar o modal (`onClose`).
+ * 
+ * Exemplos de uso:
+ * 
+ * 1) Fechar modal normalmente (sem redirecionar nem voltar):
+ * <FeedbackModal
+ *   visible={modalVisible}
+ *   message="Operação realizada!"
+ *   isSuccess={true}
+ *   onClose={() => setModalVisible(false)}
+ * />
+ * 
+ * 2) Voltar para a página anterior após fechar:
+ * <FeedbackModal
+ *   visible={modalVisible}
+ *   message="Operação concluída, retornando..."
+ *   isSuccess={true}
+ *   shouldGoBack={true}
+ *   onClose={() => setModalVisible(false)}
+ * />
+ * 
+ * 3) Redirecionar para uma rota específica após fechar:
+ * <FeedbackModal
+ *   visible={modalVisible}
+ *   message="Operação feita! Indo para Home..."
+ *   isSuccess={true}
+ *   goToRoute="/home"
+ *   onClose={() => setModalVisible(false)}
+ * />
+ */

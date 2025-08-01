@@ -11,17 +11,19 @@ const useCashService = () => {
   const [openCashId, setOpenCashId] = useState<string | null>(null);
   const [cashStatus, setCashStatus] = useState<string | null>("OPEN");
 
-  const getStatusCash = async () => {
-    clearCashStatus()
+  const getStatusCash = async (): Promise<{
+    status: string | null;
+    cashId: string | null;
+  }> => {
+    clearCashStatus();
     try {
       const localStatus = await getCashStatus();
 
       if (localStatus?.cash) {
         console.log("[useCashService] Usando cache local");
-        console.log("status do cash loca: ", localStatus.cash.status)
         setOpenCashId(localStatus.cash.id);
-        setCashStatus(localStatus.cash.status)
-        return;
+        setCashStatus(localStatus.cash.status);
+        return { status: localStatus.cash.status, cashId: localStatus.cash.id };
       }
 
       console.log("[useCashService] Buscando status do caixa via API...");
@@ -30,14 +32,20 @@ const useCashService = () => {
       if (response.success && response.cash) {
         await saveCashStatus(response.cash);
         setOpenCashId(response.cash.id);
-        setCashStatus(response.cash.status)
+        setCashStatus(response.cash.status);
         console.log("[useCashService] Caixa aberto com ID:", response.cash.id);
-        console.log(`[useCashStatus] Caixa aberto com status: ${response.cash.status}`)
+        console.log(
+          `[useCashStatus] Caixa aberto com status: ${response.cash.status}`
+        );
+        return { status: response.cash.status, cashId: response.cash.id };
       }
+
+      return { status: null, cashId: null };
     } catch (err: any) {
       console.error("[useCashService] Erro ao buscar status do caixa:", err);
       setOpenCashId(null);
       await clearCashStatus();
+      return { status: null, cashId: null };
     }
   };
 
@@ -93,7 +101,7 @@ const useCashService = () => {
       const response = await cashApi.closeCash(id, finalValue);
 
       if (response.success) {
-        await updateCashStatus("CLOSED")
+        await updateCashStatus("CLOSED");
         return {
           success: true,
           message: response.message || "Caixa fechado com sucesso",
@@ -120,7 +128,7 @@ const useCashService = () => {
     openCash,
     closeCash,
     openCashId,
-    cashStatus
+    cashStatus,
   };
 };
 

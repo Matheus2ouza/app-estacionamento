@@ -9,7 +9,7 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.white,
   },
   header: {
-    fontSize: 25,
+    fontSize: 22,
     color: Colors.white,
     fontWeight: 'bold',
   },

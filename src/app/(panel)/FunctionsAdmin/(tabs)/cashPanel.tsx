@@ -7,7 +7,12 @@ import useCashDetails from "@/src/hooks/cash/useCashDetails";
 import useCashService from "@/src/hooks/cash/useCashStatus";
 import { styles } from "@/src/styles/functions/cashpanelStyle";
 import CashStatusModal from "@/src/components/CashStatusModal";
-import { FontAwesome5, Ionicons, MaterialCommunityIcons, Entypo } from '@expo/vector-icons';
+import {
+  FontAwesome5,
+  Ionicons,
+  MaterialCommunityIcons,
+  Entypo,
+} from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -20,14 +25,16 @@ import {
 } from "react-native";
 
 export default function CashPanel() {
-  const { getStatusCash, openCash, closeCash, openCashId, cashStatus } = useCashService();
+  const { getStatusCash, openCash, closeCash, openCashId, cashStatus } =
+    useCashService();
   const { generalCashierData, loading, error } = useCashDetails();
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [cashStatusLoaded, setCashStatusLoaded] = useState(false);
 
   const [isCloseModalVisible, setIsCloseModalVisible] = useState(false);
-  const [isCashClosedModalVisible, setIsCashClosedModalVisible] = useState(false);
+  const [isCashClosedModalVisible, setIsCashClosedModalVisible] =
+    useState(false);
 
   const [feedbackModal, setFeedbackModal] = useState({
     visible: false,
@@ -37,14 +44,14 @@ export default function CashPanel() {
   });
 
   const [transactionValues, setTransactionValues] = useState<{
-    finalValue: string | '';
+    finalValue: number | "";
     totalValue: number | null;
     valuesEntry: number | null;
     valuesExit: number | null;
     veicles: number | null;
     products: number | null;
   }>({
-    finalValue: '',
+    finalValue: "",
     totalValue: null,
     valuesEntry: null,
     valuesExit: null,
@@ -64,20 +71,20 @@ export default function CashPanel() {
     }, [])
   );
 
-useEffect(() => {
-  if (!cashStatusLoaded) return;
+  useEffect(() => {
+    if (!cashStatusLoaded) return;
 
-  console.log(`O STATUS DO CASHHHH: ${cashStatus}`)
+    console.log(`O STATUS DO CASHHHH: ${cashStatus}`);
 
-  if (cashStatus === "CLOSED") {
-    setIsCashClosedModalVisible(true);
-  } else if (openCashId === null) {
-    setIsModalVisible(true);
-  } else {
-    setIsModalVisible(false);
-    setIsCashClosedModalVisible(false);
-  }
-}, [openCashId, cashStatus, cashStatusLoaded]);
+    if (cashStatus === "CLOSED") {
+      setIsCashClosedModalVisible(true);
+    } else if (openCashId === null) {
+      setIsModalVisible(true);
+    } else {
+      setIsModalVisible(false);
+      setIsCashClosedModalVisible(false);
+    }
+  }, [openCashId, cashStatus, cashStatusLoaded]);
 
   useEffect(() => {
     const fetchCashDetails = async () => {
@@ -85,13 +92,14 @@ useEffect(() => {
         const data = await generalCashierData(openCashId);
         if (data) {
           setTransactionValues({
-            finalValue: String(data.finalValue),
+            finalValue: Number(data.final_value),
             totalValue: data.totalValue || 0,
             valuesEntry:
-              Number(data.generalSaleTotal) + Number(data.vehicleEntryTotal),
-            valuesExit: data.outgoingExpenseTotal || 0,
-            veicles: data.vehicleEntryTotal || 0,
-            products: data.generalSaleTotal || 0,
+              Number(data.general_sale_total) +
+              Number(data.vehicle_entry_total),
+            valuesExit: data.outgoing_expense_total || 0,
+            veicles: Number(data.vehicle_entry_total) || 0,
+            products: data.general_sale_total || 0,
           });
         }
       }
@@ -216,7 +224,7 @@ useEffect(() => {
       <CashRegisterModal
         visible={isCloseModalVisible}
         mode="open"
-        initialValue={transactionValues.finalValue}
+        initialValue={String(transactionValues.finalValue)}
         onClose={() => setIsCloseModalVisible(false)}
         onSubmitCashRegister={handleOpenCash}
       />
@@ -224,7 +232,7 @@ useEffect(() => {
       <CashRegisterModal
         visible={isCloseModalVisible}
         mode="close"
-        initialValue={transactionValues.finalValue}
+        initialValue={String(transactionValues.finalValue)}
         onClose={() => setIsCloseModalVisible(false)}
         onSubmitCashRegister={(value) => handleCloseCash(value)}
       />
@@ -242,24 +250,28 @@ useEffect(() => {
       />
 
       <View style={styles.container}>
+        {/* Balanço total */}
         <View style={styles.previewBalence}>
           <View style={styles.cornerTopLeft} />
-          <Text style={styles.totalValue}>{transactionValues.totalValue}</Text>
+          <Text style={styles.totalValue}>
+            R$ {Number(transactionValues.finalValue)?.toFixed(2) || "0,00"}
+          </Text>
           <View style={styles.cornerBottomRight} />
         </View>
 
+        {/* Entradas e Saídas */}
         <View style={styles.cashierDetails}>
           <View style={styles.entries}>
             <View style={styles.icon}>
               <FontAwesome5
                 name="long-arrow-alt-up"
                 size={30}
-                color={Colors.blueLight}
+                color={Colors.green[500]}
               />
             </View>
             <View>
-              <Text style={[styles.Number, { color: Colors.greenLight }]}>
-                $ {transactionValues.valuesEntry}
+              <Text style={[styles.Number, { color: Colors.green[500] }]}>
+                R$ {Number(transactionValues.valuesEntry)?.toFixed(2) || "0,00"}
               </Text>
               <Text style={styles.Label}>Entradas</Text>
             </View>
@@ -270,14 +282,14 @@ useEffect(() => {
               <FontAwesome5
                 name="long-arrow-alt-down"
                 size={30}
-                color={Colors.blueLight}
+                color={Colors.red[500]}
               />
             </View>
             <View>
-              <Text style={[styles.Number, { color: Colors.red }]}>
-                $ {transactionValues.valuesExit}
+              <Text style={[styles.Number, { color: Colors.red[500] }]}>
+                R$ {Number(transactionValues.valuesExit)?.toFixed(2) || "0,00"}
               </Text>
-              <Text style={styles.Label}>Saída</Text>
+              <Text style={styles.Label}>Saídas</Text>
             </View>
           </View>
         </View>
@@ -293,15 +305,21 @@ useEffect(() => {
                 <MaterialCommunityIcons
                   name="car-estate"
                   size={30}
-                  color={Colors.blueLight}
+                  color={Colors.blue.light}
                 />
               </View>
               <View style={styles.transactionInfo}>
                 <Text style={styles.transactionTitle}>Veículos</Text>
                 <Text style={styles.transactionSubtitle}>Carro e Moto</Text>
               </View>
-              <Text style={styles.transactionValue}>
-                {transactionValues.veicles ?? 0}
+              <Text
+                style={
+                  transactionValues.veicles === 0
+                    ? styles.transactionValueSNeutral
+                    : styles.transactionValue
+                }
+              >
+                R$ {transactionValues.veicles?.toFixed(2) || "0,00"}
               </Text>
             </View>
 
@@ -311,15 +329,45 @@ useEffect(() => {
                 <Ionicons
                   name="cube-outline"
                   size={30}
-                  color={Colors.blueLight}
+                  color={Colors.blue.light}
                 />
               </View>
               <View style={styles.transactionInfo}>
                 <Text style={styles.transactionTitle}>Produtos diversos</Text>
                 <Text style={styles.transactionSubtitle}>Refrigerante...</Text>
               </View>
-              <Text style={styles.transactionValue}>
-                {transactionValues.products ?? 0}
+              <Text
+                style={
+                  Number(transactionValues.products) === 0
+                    ? styles.transactionValueSNeutral
+                    : styles.transactionValue
+                }
+              >
+                R$ {Number(transactionValues.products)?.toFixed(2) || "0,00"}
+              </Text>
+            </View>
+
+            {/* 3. Despesas */}
+            <View style={styles.transactionItem}>
+              <View style={styles.transactionIcon}>
+                <Ionicons
+                  name="cube-outline"
+                  size={30}
+                  color={Colors.blue.light}
+                />
+              </View>
+              <View style={styles.transactionInfo}>
+                <Text style={styles.transactionTitle}>Despesas</Text>
+                <Text style={styles.transactionSubtitle}>gastos no geral</Text>
+              </View>
+              <Text
+                style={
+                  Number(transactionValues.valuesExit) === 0
+                    ? styles.transactionValueSNeutral
+                    : styles.transactionValueExit
+                }
+              >
+                R$ -{Number(transactionValues.valuesExit)?.toFixed(2) || "0,00"}
               </Text>
             </View>
           </View>

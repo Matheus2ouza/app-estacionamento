@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -8,77 +8,30 @@ import {
   ActivityIndicator,
 } from "react-native";
 import Header from "@/src/components/Header";
-import { usePaymentConfig } from "@/src/hooks/vehicleFlow/usePaymentConfig";
+import { useCreatePayment } from "@/src/hooks/vehicleFlow/useCreatePayment";
 import { styles } from "@/src/styles/functions/createPaymentStyle";
+import FeedbackModal from "@/src/components/FeedbackModal";
 
 const CreatePayment = () => {
   const {
-    config,
-    selectedMethod,
+    paymentConfig,
+    methods,
+    activeMethod,
     isLoading,
+    isSaving,
+    modalState,
     vehicleTypes,
-    billingMethods,
-    loadBillingMethods, // Adicionado
-    saveConfig,
+    selectMethod,
     updateRule,
     updateTolerance,
-    selectMethodById,
-  } = usePaymentConfig();
+    getDisplayValue,
+    handleSave,
+    closeModal,
+  } = useCreatePayment();
 
-  const [isSaving, setIsSaving] = useState(false);
-  const [displayValues, setDisplayValues] = useState<Record<string, string>>(
-    {}
-  );
+  console.log("Active Method Data:", activeMethod);
 
-  // Carrega os métodos de cobrança quando o componente é montado
-  useEffect(() => {
-    const fetchBillingMethods = async () => {
-      try {
-        await loadBillingMethods();
-      } catch (error) {
-        console.error("Failed to load billing methods:", error);
-        // Você pode adicionar um alerta ou tratamento de erro aqui
-      }
-    };
-
-    fetchBillingMethods();
-  }, [loadBillingMethods]);
-
-  const handleSave = async () => {
-    if (!config) return;
-
-    setIsSaving(true);
-    try {
-      await saveConfig(config);
-      alert("Configuração salva com sucesso!");
-    } catch (error) {
-      alert("Erro ao salvar configuração");
-      console.error(error);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const formatDisplayValue = (
-    value: number | undefined,
-    key: string
-  ): string => {
-    return displayValues[key] ?? value?.toString().replace(".", ",") ?? "";
-  };
-
-  const handleCurrencyInput = (
-    text: string,
-    key: string,
-    callback: (value: number) => void
-  ) => {
-    const cleaned = text.replace(/[^0-9,.]/g, "");
-    setDisplayValues((prev) => ({ ...prev, [key]: cleaned }));
-    const normalized = cleaned.replace(",", ".");
-    const numericValue = parseFloat(normalized) || 0;
-    callback(numericValue);
-  };
-
-  if (isLoading && billingMethods.length === 0) {
+  if (isLoading) {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color="#0000ff" />
@@ -88,64 +41,85 @@ const CreatePayment = () => {
 
   return (
     <View style={styles.container}>
+      <FeedbackModal
+        visible={modalState.visible}
+        message={modalState.message}
+        isSuccess={modalState.isSuccess}
+        onClose={closeModal}
+      />
+
       <Header
         title="Configurar Forma de Cobrança"
         titleStyle={{ fontSize: 25 }}
       />
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {/* Banner do método ativo */}
+        
+        {activeMethod && (
+          <View style={styles.activeMethodBanner}>
+            <Text style={styles.activeMethodText}>
+              Método Ativo: {activeMethod.method.name}
+            </Text>
+          </View>
+        )}
+
         {/* Seleção do método */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Método de Cobrança</Text>
           <View style={styles.methodsContainer}>
-            {billingMethods.map((method) => (
-              <TouchableOpacity
-                key={method.id || method.name} // Usa name como fallback para key
-                style={[
-                  styles.methodButton,
-                  selectedMethod?.id === (method.id || method.name) &&
-                    styles.selectedMethod,
-                ]}
-                onPress={() => selectMethodById(method.id || method.name)}
-              >
-                <Text
+            {methods.map((method) => {
+              const isActive = activeMethod?.method.id === method.id;
+              const isSelected = paymentConfig?.methodId === method.id;
+              
+              return (
+                <TouchableOpacity
+                  key={method.id}
                   style={[
-                    styles.methodText,
-                    selectedMethod?.id === (method.id || method.name) &&
-                      styles.selectedMethodText,
+                    styles.methodButton,
+                    isSelected && styles.selectedMethod,
+                    isActive && styles.activeMethod,
                   ]}
+                  onPress={() => selectMethod(method)}
                 >
-                  {method.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    style={[
+                      styles.methodText,
+                      isSelected && styles.selectedMethodText,
+                      isActive && styles.activeMethodText,
+                    ]}
+                  >
+                    {method.name}
+                    {isActive && " (Ativo)"}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
 
-        {selectedMethod && (
+        {paymentConfig && (
           <>
             {/* Descrição do método */}
             <View style={styles.section}>
               <Text style={styles.description}>
-                {selectedMethod.description}
+                {methods.find(m => m.id === paymentConfig.methodId)?.description || ""}
               </Text>
             </View>
 
             {/* Tolerância */}
-            {selectedMethod.tolerance !== null && config && (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Tolerância (minutos)</Text>
-                <TextInput
-                  style={styles.input}
-                  keyboardType="numeric"
-                  value={config.toleranceMinutes?.toString() || "0"}
-                  onChangeText={(text) =>
-                    updateTolerance(Number(text.replace(/[^0-9]/g, "")) || 0)
-                  }
-                  placeholder="Ex: 10"
-                />
-              </View>
-            )}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Tolerância (minutos)</Text>
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
+                value={paymentConfig.toleranceMinutes.toString()}
+                onChangeText={(text) =>
+                  updateTolerance(Number(text.replace(/[^0-9]/g, "")) || 0)
+                }
+                placeholder="Ex: 10"
+              />
+            </View>
 
             {/* Regras por tipo de veículo */}
             <View style={styles.section}>
@@ -154,7 +128,10 @@ const CreatePayment = () => {
               </Text>
 
               {vehicleTypes.map((vehicle) => {
-                const rule = config?.rules[vehicle.id];
+                const rule = paymentConfig.rules[vehicle.id];
+                const method = methods.find(m => m.id === paymentConfig.methodId);
+                const baseTime = method?.name.includes("Hora") ? 60 : 30;
+
                 return (
                   <View key={vehicle.id} style={styles.vehicleSection}>
                     <Text style={styles.vehicleTitle}>{vehicle.name}</Text>
@@ -163,30 +140,24 @@ const CreatePayment = () => {
                     <View style={styles.inputGroup}>
                       <Text style={styles.inputLabel}>Preço</Text>
                       <TextInput
-                        style={styles.input}
-                        keyboardType="decimal-pad"
-                        value={formatDisplayValue(
-                          rule?.price,
-                          `${vehicle.id}_price`
-                        )}
-                        onChangeText={(text) =>
-                          handleCurrencyInput(
-                            text,
-                            `${vehicle.id}_price`,
-                            (value) => updateRule(vehicle.id, "price", value)
-                          )
-                        }
-                        placeholder="Ex: 5,00"
-                      />
+  style={styles.input}
+  keyboardType="decimal-pad"
+  value={getDisplayValue(vehicle.id, 'price', rule?.price || 0)}
+  onChangeText={(text) => updateRule(vehicle.id, 'price', text)}
+  placeholder="Ex: 4,50"
+/>
+
                     </View>
 
                     {/* Tempo base */}
                     <View style={styles.inputGroup}>
-  <Text style={styles.inputLabel}>Tempo Base (minutos)</Text>
-  <Text style={[styles.input, {paddingVertical: 12}]}>
-    {selectedMethod?.name.includes("Hora") ? "60" : "30"}
-  </Text>
-</View>
+                      <Text style={styles.inputLabel}>
+                        Tempo Base (minutos)
+                      </Text>
+                      <Text style={[styles.input, { paddingVertical: 12 }]}>
+                        {baseTime}
+                      </Text>
+                    </View>
                   </View>
                 );
               })}
@@ -198,12 +169,16 @@ const CreatePayment = () => {
         <TouchableOpacity
           style={styles.saveButton}
           onPress={handleSave}
-          disabled={isSaving || !selectedMethod}
+          disabled={isSaving || !paymentConfig}
         >
           {isSaving ? (
             <ActivityIndicator color="white" />
           ) : (
-            <Text style={styles.saveButtonText}>Salvar Configuração</Text>
+            <Text style={styles.saveButtonText}>
+              {paymentConfig?.methodId === activeMethod?.method.id
+                ? "Atualizar Configuração"
+                : "Definir como Método Ativo"}
+            </Text>
           )}
         </TouchableOpacity>
       </ScrollView>

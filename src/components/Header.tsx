@@ -32,8 +32,6 @@ export default function Header({
   return (
     <LinearGradient
       colors={[Colors.gray.zinc, Colors.blue.light]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
       style={[styles.header, containerStyle]}
     >
       <View style={[styles.headerRow, rowStyle]}>
@@ -45,7 +43,16 @@ export default function Header({
             style={[{ transform: [{ scaleY: 1.7 }] }, iconStyle]}
           />
         </Pressable>
-        <Text style={[styles.title, titleStyle]}>{title}</Text>
+        <View style={styles.titleContainer}>
+          <Text 
+            style={[styles.title, titleStyle]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.5}
+          >
+            {title}
+          </Text>
+        </View>
       </View>
     </LinearGradient>
   );
@@ -64,10 +71,16 @@ const styles = StyleSheet.create({
     marginTop: 40,
     gap: 15,
   },
+  titleContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
   title: {
     fontSize: 30,
     fontWeight: "bold",
     color: Colors.gray[50],
     textTransform: "uppercase",
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
 });

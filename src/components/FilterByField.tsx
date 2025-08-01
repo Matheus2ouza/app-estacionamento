@@ -91,13 +91,13 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   radioOuterSelected: {
-    borderColor: Colors.blueLogo,
+    borderColor: Colors.blue.logo,
   },
   radioInner: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: Colors.blueLogo,
+    backgroundColor: Colors.blue.logo,
   },
   radioLabel: {
     fontSize: 15,

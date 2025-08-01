@@ -4,8 +4,9 @@ import { PrimaryButton } from "@/src/components/PrimaryButton";
 import Separator from "@/src/components/Separator";
 import { usePatioConfig } from "@/src/hooks/parking/usePatioConfig";
 import { styles } from "@/src/styles/functions/patioConfigStyle";
-import { ActivityIndicator, Keyboard, Text, TouchableWithoutFeedback, View } from "react-native";
+import { ActivityIndicator, Keyboard, Text, TouchableWithoutFeedback, View, Image } from "react-native";
 import { TextInput } from "react-native-paper";
+import Colors from "@/src/constants/Colors";
 
 export default function PatioConfig() {
   const {
@@ -19,50 +20,68 @@ export default function PatioConfig() {
     closeModal,
   } = usePatioConfig();
 
-    if (loading) {
-      return (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" />
-        </View>
-      );
-    }
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.blue.logo} />
+      </View>
+    );
+  }
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View style={{ flex: 1 }}>
-        <Header title="Configurações do Pátio" titleStyle={styles.header} />
+      <View style={styles.screenContainer}>
+        <Image
+          source={require("@/src/assets/images/splash-icon-blue.png")}
+          style={styles.heroImage}
+        />
+        <Header title="Configurações do Pátio" />
+        
+        <View style={styles.contentContainer}>
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Quantidade de vagas</Text>
+            <Separator />
+            
+            <View style={styles.inputContainer}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Vagas para Carros</Text>
+                <TextInput
+                  mode="outlined"
+                  keyboardType="numeric"
+                  value={spots.car}
+                  onChangeText={(text) => handleChange("car", text)}
+                  placeholder="0"
+                  style={styles.input}
+                  outlineColor={Colors.gray.light}
+                  activeOutlineColor={Colors.blue.logo}
+                  theme={{ roundness: 8 }}
+                  disabled={loading}
+                />
+              </View>
 
-        <View style={styles.container}>
-          <Text style={styles.title}>Quantidade de vagas</Text>
-          <Separator />
-
-          <View style={styles.inputRow}>
-            <Text style={styles.label}>Vagas Carros</Text>
-            <TextInput
-              keyboardType="numeric"
-              value={spots.car}
-              onChangeText={(text) => handleChange("car", text)}
-              placeholder="0"
-              style={styles.numericInput}
-            />
-          </View>
-
-          <View style={styles.inputRow}>
-            <Text style={styles.label}>Vagas Motos</Text>
-            <TextInput
-              keyboardType="numeric"
-              value={spots.motorcycle}
-              onChangeText={(text) => handleChange("motorcycle", text)}
-              placeholder="0"
-              style={styles.numericInput}
-            />
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Vagas para Motos</Text>
+                <TextInput
+                  mode="outlined"
+                  keyboardType="numeric"
+                  value={spots.motorcycle}
+                  onChangeText={(text) => handleChange("motorcycle", text)}
+                  placeholder="0"
+                  style={styles.input}
+                  outlineColor={Colors.gray.light}
+                  activeOutlineColor={Colors.blue.logo}
+                  theme={{ roundness: 8 }}
+                  disabled={loading}
+                />
+              </View>
+            </View>
           </View>
         </View>
 
-        <View style={styles.button}>
+        <View style={styles.footer}>
           <PrimaryButton
-            title={loading ? "Atualizando.." : "Salvar"}
-            style={styles.primaryButton}
+            title={loading ? "Salvando..." : "Salvar Configurações"}
+            style={styles.saveButton}
             onPress={handleSave}
             disabled={loading}
           />
@@ -78,4 +97,3 @@ export default function PatioConfig() {
     </TouchableWithoutFeedback>
   );
 }
-

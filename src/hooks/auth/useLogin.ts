@@ -15,8 +15,8 @@ export function useUserLogin() {
     try {
       console.log(data)
       const response = await AuthApi.loginUser(data);
-      const token = response.token;
       console.log(response)
+      const token = response.token;
 
       // Salva token localmente
       await SecureStore.setItemAsync("token", token);

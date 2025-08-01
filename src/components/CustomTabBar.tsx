@@ -8,9 +8,7 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 export default function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   return (
     <LinearGradient
-      colors={[Colors.zinc, Colors.blueLight]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 0 }}
+      colors={[Colors.gray.zinc, Colors.blue.light]}
       style={styles.bottomBar}
     >
       {state.routes.map((route, index) => {
@@ -67,12 +65,12 @@ const styles = StyleSheet.create({
   bottomBar: {
     height: '12%',
     width: '100%',
-    backgroundColor: Colors.zinc,
+    backgroundColor: Colors.gray.zinc,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
     borderTopWidth: 1,
-    borderTopColor: Colors.mediumGray,
+    borderTopColor: Colors.gray.medium,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderTopRightRadius: 42,

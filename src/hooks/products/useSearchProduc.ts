@@ -11,7 +11,8 @@ const useSearchProducts = () => {
 
     try {
       const productsList = await ProductApi.listProducts();
-
+      console.log("DENTRO DO HOOK")
+      console.log(productsList)
       if (productsList.success) {
         return {
           success: true,

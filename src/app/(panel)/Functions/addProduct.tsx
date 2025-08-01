@@ -3,7 +3,7 @@ import Header from "@/src/components/Header";
 import Colors from "@/src/constants/Colors";
 import useRegisterProduct from "@/src/hooks/products/useRegisterProduct";
 import { styles } from "@/src/styles/functions/addProductStyle";
-import LoadingModal from '@/src/components/LoadingModal'
+import LoadingModal from "@/src/components/LoadingModal";
 import { Product } from "@/src/types/products";
 import { useEffect, useState, useRef } from "react";
 import {
@@ -16,7 +16,7 @@ import {
   Alert,
   Animated,
   Easing,
-  Modal
+  Modal,
 } from "react-native";
 import { TextInput } from "react-native-paper";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -98,82 +98,83 @@ export default function AddProduct() {
   }, [isAdding]);
 
   // Função para lidar com código de barras escaneado
-  const handleBarCodeScanned = async ({ data }: { data: string }) => {
-    if (!isScanning || isProcessing) return;
+const handleBarCodeScanned = async ({ data }: { data: string }) => {
+  if (!isScanning || isProcessing) return;
 
-    setIsScanning(false);
-    setIsProcessing(true);
+  setIsScanning(false);
+  setIsProcessing(true);
+  setBarcode(data); // Define o código imediatamente
 
-    try {
-      setBarcode(data);
-      await fetchProduct(data);
-    } catch (error) {
-      console.error("Erro ao processar código:", error);
-    } finally {
-      setTimeout(() => {
-        setIsProcessing(false);
-        // Reativar scanner após 2 segundos
-        setTimeout(() => setIsScanning(true), 2000);
-      }, 1500);
-    }
-  };
+  try {
+    await fetchProduct(data);
+  } catch (error) {
+    console.error("Erro ao processar código:", error);
+  } finally {
+    setTimeout(() => {
+      setIsProcessing(false);
+      // Reativar scanner após 2 segundos
+      setTimeout(() => setIsScanning(true), 2000);
+    }, 1500);
+  }
+};
 
-  const fetchProduct = async (code: string) => {
-    setTextLoading("Buscando Produto...")
-    setLoadingIsModal(true);
-    setIsScannerVisible(false); // Fechar o scanner após a leitura
-    
-    try {
-      const productData = await fetchProductByBarcode(code);
+const fetchProduct = async (code: string) => {
+  setTextLoading("Buscando Produto...");
+  setLoadingIsModal(true);
+  setIsScannerVisible(false); // Fechar o scanner após a leitura
+  setBarcode(code); // Sempre preenche o código de barras, independente do resultado
 
-      if (!productData) {
-        setModalMessage("Produto não encontrado na base de dados");
-        setModalIsSuccess(false);
-        setModalVisible(true);
-        return;
-      }
+  try {
+    const productData = await fetchProductByBarcode(code);
 
-      // Extrair apenas os dados essenciais
-      const essentialData = {
-        name: productData.product_name_pt || productData.product_name || "",
-        quantity: productData.product_quantity || "",
-        unit: productData.product_quantity_unit || "",
-        packaging: productData.packaging || "",
-      };
-
-      // Preencher automaticamente o nome do produto
-      if (essentialData.name) {
-        setProductName(
-          `${essentialData.name} - ${essentialData.quantity}${essentialData.unit}`
-        );
-      }
-    } catch (err: any) {
-      setModalMessage("erro ao tentar buscar o produto");
+    if (!productData) {
+      setModalMessage("Produto não encontrado na base de dados. Preencha os dados manualmente.");
+      setModalIsSuccess(false);
       setModalVisible(true);
-    } finally {
-      setLoadingIsModal(false);
+      return;
     }
-  };
+
+    // Extrair apenas os dados essenciais
+    const essentialData = {
+      name: productData.product_name_pt || productData.product_name || "",
+      quantity: productData.product_quantity || "",
+      unit: productData.product_quantity_unit || "",
+      packaging: productData.packaging || "",
+    };
+
+    // Preencher automaticamente o nome do produto
+    if (essentialData.name) {
+      setProductName(
+        `${essentialData.name} - ${essentialData.quantity}${essentialData.unit}`
+      );
+    }
+  } catch (err: any) {
+    setModalMessage("Erro ao tentar buscar o produto. Preencha os dados manualmente.");
+    setModalVisible(true);
+  } finally {
+    setLoadingIsModal(false);
+  }
+};
 
   const handleRegister = async () => {
     setIsAdding(true);
-  setIsAdding(true);
+    setIsAdding(true);
 
-  const parsedPrice = parseFloat(unitPrice.replace(",", "."));
-  const parsedQuantity = parseInt(quantity, 10);
-  const parsedExpiration = expirationDate || undefined;
+    const parsedPrice = parseFloat(unitPrice.replace(",", "."));
+    const parsedQuantity = parseInt(quantity, 10);
+    const parsedExpiration = expirationDate || undefined;
 
-  // Gerar um ID temporário (pode ser substituído pelo backend)
-  const tempId = `temp_${Date.now()}`;
+    // Gerar um ID temporário (pode ser substituído pelo backend)
+    const tempId = `temp_${Date.now()}`;
 
-  const product: Product = {
-    id: tempId, // ID temporário
-    productName,
-    barcode,
-    unitPrice: parsedPrice,
-    quantity: parsedQuantity,
-    expirationDate: parsedExpiration,
-  };
+    const product: Product = {
+      id: tempId, // ID temporário
+      productName,
+      barcode,
+      unitPrice: parsedPrice,
+      quantity: parsedQuantity,
+      expirationDate: parsedExpiration,
+    };
     try {
       const response = await registerProduct(product);
 
@@ -217,10 +218,14 @@ export default function AddProduct() {
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <Text>Precisamos da sua permissão para acessar a câmera</Text>
         <TouchableOpacity
-          style={{ padding: 10, backgroundColor: Colors.blueLogo, borderRadius: 5 }}
+          style={{
+            padding: 10,
+            backgroundColor: Colors.blue.logo,
+            borderRadius: 5,
+          }}
           onPress={requestPermission}
         >
-          <Text style={{ color: 'white' }}>Conceder Permissão</Text>
+          <Text style={{ color: "white" }}>Conceder Permissão</Text>
         </TouchableOpacity>
       </View>
     );
@@ -236,119 +241,91 @@ export default function AddProduct() {
         onRequestClose={() => setIsScannerVisible(false)}
       >
         <View style={{ flex: 1 }}>
-          <CameraView
-            style={{ flex: 1 }}
-            facing={facing}
-            onBarcodeScanned={isScanning ? handleBarCodeScanned : undefined}
-            barcodeScannerSettings={{
-              barcodeTypes: ["qr", "ean13", "ean8", "upc_a", "upc_e", "code39", "code128"],
-            }}
-          >
-            {/* Overlay de visualização */}
-            <View style={{
-              flex: 1,
-              backgroundColor: 'rgba(0,0,0,0.5)',
-            }}>
-              <View style={{ flex: 0.2 }} />
+          <View style={{ flex: 1 }}>
+            <CameraView
+              style={{ flex: 1 }}
+              facing={facing}
+              onBarcodeScanned={isScanning ? handleBarCodeScanned : undefined}
+              barcodeScannerSettings={{
+                barcodeTypes: [
+                  "qr",
+                  "ean13",
+                  "ean8",
+                  "upc_a",
+                  "upc_e",
+                  "code39",
+                  "code128",
+                ],
+              }}
+            />
 
-              <View style={{ flexDirection: 'row', flex: 0.6 }}>
-                <View style={{ flex: 0.2 }} />
-                
+            {/* Overlay sobre a câmera */}
+            <View
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: "rgba(0, 0, 0, 0.7)",
+              }}
+            >
+              {/* Parte de cima do overlay */}
+              <View
+                style={{ flex: 1, backgroundColor: "rgba(0, 0, 0, 0.7)" }}
+              />
+
+              {/* Linha do meio com o retângulo */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  height: 500,
+                  backgroundColor: "transparent",
+                }}
+              >
+                {/* Lado esquerdo */}
+                <View
+                  style={{ flex: 1, backgroundColor: "rgba(0, 0, 0, 0.7)" }}
+                />
+
+                {/* Área do scanner */}
                 <Animated.View
-                  style={[{
-                    flex: 0.6,
+                  style={{
+                    width: 250,
                     borderWidth: 2,
-                    borderColor: 'white',
+                    borderColor: "white",
                     borderRadius: 10,
-                    transform: [{ scale: pulseAnim }],
-                  }]}
-                >
-                  {/* Cantos pulsantes */}
-                  <Animated.View
-                    style={[{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: 30,
-                      height: 30,
-                      borderLeftWidth: 4,
-                      borderTopWidth: 4,
-                      borderColor: Colors.blueLogo,
-                      opacity: pulseAnim.interpolate({
-                        inputRange: [1, 1.1],
-                        outputRange: [0.7, 1],
-                      }),
-                    }]}
-                  />
-                  <Animated.View
-                    style={[{
-                      position: 'absolute',
-                      top: 0,
-                      right: 0,
-                      width: 30,
-                      height: 30,
-                      borderRightWidth: 4,
-                      borderTopWidth: 4,
-                      borderColor: Colors.blueLogo,
-                      opacity: pulseAnim.interpolate({
-                        inputRange: [1, 1.1],
-                        outputRange: [0.7, 1],
-                      }),
-                    }]}
-                  />
-                  <Animated.View
-                    style={[{
-                      position: 'absolute',
-                      bottom: 0,
-                      left: 0,
-                      width: 30,
-                      height: 30,
-                      borderLeftWidth: 4,
-                      borderBottomWidth: 4,
-                      borderColor: Colors.blueLogo,
-                      opacity: pulseAnim.interpolate({
-                        inputRange: [1, 1.1],
-                        outputRange: [0.7, 1],
-                      }),
-                    }]}
-                  />
-                  <Animated.View
-                    style={[{
-                      position: 'absolute',
-                      bottom: 0,
-                      right: 0,
-                      width: 30,
-                      height: 30,
-                      borderRightWidth: 4,
-                      borderBottomWidth: 4,
-                      borderColor: Colors.blueLogo,
-                      opacity: pulseAnim.interpolate({
-                        inputRange: [1, 1.1],
-                        outputRange: [0.7, 1],
-                      }),
-                    }]}
-                  />
-                </Animated.View>
-                
-                <View style={{ flex: 0.2 }} />
+                    backgroundColor: "transparent",
+                  }}
+                />
+
+                {/* Lado direito */}
+                <View
+                  style={{ flex: 1, backgroundColor: "rgba(0, 0, 0, 0.7)" }}
+                />
               </View>
-              
-              <View style={{ flex: 0.2 }} />
+
+              {/* Parte de baixo do overlay */}
+              <View
+                style={{ flex: 1, backgroundColor: "rgba(0, 0, 0, 0.7)" }}
+              />
             </View>
-          </CameraView>
+          </View>
 
           {/* Botões de ação do scanner */}
-          <View style={{
-            position: 'absolute',
-            bottom: 20,
-            left: 0,
-            right: 0,
-            flexDirection: 'row',
-            justifyContent: 'space-around',
-          }}>
+          <View
+            style={{
+              position: "absolute",
+              bottom: 20,
+              left: 0,
+              right: 0,
+              flexDirection: "row",
+              justifyContent: "space-around",
+            }}
+          >
             <TouchableOpacity
               style={{
-                backgroundColor: Colors.blueLogo,
+                backgroundColor: Colors.blue.logo,
                 padding: 15,
                 borderRadius: 50,
               }}
@@ -359,7 +336,7 @@ export default function AddProduct() {
 
             <TouchableOpacity
               style={{
-                backgroundColor: Colors.red,
+                backgroundColor: Colors.red[500],
                 padding: 15,
                 borderRadius: 50,
               }}
@@ -371,18 +348,22 @@ export default function AddProduct() {
 
           {/* Indicador de processamento */}
           {isProcessing && (
-            <View style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              justifyContent: 'center',
-              alignItems: 'center',
-              backgroundColor: 'rgba(0,0,0,0.7)',
-            }}>
+            <View
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                justifyContent: "center",
+                alignItems: "center",
+                backgroundColor: "rgba(0,0,0,0.7)",
+              }}
+            >
               <ActivityIndicator size="large" color="#FFFFFF" />
-              <Text style={{ color: 'white', marginTop: 10 }}>Processando código...</Text>
+              <Text style={{ color: "white", marginTop: 10 }}>
+                Processando código...
+              </Text>
             </View>
           )}
         </View>
@@ -392,6 +373,7 @@ export default function AddProduct() {
         visible={modalVisible}
         message={modalMessage}
         isSuccess={modalIsSuccess}
+        shouldGoBack={true}
         onClose={() => {
           setModalVisible(false);
         }}
@@ -408,10 +390,10 @@ export default function AddProduct() {
             label="Nome do Produto"
             mode="outlined"
             style={styles.input}
-            placeholderTextColor={Colors.blueLogo}
+            placeholderTextColor={Colors.blue.logo}
             value={productName}
             onChangeText={setProductName}
-            cursorColor={Colors.blueLight}
+            cursorColor={Colors.blue.light}
           />
 
           <View style={styles.barcodeContainer}>
@@ -420,10 +402,10 @@ export default function AddProduct() {
                 style={[styles.input, styles.barcodeInput]}
                 mode="outlined"
                 placeholder="Leia o código de barras"
-                placeholderTextColor={Colors.gray}
+                placeholderTextColor={Colors.gray[500]}
                 value={barcode}
                 onChangeText={setBarcode}
-                editable={false}
+                editable={true}
               />
               <TouchableOpacity
                 style={styles.scanButton}
@@ -442,7 +424,7 @@ export default function AddProduct() {
                 label="Valor (R$)"
                 mode="outlined"
                 style={styles.input}
-                placeholderTextColor={Colors.gray}
+                placeholderTextColor={Colors.gray[500]}
                 keyboardType="numeric"
                 value={unitPrice}
                 onChangeText={setUnitPrice}
@@ -454,7 +436,7 @@ export default function AddProduct() {
                 label="Quantidade"
                 mode="outlined"
                 style={styles.input}
-                placeholderTextColor={Colors.gray}
+                placeholderTextColor={Colors.gray[500]}
                 keyboardType="numeric"
                 value={quantity}
                 onChangeText={setQuantity}
@@ -465,7 +447,7 @@ export default function AddProduct() {
             label="Validade (MM/AAAA)"
             mode="outlined"
             style={[styles.input, { marginTop: 25 }]}
-            placeholderTextColor={Colors.gray}
+            placeholderTextColor={Colors.gray[500]}
             value={expirationDate}
             onChangeText={setExpirationDate}
             keyboardType="ascii-capable"
@@ -473,25 +455,27 @@ export default function AddProduct() {
           <Text style={styles.description}>*A validade é opcional*</Text>
         </View>
       </ScrollView>
-      <Pressable
-        style={[
-          styles.addButton,
-          (!isFormValid || isAdding) && {
-            backgroundColor: Colors.darkGray,
-          },
-        ]}
-        disabled={!isFormValid || isAdding}
-        onPress={handleRegister}
-      >
-        <Text
+      <View style={styles.buttonsContainer}>
+        <Pressable
           style={[
-            styles.addButtonText,
-            (!isFormValid || isAdding) && { color: Colors.zincLight },
+            styles.addButton,
+            (!isFormValid || isAdding) && {
+              backgroundColor: Colors.gray[500],
+            },
           ]}
+          disabled={!isFormValid || isAdding}
+          onPress={handleRegister}
         >
-          {isAdding ? `Adicionando${dotText}` : "Adicionar Produto"}
-        </Text>
-      </Pressable>
+          <Text
+            style={[
+              styles.addButtonText,
+              (!isFormValid || isAdding) && { color: Colors.gray.light },
+            ]}
+          >
+            {isAdding ? `Adicionando${dotText}` : "Adicionar Produto"}
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 }

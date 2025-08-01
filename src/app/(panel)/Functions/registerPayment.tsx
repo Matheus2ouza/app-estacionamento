@@ -6,24 +6,30 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Pressable,
+  Modal,
 } from "react-native";
 import { TextInput } from "react-native-paper";
-import { useLocalSearchParams } from "expo-router";
-import { MaterialIcons, FontAwesome } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
+import { MaterialIcons } from "@expo/vector-icons";
 import Header from "@/src/components/Header";
 import Colors from "@/src/constants/Colors";
 import FeedbackModal from "@/src/components/FeedbackModal";
-import { styles } from "@/src/styles/functions/registerPaymentStyle";
+import {
+  styles,
+  modalStyles,
+} from "@/src/styles/functions/registerPaymentStyle";
 import LoadingModal from "@/src/components/LoadingModal";
-import useRegisterExit from "@/src/hooks/vehicleFlow/useRegisterExit";
+import { useRegisterExit } from "@/src/hooks/vehicleFlow/useRegisterExit";
 import useCashService from "@/src/hooks/cash/useCashStatus";
 import { usePdfActions } from "@/src/hooks/vehicleFlow/usePdfActions";
 import PreviewPDF from "@/src/components/PreviewPDF";
+import { useAuth } from "@/src/context/AuthContext";
 
 type PaymentMethod = "Dinheiro" | "Crédito" | "Débito" | "Pix" | "";
 
 export default function PaymentVehicle() {
-  const { getStatusCash, openCash, openCashId, cashStatus } = useCashService();
+  const { role, isLoading, isAuthenticated } = useAuth();
+  const { getStatusCash, openCashId } = useCashService();
   const params = useLocalSearchParams();
 
   // Extrair parâmetros do veículo
@@ -34,45 +40,71 @@ export default function PaymentVehicle() {
     entryTime = "",
     exitTime = "",
     stayDuration = "",
-    amount = 0,
   } = params;
 
+  const { calculateAmount, registerExit, isProcessing } = useRegisterExit();
+  const [calculatedAmount, setCalculatedAmount] = useState<number>(0);
+  const [isCalculating, setIsCalculating] = useState(false);
   const [discount, setDiscount] = useState("");
   const [paidValue, setPaidValue] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("Dinheiro");
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [modalIsSuccess, setModalIsSuccess] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [loadingModal, setLoadingModal] = useState(false);
   const [textLoading, setTextLoading] = useState("");
   const [transactionId, setTransactionId] = useState<string | null>(null);
   const [dotText, setDotText] = useState(".");
-  const { registerVehiclePayment, error } = useRegisterExit();
   const [pdfBase64, setPdfBase64] = useState<string | null>(null);
   const [pdfPreviewVisible, setPdfPreviewVisible] = useState(false);
-  const { downloadPdf, printPdf } = usePdfActions();
+  const [zeroAmountModalVisible, setZeroAmountModalVisible] = useState(false);
+  const { downloadPdf } = usePdfActions();
 
   // Calcular valores
   const discountValue = parseFloat(discount.replace(",", ".")) || 0;
   const paid = parseFloat(paidValue.replace(",", ".")) || 0;
-  const finalPrice = Number(amount) - discountValue;
+  const finalPrice = calculatedAmount - discountValue;
   const change = paid - finalPrice;
 
   useEffect(() => {
-    const fetchCashStatus = async () => {
+    const fetchData = async () => {
       setTextLoading("Buscando Dados...");
       setLoadingModal(true);
 
       try {
         await getStatusCash();
+
+        if (category && stayDuration) {
+          setIsCalculating(true);
+          const { success, amount } = await calculateAmount(
+            String(category).toLowerCase(),
+            String(stayDuration)
+          );
+
+          if (success) {
+            setCalculatedAmount(amount || 0);
+
+            if (amount === 0) {
+              setZeroAmountModalVisible(true);
+            }
+          }
+        }
       } finally {
         setLoadingModal(false);
+        setIsCalculating(false);
       }
     };
 
-    fetchCashStatus();
-  }, []);
+    fetchData();
+  }, [category, stayDuration]);
+
+  const handleNavigateHome = () => {
+    if (role === "ADMIN") {
+      router.replace("/home/admin");
+    } else {
+      router.replace("/home/normal");
+    }
+  };
 
   useEffect(() => {
     if (!isProcessing) return;
@@ -108,40 +140,40 @@ export default function PaymentVehicle() {
       setModalVisible(true);
       return;
     }
-
-    setTextLoading("Registrando pagamento...");
-    setLoadingModal(true);
-    setIsProcessing(true);
-
-    const paymentData = {
-      paymentMethod,
-      cashRegisterId: openCashId,
-      vehicleId: String(id),
-      totalAmount: amount,
-      discountValue,
-      finalPrice,
-      amountReceived: Number(paidValue),
-      changeGiven: change,
-      entryTime: String(entryTime),
-      exitTime: String(exitTime),
-      stayDuration: String(stayDuration),
-    };
-
     try {
-      const result = await registerVehiclePayment(paymentData);
+      setTextLoading("Registrando pagamento...");
+      setLoadingModal(true);
 
-      if (result.success) {
-        setModalMessage(result.message || "Pagamento registrado com sucesso!");
-        setModalIsSuccess(true);
-        setModalVisible(true);
+      // Construir dados para registro de saída
+      const exitData = {
+        plate: String(plate),
+        exit_time: new Date().toISOString(), // Usar hora atual
+        openCashId: openCashId || "",
+        amount_received: paid,
+        change_given: change,
+        discount_amount: discountValue,
+        final_amount: finalPrice,
+        original_amount: calculatedAmount,
+        method: paymentMethod,
+      };
 
-        setTimeout(() => {
-          setPdfBase64(result.pdfBase64 ?? null);
+      console.log(exitData);
+      // Chamar função de registro de saída
+      const response = await registerExit(exitData);
+
+      if (response.success) {
+        // Mostrar comprovante se existir
+        if (response.receipt) {
+          setPdfBase64(response.receipt);
+          setTransactionId(response.exitData || null);
           setPdfPreviewVisible(true);
-          setTransactionId(result.transactionId ?? null);
-        });
+        } else {
+          setModalMessage("Pagamento registrado, mas comprovante não gerado");
+          setModalIsSuccess(true);
+          setModalVisible(true);
+        }
       } else {
-        setModalMessage(result.message || "Erro ao registrar o pagamento.");
+        setModalMessage(response.message || "Erro ao registrar pagamento");
         setModalIsSuccess(false);
         setModalVisible(true);
       }
@@ -156,7 +188,6 @@ export default function PaymentVehicle() {
       setModalVisible(true);
     } finally {
       setLoadingModal(false);
-      setIsProcessing(false);
     }
   };
 
@@ -174,11 +205,6 @@ export default function PaymentVehicle() {
     }
   };
 
-  const handlePrint = () => {
-    if (!pdfBase64) return;
-    printPdf(pdfBase64);
-  };
-
   const isFormValid = paymentMethod && paidValue;
 
   return (
@@ -189,15 +215,53 @@ export default function PaymentVehicle() {
         visible={modalVisible}
         message={modalMessage}
         isSuccess={modalIsSuccess}
+        goToRoute="/Functions/scanExit"
         onClose={() => setModalVisible(false)}
       />
+
+      <Modal
+        visible={zeroAmountModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => {}} // Desabilita fechar com botão físico (Android)
+      >
+        <View style={modalStyles.modalContainer}>
+          <View style={modalStyles.modalContent}>
+            {/* Ícone de atenção (opcional) */}
+            <View style={modalStyles.iconContainer}>
+              <MaterialIcons name="warning" size={36} color={Colors.red[600]} />
+            </View>
+
+            <Text style={modalStyles.modalTitle}>Atenção</Text>
+            <Text style={modalStyles.modalMessage}>
+              O veículo ainda não ficou tempo suficiente para ser cobrado.
+              {"\n\n"}
+              Caso deseje removê-lo, vá em Pátio {">"} Selecione o veículo {">"}{" "}
+              Excluir Veículo.
+            </Text>
+            <TouchableOpacity
+              style={modalStyles.modalButton}
+              onPress={handleNavigateHome}
+              activeOpacity={0.8} // Efeito visual ao pressionar
+            >
+              <Text style={modalStyles.modalButtonText}>Voltar para Home</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       <PreviewPDF
         base64={pdfBase64 || ""}
         visible={pdfPreviewVisible}
         onClose={() => setPdfPreviewVisible(false)}
         onDownload={handleDownload}
-        onPrint={handlePrint}
+        onNavigateBack={() => {
+          if (role === "ADMIN") {
+            router.replace("/home/admin"); // rota da home admin, ajuste conforme sua estrutura
+          } else {
+            router.replace("/home/normal"); // rota da home normal
+          }
+        }}
       />
 
       <Header
@@ -222,9 +286,14 @@ export default function PaymentVehicle() {
               : "N/A"}
           </Text>
           <Text style={styles.vehicleDetail}>Tempo: {stayDuration}</Text>
-          <Text style={styles.vehiclePrice}>
-            Valor: R$ {Number(amount).toFixed(2).replace(".", ",")}
-          </Text>
+
+          {isCalculating ? (
+            <ActivityIndicator size="small" color={Colors.primary} />
+          ) : (
+            <Text style={styles.vehiclePrice}>
+              Valor: R$ {calculatedAmount.toFixed(2).replace(".", ",")}
+            </Text>
+          )}
         </View>
 
         <View style={styles.separator} />
@@ -299,7 +368,7 @@ export default function PaymentVehicle() {
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Total:</Text>
               <Text style={[styles.summaryValue, { color: Colors.blue.light }]}>
-                R$ {Number(amount).toFixed(2).replace(".", ",")}
+                R$ {calculatedAmount.toFixed(2).replace(".", ",")}
               </Text>
             </View>
             <View style={styles.summaryRow}>
@@ -317,7 +386,10 @@ export default function PaymentVehicle() {
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Valor Recebido:</Text>
               <Text style={[styles.summaryValue, { color: Colors.blue.light }]}>
-                R$ {Number(paidValue).toFixed(2).replace(".", ",")}
+                R${" "}
+                {(parseFloat(paidValue.replace(",", ".")) || 0)
+                  .toFixed(2)
+                  .replace(".", ",")}
               </Text>
             </View>
             <View style={styles.summaryRow}>
@@ -348,9 +420,7 @@ export default function PaymentVehicle() {
         {isProcessing ? (
           <ActivityIndicator color={Colors.white} />
         ) : (
-          <Text style={styles.paymentButtonText}>
-            {isProcessing ? `Processando${dotText}` : "Confirmar Pagamento"}
-          </Text>
+          <Text style={styles.paymentButtonText}>Confirmar Pagamento</Text>
         )}
       </Pressable>
     </View>

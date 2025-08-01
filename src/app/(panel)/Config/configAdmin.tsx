@@ -75,7 +75,11 @@ export default function ConfigAdmin() {
 
           <View style={styles.separator} />
 
-          <Pressable>
+          <Pressable
+            onPress={() => {
+              router.push('/Functions/outgoingExpense')
+            }}
+          >
             <View style={styles.optionsRow}>
               <Text style={styles.label}>Despesas</Text>
               <AntDesign

@@ -13,6 +13,9 @@ import {
   ScrollView,
   Text,
   View,
+  Image,
+  TouchableOpacity,
+  Alert
 } from "react-native";
 import { Provider as PaperProvider, TextInput } from "react-native-paper";
 
@@ -25,6 +28,7 @@ export default function EditAccount() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<string | undefined>("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const {
     editUser,
@@ -34,7 +38,6 @@ export default function EditAccount() {
     error,
     success
   } = useUserActions();
-
 
   const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState("");
@@ -54,16 +57,31 @@ export default function EditAccount() {
       setFeedbackMessage("Usuário atualizado com sucesso!");
       setFeedbackSuccess(true);
       setFeedbackVisible(true);
-    } catch {}
+    } catch (error: any) {
+      setFeedbackMessage(error.message || "Erro ao atualizar usuário");
+      setFeedbackSuccess(false);
+      setFeedbackVisible(true);
+    }
   };
 
   const handleDeleteUser = async () => {
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
+
     try {
       await deleteUser(id as string);
       setFeedbackMessage("Usuário excluído com sucesso!");
       setFeedbackSuccess(true);
       setFeedbackVisible(true);
-    } catch {}
+      setConfirmDelete(false);
+    } catch (error: any) {
+      setFeedbackMessage(error.message || "Erro ao excluir usuário");
+      setFeedbackSuccess(false);
+      setFeedbackVisible(true);
+      setConfirmDelete(false);
+    }
   };
 
   useEffect(() => {
@@ -83,93 +101,124 @@ export default function EditAccount() {
     if (success) {
       const timeout = setTimeout(() => {
         router.back();
-      }, 5000);
+      }, 2000);
       return () => clearTimeout(timeout);
     }
   }, [success]);
 
   return (
     <PaperProvider>
-      <View style={{ flex: 1 }}>
-        <Header title="Editar usuário" />
-
+      <View style={styles.screenContainer}>
+        <Image
+          source={require("@/src/assets/images/splash-icon-blue.png")}
+          style={styles.backgroundImage}
+        />
+        
+        <Header title="Editar Usuário" />
+        
         <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={styles.keyboardAvoidingView}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
         >
-          <View style={{ flex: 1, justifyContent: "space-between" }}>
-            <ScrollView
-              contentContainerStyle={[styles.container, { paddingBottom: 20 }]}
-              keyboardShouldPersistTaps="handled"
-            >
+          <ScrollView
+            contentContainerStyle={styles.scrollContainer}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.card}>
+              <Text style={styles.sectionTitle}>Informações do Usuário</Text>
+              
               <TextInput
-                label="Nome"
+                label="Nome de usuário"
                 mode="outlined"
                 value={username}
                 onChangeText={setUsername}
                 autoCapitalize="none"
                 disabled={loadingEdit || loadingDelete}
-                style={[styles.input, { fontSize: 14 }]}
+                style={styles.input}
                 theme={{
                   colors: {
                     primary: Colors.blue.logo,
+                    background: Colors.white,
                   },
+                  roundness: 8,
                 }}
+                left={<TextInput.Icon icon="account" color={Colors.gray.dark} />}
               />
 
-              <View style={{ marginBottom: 8 }}>
-                <TextInput
-                  label="Senha"
-                  mode="outlined"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                  disabled={loadingEdit || loadingDelete}
-                  style={[styles.input, { fontSize: 14 }]}
-                  theme={{
-                    colors: {
-                      primary: Colors.blue.logo,
-                    },
-                  }}
-                />
-                <Text style={styles.passwordHint}>
-                  *Deixe em branco para manter a senha atual*
-                </Text>
-              </View>
+              <TextInput
+                label="Nova senha"
+                mode="outlined"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                disabled={loadingEdit || loadingDelete}
+                style={styles.input}
+                theme={{
+                  colors: {
+                    primary: Colors.blue.logo,
+                    background: Colors.white,
+                  },
+                  roundness: 8,
+                }}
+                left={<TextInput.Icon icon="lock" color={Colors.gray.dark} />}
+                right={
+                  password ? (
+                    <TextInput.Icon
+                      icon="close"
+                      color={Colors.gray.dark}
+                      onPress={() => setPassword("")}
+                    />
+                  ) : null
+                }
+              />
+              <Text style={styles.passwordHint}>
+                Deixe em branco para manter a senha atual
+              </Text>
 
               <RoleMenu
-                label="Cargo"
+                label="Nível de acesso"
                 value={role}
                 onChange={setRole}
                 disabled={loadingEdit || loadingDelete}
                 options={ROLE_OPTIONS}
-                style={[styles.input]}
+                style={styles.roleMenu}
               />
-
-              <View style={styles.containerButton}>
-                <PrimaryButton
-                  title={loadingEdit ? "Atualizando..." : "Salvar"}
-                  onPress={handleUpdateUser}
-                  style={styles.button}
-                />
-                <PrimaryButton
-                  title={loadingDelete ? "Excluindo..." : "Excluir"}
-                  onPress={handleDeleteUser}
-                  style={[styles.button, { backgroundColor: Colors.red[500] }]}
-                />
-              </View>
-            </ScrollView>
+            </View>
+          </ScrollView>
+          
+          <View style={styles.footer}>
+            <PrimaryButton
+              title={loadingEdit ? "Salvando..." : "Salvar Alterações"}
+              onPress={handleUpdateUser}
+              style={styles.saveButton}
+              disabled={loadingEdit || loadingDelete}
+            />
+            
+            <TouchableOpacity
+              onPress={handleDeleteUser}
+              style={[
+                styles.deleteButton,
+                confirmDelete && { backgroundColor: Colors.red[700] }
+              ]}
+              disabled={loadingEdit || loadingDelete}
+            >
+              <Text style={styles.deleteButtonText}>
+                {confirmDelete ? "Confirmar Exclusão" : 
+                 loadingDelete ? "Excluindo..." : "Excluir Usuário"}
+              </Text>
+            </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
-      </View>
 
-      <FeedbackModal
-        visible={feedbackVisible}
-        message={feedbackMessage}
-        isSuccess={feedbackSuccess}
-        onClose={() => setFeedbackVisible(false)}
-      />
+        <FeedbackModal
+          visible={feedbackVisible}
+          message={feedbackMessage}
+          isSuccess={feedbackSuccess}
+          onClose={() => setFeedbackVisible(false)}
+        />
+      </View>
     </PaperProvider>
   );
 }
-
