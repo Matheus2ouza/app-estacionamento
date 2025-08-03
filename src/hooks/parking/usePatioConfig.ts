@@ -18,7 +18,6 @@ export function usePatioConfig() {
       setLoading(true)
       try {
         const response = await ParkingApi.getConfigParking();
-        console.log(response)
 
         if (!response.success) {
           setModalMessage(response.message || "Erro ao carregar configuração.");
@@ -30,8 +29,8 @@ export function usePatioConfig() {
         const config = response.config;
 
         setSpots({
-          car: String(config.max_cars),
-          motorcycle: String(config.max_motorcycles),
+          car: String(config.maxCars),
+          motorcycle: String(config.maxMotorcycles),
         });
       } catch (error: any) {
         const message =

@@ -52,7 +52,6 @@ export default function CreateOutgoing() {
     try {
       setTextLoading("Registrando despesa...");
       setLoadingModal(true);
-      console.log(cashId)
       const response = await registerExpense({
         amount: parseFloat(amount.replace(",", ".")),
         method: paymentMethod,

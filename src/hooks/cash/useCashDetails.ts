@@ -11,7 +11,6 @@ const useCashDetails = () => {
     setError(null);
     try {
       const response = await cashApi.geralCashData(id);
-      console.log(response.data)
       if (response.success) {
         return response.data;
       } else {

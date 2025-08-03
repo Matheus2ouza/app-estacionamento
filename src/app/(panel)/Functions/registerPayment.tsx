@@ -172,7 +172,6 @@ export default function PaymentVehicle() {
         receiptImage: paymentMethod === "Pix" ? receiptImage : null, // só envia se for Pix
       };
 
-      console.log(exitData);
       // Chamar função de registro de saída
       const response = await registerExit(exitData);
 
@@ -228,7 +227,6 @@ export default function PaymentVehicle() {
 
     try {
       await downloadPdf(pdfBase64, filename);
-      console.log("Download feito com sucesso");
     } catch (err) {
       console.error("Erro ao baixar o PDF:", err);
     }

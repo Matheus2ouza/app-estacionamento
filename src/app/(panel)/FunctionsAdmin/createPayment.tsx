@@ -29,7 +29,6 @@ const CreatePayment = () => {
     closeModal,
   } = useCreatePayment();
 
-  console.log("Active Method Data:", activeMethod);
 
   if (isLoading) {
     return (

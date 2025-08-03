@@ -82,7 +82,6 @@ export default function AdminHome() {
 
     // Soma o total de vagas livres
     const totalFree = data.carVacancies + data.motorcycleVacancies;
-    console.log(totalFree)
     return {
       free: totalFree,
       used: data.totalCarsInside + data.totalMotosInside,
@@ -116,7 +115,6 @@ export default function AdminHome() {
   const fetchParkingStatus = useCallback(async () => {
     try {
       const parkingData = await parkingToHome();
-      console.log(parkingData)
       if (parkingData) {
         setParkingStatus(convertParkingData(parkingData));
       }

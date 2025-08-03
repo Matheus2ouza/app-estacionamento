@@ -28,12 +28,9 @@ export default function PaymentProducts() {
   const { getStatusCash, openCash, openCashId, cashStatus } = useCashService();
   const params = useLocalSearchParams();
 
-  console.log(params);
   const parsedSaleItems = params.saleItems
     ? JSON.parse(String(params.saleItems))
     : [];
-
-  console.log(parsedSaleItems);
 
   const [isProductListVisible, setIsProductListVisible] = useState(false);
   const [discount, setDiscount] = useState("");
@@ -187,7 +184,6 @@ export default function PaymentProducts() {
 
     try {
       await downloadPdf(pdfBase64, filename);
-      console.log("Download feito com sucesso");
     } catch (err) {
       console.error("Erro ao baixar o PDF:", err);
     }

@@ -171,7 +171,6 @@ export default function History({ historicData }: HistoryProps) {
     try {
       // Implemente sua função downloadPdf conforme necessário
       await downloadPdf(secondCopyData.receipt, filename);
-      console.log("Download feito com sucesso");
     } catch (err) {
       console.error("Erro ao baixar o PDF:", err);
       setSecondCopyError("Erro ao baixar o comprovante");
@@ -180,8 +179,6 @@ export default function History({ historicData }: HistoryProps) {
 
 const handleViewPhoto = (transaction: VehicleTransaction | ProductTransaction) => {
   if (transaction.photo && transaction.photo_type) {
-        console.log('Tipo do campo photo:', typeof transaction.photo);
-    console.log('Exemplo do conteúdo:', JSON.stringify(transaction.photo).substring(0, 100));
     let base64String: string;
     
     if (typeof transaction.photo === 'object' && !(transaction.photo instanceof Uint8Array)) {

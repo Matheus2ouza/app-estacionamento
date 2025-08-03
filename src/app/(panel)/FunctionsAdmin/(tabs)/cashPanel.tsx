@@ -81,8 +81,6 @@ export default function CashPanel() {
   useEffect(() => {
     if (!cashStatusLoaded) return;
 
-    console.log(`O STATUS DO CASHHHH: ${cashStatus}`);
-
     if (cashStatus === "CLOSED") {
       setIsCashClosedModalVisible(true);
     } else if (openCashId === null) {
@@ -217,7 +215,6 @@ const handleReopenCash = async () => {
       return;
     }
 
-    console.log(openCashId)
     const { success, message } = await reopenCash(openCashId);
 
     setFeedbackModal({

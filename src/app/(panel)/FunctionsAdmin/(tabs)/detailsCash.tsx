@@ -61,6 +61,7 @@ const translateStatus = (status: string): string => {
 export default function DetailsCash() {
   const { cashStatus, getStatusCash, openCashId } = useCashService();
   const [cashStatusLoaded, setCashStatusLoaded] = useState(false);
+  const [showValue, setShowValue] = useState(false);
 
   const { data, loading, error } = useDetailsCash(openCashId || "");
 
@@ -146,11 +147,17 @@ export default function DetailsCash() {
     labels: ["Carros", "Motos", "Produtos"],
     datasets: [
       {
-        data: [
-          categorySales.CARRO.quantidade,
-          categorySales.MOTO.quantidade,
-          categorySales.PRODUTOS.quantidade,
-        ],
+        data: showValue
+          ? [
+              categorySales.CARRO.valor,
+              categorySales.MOTO.valor,
+              categorySales.PRODUTOS.valor,
+            ]
+          : [
+              categorySales.CARRO.quantidade,
+              categorySales.MOTO.quantidade,
+              categorySales.PRODUTOS.quantidade,
+            ],
       },
     ],
   };
@@ -204,12 +211,6 @@ export default function DetailsCash() {
     },
   ];
 
-  // Dados para o gráfico de progresso (meta diária)
-  const progressChartData = {
-    labels: ["Meta diária"],
-    data: [goalProgress.progresso / 100], // Já está correto (29.2% → 0.292)
-  };
-
   const chartConfig = {
     backgroundGradientFrom: Colors.white,
     backgroundGradientTo: Colors.white,
@@ -229,17 +230,31 @@ export default function DetailsCash() {
     fillShadowGradientToOpacity: 0.1,
   };
 
-  const progressChartConfig = {
-    ...chartConfig,
-    color: (opacity = 1, index: any) => {
-      // Muda a cor baseado no progresso
-      const progress = progressChartData.data[index];
-      if (progress >= 1) return Colors.green.dark; // Meta completa
-      if (progress >= 0.5) return Colors.yellow[600]; // Mais da metade
-      return Colors.red[500]; // Menos da metade
+  // Configuração específica para o gráfico de barras
+  const barChartConfig = {
+    backgroundGradientFrom: Colors.white,
+    backgroundGradientTo: Colors.white,
+    color: (opacity = 1) => Colors.blue.dark,
+    strokeWidth: 1,
+    barPercentage: 0.6,
+    decimalPlaces: 0, // Será sobrescrito no componente
+    propsForLabels: {
+      fontSize: 10,
+      dx: 5,
     },
     propsForBackgroundLines: {
-      strokeWidth: 0, // Remove as linhas de fundo
+      strokeWidth: 0,
+    },
+    fillShadowGradientOpacity: 0,
+    barRadius: 4,
+    style: {
+      borderRadius: 8,
+    },
+    formatYLabel: (value: any) => {
+      if (showValue) {
+        return `R$ ${Number(value).toFixed(2)}`;
+      }
+      return value;
     },
   };
 
@@ -362,20 +377,54 @@ export default function DetailsCash() {
 
         {/* Gráfico de Barras - Tipos de veículos/produtos */}
         <View style={styles.chartContainer}>
-          <Text style={styles.chartTitle}>
-            Vendas por Categoria (Quantidade)
-          </Text>
+          <View style={styles.chartHeader}>
+            <Text style={styles.chartTitle}>Vendas por Categoria</Text>
+            <View style={styles.switchContainer}>
+              <Text
+                style={[styles.switchLabel, !showValue && styles.activeLabel]}
+              >
+                Quantidade
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowValue(!showValue)}
+                style={[styles.switch, showValue && styles.switchActive]}
+              >
+                <View
+                  style={[
+                    styles.switchToggle,
+                    showValue && styles.switchToggleActive,
+                  ]}
+                />
+              </TouchableOpacity>
+              <Text
+                style={[styles.switchLabel, showValue && styles.activeLabel]}
+              >
+                Valor
+              </Text>
+            </View>
+          </View>
           <BarChart
             data={barChartData}
             width={screenWidth - 55}
             height={220}
-            yAxisLabel=""
-            yAxisSuffix=""
+            yAxisLabel={""}
+            yAxisSuffix={showValue ? "" : ""}
+            yLabelsOffset={20}
+            fromZero
+            showBarTops={true}
             chartConfig={{
-              ...chartConfig,
-              color: (opacity = 1) => Colors.blue.dark,
+              ...barChartConfig,
+              decimalPlaces: showValue ? 2 : 0,
+              propsForLabels: {
+                dx: 5
+              }
             }}
-            style={styles.chart}
+            style={{
+              marginLeft: 10,
+              marginRight: 0,
+            }}
+            verticalLabelRotation={0}
+            withInnerLines={false}
           />
         </View>
 
@@ -396,71 +445,51 @@ export default function DetailsCash() {
         </View>
 
         {/* Gráfico de Progresso - Meta diária */}
-        {/* Gráfico de Progresso - Meta diária */}
         <View style={styles.chartContainer}>
           <Text style={styles.chartTitle}>Progresso da Meta Diária</Text>
-          <View
-            style={{
-              alignItems: "center",
-              justifyContent: "center",
-              height: 220,
-            }}
-          >
+          <Text style={styles.progressAmount}>
+            R$ {Number(goalProgress.realizado).toFixed(2)} / R${" "}
+            {Number(goalConfigs.daily_goal_value).toFixed(2)}
+          </Text>
+
+          <View style={styles.progressContainer}>
+            {/* Anel de progresso */}
             <ProgressChart
               data={{
-                labels: [""],
-                data: [goalProgress.progresso / 100], // Usando os dados reais da API
+                data: [goalProgress.progresso / 100],
               }}
               width={screenWidth - 55}
               height={220}
               chartConfig={{
-                backgroundColor: "transparent",
-                backgroundGradientFrom: "transparent",
-                backgroundGradientTo: "transparent",
+                backgroundGradientFrom: Colors.white,
+                backgroundGradientTo: Colors.white,
                 decimalPlaces: 1,
-                color: (opacity = 1) => Colors.blue.dark, // Cor da parte preenchida
+                color: (opacity = 1, index) => {
+                  const progress = goalProgress.progresso / 100;
+                  if (progress >= 1) return `rgba(74, 222, 128, ${opacity})`;
+                  if (progress >= 0.75) return `rgba(250, 204, 21, ${opacity})`;
+                  if (progress >= 0.5) return `rgba(249, 115, 22, ${opacity})`;
+                  return `rgba(239, 68, 68, ${opacity})`;
+                },
                 strokeWidth: 16,
                 propsForBackgroundLines: {
                   strokeWidth: 0,
                 },
-                fillShadowGradient: Colors.gray.light, // Cor da parte não preenchida
-                fillShadowGradientOpacity: 0.8,
+                fillShadowGradientOpacity: 0,
                 propsForDots: {
                   r: "0",
                 },
               }}
               hideLegend={true}
-              style={styles.chart}
+              style={styles.progressChart}
               radius={60}
               strokeWidth={16}
             />
 
-            {/* Texto centralizado */}
-            <View
-              style={{
-                position: "absolute",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 28,
-                  fontWeight: "bold",
-                  color: Colors.blue.dark,
-                }}
-              >
-                {goalProgress.progresso.toFixed(0)}%
-              </Text>
-              <Text
-                style={{
-                  fontSize: 14,
-                  color: Colors.gray.dark,
-                  marginTop: 8,
-                }}
-              >
-                R$ {goalProgress.realizado.toFixed(2)} de R${" "}
-                {goalProgress.meta.toFixed(2)}
+            {/* Apenas a porcentagem no centro */}
+            <View style={styles.progressTextContainer}>
+              <Text style={styles.progressPercentage}>
+                {Math.round(goalProgress.progresso)}%
               </Text>
             </View>
           </View>

@@ -11,8 +11,9 @@ export function PrimaryButton({
   disabled = false,
   loading = false,
   loadingType,
-  icon, // Nova prop para o ícone
-  iconPosition = 'left' // Padrão: ícone à esquerda
+  loadingText, // Nova prop para texto de carregamento
+  icon,
+  iconPosition = 'left'
 }: PrimaryButtonProps) {
   const isDisabled = typeof disabled === 'boolean' 
     ? disabled 
@@ -30,7 +31,7 @@ export function PrimaryButton({
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color={Colors.white} />
           <Text style={[styles.buttonText, textStyle, styles.loadingText]}>
-            {title}
+            {loadingText || title} {/* Usa loadingText se fornecido, caso contrário usa title */}
           </Text>
         </View>
       );

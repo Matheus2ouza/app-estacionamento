@@ -20,23 +20,18 @@ const useCashService = () => {
       const localStatus = await getCashStatus();
 
       if (localStatus?.cash) {
-        console.log("[useCashService] Usando cache local");
         setOpenCashId(localStatus.cash.id);
         setCashStatus(localStatus.cash.status);
         return { status: localStatus.cash.status, cashId: localStatus.cash.id };
       }
 
-      console.log("[useCashService] Buscando status do caixa via API...");
       const response = await cashApi.statusCash();
 
       if (response.success && response.cash) {
         await saveCashStatus(response.cash);
         setOpenCashId(response.cash.id);
         setCashStatus(response.cash.status);
-        console.log("[useCashService] Caixa aberto com ID:", response.cash.id);
-        console.log(
-          `[useCashStatus] Caixa aberto com status: ${response.cash.status}`
-        );
+
         return { status: response.cash.status, cashId: response.cash.id };
       }
 
@@ -96,8 +91,6 @@ const useCashService = () => {
     }
 
     try {
-      console.log(id);
-      console.log(finalValue);
       const response = await cashApi.closeCash(id, finalValue);
 
       if (response.success) {

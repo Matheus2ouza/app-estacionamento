@@ -10,52 +10,25 @@ export default function FunctionsAdminLayout() {
   const router = useRouter();
 
   useEffect(() => {
-    console.log("[FunctionsAdminLayout] useEffect disparado", {
-      role,
-      isLoading,
-      isAuthenticated,
-    });
-
     if (!isLoading && isAuthenticated) {
       if (role === "ADMIN") {
-        console.log(
-          "[FunctionsAdminLayout] Usuário ADMIN autorizado a acessar."
-        );
         // Permite continuar, nada a fazer
         return;
       }
 
-      console.log(
-        "[FunctionsAdminLayout] Usuário NÃO é ADMIN, redirecionando para a home correta."
-      );
-
       if (role === "NORMAL") {
-        console.log(
-          "[FunctionsAdminLayout] Redirecionando para /(panel)/home/normal"
-        );
         router.replace("/(panel)/home/normal");
       } else {
-        console.log(
-          "[FunctionsAdminLayout] Role inesperado ou indefinido, redirecionando para /(public)/login"
-        );
         router.replace("/(public)/login");
       }
     } else if (!isLoading && !isAuthenticated) {
-      console.log(
-        "[FunctionsAdminLayout] Usuário não autenticado, redirecionando para /(public)/login"
-      );
       router.replace("/(public)/login");
     }
   }, [role, isLoading, isAuthenticated]);
 
   if (isLoading || !isAuthenticated) {
-    console.log(
-      "[FunctionsAdminLayout] Loading ou não autenticado, não renderiza conteúdo."
-    );
     return null;
   }
-
-  console.log("[FunctionsAdminLayout] Renderizando telas para ADMIN");
 
   return (
     <SelectedUserProvider>

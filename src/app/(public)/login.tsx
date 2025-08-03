@@ -28,7 +28,6 @@ export default function Login() {
       const { status } = await Notifications.requestPermissionsAsync();
 
       if (status !== "granted") {
-        console.log("Permissão de notificação não concedida");
         return;
       }
 
@@ -38,8 +37,6 @@ export default function Login() {
           importance: Notifications.AndroidImportance.DEFAULT,
         });
       }
-
-      console.log("Permissão de notificação concedida");
     };
 
     requestNotificationPermission();
@@ -53,21 +50,15 @@ export default function Login() {
     try {
       const { token, role } = await login({ username, password });
 
-      console.log("Login bem-sucedido. Token:", token);
-      console.log("Role recebido:", role);
-
       await auth.login(token);
-      console.log("Contexto de autenticação atualizado.");
 
       if (role === "ADMIN") {
-        console.log("Redirecionando para admin...");
         router.replace("/home/admin");
       } else {
-        console.log("Redirecionando para employee...");
         router.replace("/home/normal");
       }
     } catch (err) {
-      console.log("Erro no handleLogin:", err);
+      // Aqui pode tratar erro se quiser
     }
   }
 

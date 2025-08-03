@@ -38,7 +38,6 @@ export const updateCashStatus = async (newStatus: 'OPEN' | 'CLOSED') => {
     };
 
     await saveCashStatus(updatedCash);
-    console.log(`[updateCashStatus] Status atualizado para ${newStatus}`);
   } catch (err) {
     console.error('[updateCashStatus] Erro ao atualizar status do caixa:', err);
   }
@@ -58,7 +57,6 @@ export const getCashStatus = async (): Promise<StoredCashStatus | null> => {
       const diffMinutes = (now.getTime() - openedAt.getTime()) / (1000 * 60);
 
       if (diffMinutes > EXPIRATION_MINUTES) {
-        console.log('[getCashStatus] Cache expirado, limpando...');
         await clearCashStatus();
         return null;
       }

@@ -60,7 +60,6 @@ const useParking = () => {
     try {
       setLoading(true);
       const data = await VehicleApi.getParkedExit();
-      console.log(data)
 
       if (data.success) {
         const carsWithElapsedTime = data.data.map((car: Car) => {

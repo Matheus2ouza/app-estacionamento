@@ -111,9 +111,11 @@ export default function ConfigAdmin() {
 
           <View style={styles.separator} />
 
-          <Pressable>
+          <Pressable
+            onPress={() => router.push("/FunctionsAdmin/reports")}
+          >
             <View style={styles.optionsRow}>
-              <Text style={styles.label}>Relatorio</Text>
+              <Text style={styles.label}>Relatorios</Text>
               <AntDesign
                 name="right"
                 size={24}

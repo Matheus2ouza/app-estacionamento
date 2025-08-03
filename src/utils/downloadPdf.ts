@@ -24,7 +24,6 @@ export async function downloadPdf(base64: string, filename: string): Promise<voi
       await MediaLibrary.createAlbumAsync("Download", asset, false);
     }
 
-    console.log("PDF salvo em:", fileUri);
   } catch (error) {
     console.error("Erro ao salvar PDF:", error);
     throw error;

@@ -6,8 +6,7 @@ import type { AuthContextData, DecodedToken } from "../types/auth";
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
-// Tempo de sessão
-const EXPIRATION_MINUTES = 60;
+const ADMIN_EXPIRATION_MS = 2 * 60 * 60 * 1000; // 2 horas
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
@@ -18,82 +17,80 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const restoreSession = async () => {
       try {
-        console.log("[Auth] Tentando restaurar sessão...");
         const storedToken = await SecureStore.getItemAsync("token");
         const expiration = await SecureStore.getItemAsync("token_expiration");
 
-        console.log("[Auth] Token armazenado:", storedToken);
-        console.log("[Auth] Expiração armazenada:", expiration);
+        if (storedToken) {
+          const decoded = jwtDecode<DecodedToken>(storedToken);
+          const userRole = decoded.role;
 
-        if (storedToken && expiration) {
-          const now = Date.now();
-          const expiresAt = parseInt(expiration, 10);
+          if (userRole === "ADMIN" && expiration) {
+            const now = Date.now();
+            const expiresAt = parseInt(expiration, 10);
 
-          if (now < expiresAt) {
-            console.log("[Auth] Token válido, restaurando estado...");
-            const decoded = jwtDecode<DecodedToken>(storedToken);
+            if (now < expiresAt) {
+              setToken(storedToken);
+              setUserId(decoded.id);
+              setRole(userRole);
+            } else {
+              await SecureStore.deleteItemAsync("token");
+              await SecureStore.deleteItemAsync("token_expiration");
+            }
+          } else {
             setToken(storedToken);
             setUserId(decoded.id);
-            setRole(decoded.role);
-            console.log("[Auth] Role do usuário restaurado:", decoded.role);
-          } else {
-            console.log("[Auth] Token expirado, limpando dados...");
-            await SecureStore.deleteItemAsync("token");
-            await SecureStore.deleteItemAsync("token_expiration");
+            setRole(userRole);
           }
-        } else {
-          console.log("[Auth] Nenhum token ou expiração encontrada.");
         }
       } catch (error) {
-        console.error("[Auth] Erro ao restaurar sessão:", error);
+        // Silenciar erro
       } finally {
         setIsLoading(false);
-        console.log("[Auth] Restore session finalizado. isLoading false.");
       }
     };
 
     restoreSession();
   }, []);
 
-    useEffect(() => {
+  useEffect(() => {
     setAuthToken(token);
   }, [token]);
 
   const login = async (newToken: string) => {
     try {
-      console.log("[Auth] Iniciando login...");
       const decoded = jwtDecode<DecodedToken>(newToken);
+      const userRole = decoded.role;
+
       setToken(newToken);
       setUserId(decoded.id);
-      setRole(decoded.role);
-      console.log("[Auth] Role no login:", decoded.role);
+      setRole(userRole);
 
-      const expiresAt = Date.now() + EXPIRATION_MINUTES * 60 * 1000;
       await SecureStore.setItemAsync("token", newToken);
-      await SecureStore.setItemAsync("token_expiration", expiresAt.toString());
-      console.log("[Auth] Login realizado com sucesso. Token salvo com expiração:", new Date(expiresAt));
+
+      if (userRole === "ADMIN") {
+        const expiresAt = Date.now() + ADMIN_EXPIRATION_MS;
+        await SecureStore.setItemAsync("token_expiration", expiresAt.toString());
+      } else {
+        await SecureStore.deleteItemAsync("token_expiration");
+      }
     } catch (error) {
-      console.error("[Auth] Erro no login:", error);
+      // Silenciar erro
     }
   };
 
   const logout = async () => {
     try {
-      console.log("[Auth] Realizando logout...");
       setToken(null);
       setUserId(null);
       setRole(null);
       await SecureStore.deleteItemAsync("token");
       await SecureStore.deleteItemAsync("token_expiration");
-      console.log("[Auth] Logout finalizado, dados apagados.");
     } catch (error) {
-      console.error("[Auth] Erro no logout:", error);
+      // Silenciar erro
     }
   };
 
   const isAuthenticated = !!token;
-
-  console.log("[Auth] Renderizando AuthContext: isAuthenticated =", isAuthenticated, "role =", role, "isLoading =", isLoading);
 
   return (
     <AuthContext.Provider

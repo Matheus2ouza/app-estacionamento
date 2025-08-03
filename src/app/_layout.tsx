@@ -22,12 +22,9 @@ export default function RootLayout() {
 
   const onLayoutRootView = useCallback(async () => {
     if (fontsLoaded) {
-      console.log("[RootLayout] Fonts carregadas, escondendo splash");
       await SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
-
-  console.log("[RootLayout] Renderizando. Fonts loaded:", fontsLoaded);
 
   if (!fontsLoaded) return null;
 

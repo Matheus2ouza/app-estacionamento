@@ -32,7 +32,6 @@ export default function Inventory() {
 
   const handleSearchProduct = async () => {
     const response = await searchProducts();
-    console.log(response.list)
     if (response.success) {
       setFilteredProducts(response.list || []);
     }

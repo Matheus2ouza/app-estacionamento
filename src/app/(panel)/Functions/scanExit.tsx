@@ -81,7 +81,6 @@ export default function ScanExit() {
     setIsProcessing(true);
 
     try {
-      console.log("QR Code lido:", data);
 
       let payload = data;
 

@@ -37,7 +37,6 @@ export const useFetchVehicle = () => {
 
     try {
       const response = await VehicleApi.getUniquevehicle(id, plate);
-      console.log(response);
 
       if (response.success) {
         const car = response.car;
@@ -46,7 +45,6 @@ export const useFetchVehicle = () => {
         let formattedEntryTime = "";
 
         if (car.entry_time) {
-          console.log(car.entry_time);
           const entry = parseDateTime(car.entry_time);
           if (entry) {
             setEntryTime(entry);

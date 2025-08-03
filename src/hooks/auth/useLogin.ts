@@ -13,9 +13,7 @@ export function useUserLogin() {
     setError(null);
 
     try {
-      console.log(data)
       const response = await AuthApi.loginUser(data);
-      console.log(response)
       const token = response.token;
 
       // Salva token localmente

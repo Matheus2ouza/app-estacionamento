@@ -12,7 +12,6 @@ export const useDetailsCash = (id: string) => {
       try {
         setLoading(true);
         const response = await dashboardApi.geralDetailsCash(id);
-        console.log(JSON.stringify(response, null, 2));
         setData(response);
         setError(null);
       } catch (err) {

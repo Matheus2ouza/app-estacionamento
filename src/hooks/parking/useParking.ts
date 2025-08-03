@@ -33,11 +33,9 @@ const useParking = () => {
   const fetchParkingConfig = async () => {
     try {
       const configData = await ParkingApi.getConfigParking();
-      console.log(configData)
       if (configData.success) {
         const config: ParkingConfig = configData.config;
-        const totalCapacity =
-          config.maxCars + config.maxMotorcycles;
+        const totalCapacity = config.maxCars + config.maxMotorcycles;
         setParkingCapacity(totalCapacity);
       }
     } catch (error) {
@@ -50,7 +48,7 @@ const useParking = () => {
     try {
       setLoading(true);
       const data = await VehicleApi.getParked();
-      console.log(data)
+
       if (data.success) {
         const carsWithElapsedTime = data.data.map((car: Car) => {
           const parsedEntryTime = new Date(car.entryTime);
@@ -126,7 +124,11 @@ const useParking = () => {
 
   // Calcula a porcentagem de ocupação do pátio
   const occupancyPercentage = parkingCapacity
-    ? Math.round((cars.length / parkingCapacity) * 100)
+    ? Math.round(
+        (cars.filter((car) => car.status !== "DELETED").length /
+          parkingCapacity) *
+          100
+      )
     : 0;
 
   return {

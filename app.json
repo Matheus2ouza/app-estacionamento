@@ -4,12 +4,12 @@
     "slug": "leao-estacionamento",
     "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./src/assets/images/splash-icon-black.png",
+    "icon": "./src/assets/images/splash-icon-white.png",
     "scheme": "leao-estacionamento",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./src/assets/images/splash-icon-black.png",
+      "image": "./src/assets/images/splash-icon-blue.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -18,7 +18,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./src/assets/images/adaptive-icon-black.png"
+        "foregroundImage": "./src/assets/images/adaptive-icon-white.png",
+        "backgroundColor": "#003153"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.anonymous.leaoestacionamento",
@@ -51,7 +52,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./src/assets/images/splash-icon-black.png",
+          "image": "./src/assets/images/splash-icon-white.png",
           "imageWidth": 200,
           "resizeMode": "contain"
         }

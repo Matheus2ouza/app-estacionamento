@@ -10,7 +10,6 @@ interface LoginResponse {
 
 export const AuthApi = {
   loginUser: async (data: LoginData): Promise<LoginResponse> => {
-    console.log(API_URL)
     const response = await axios.post<LoginResponse>(
       `${API_URL}/auth/login`,
       data,
@@ -20,8 +19,6 @@ export const AuthApi = {
         }
       }
     );
-    console.log("RESPOSTA DA API")
-    console.log(response)
     return response.data;
   },
 

@@ -11,8 +11,6 @@ const useSearchProducts = () => {
 
     try {
       const productsList = await ProductApi.listProducts();
-      console.log("DENTRO DO HOOK")
-      console.log(productsList)
       if (productsList.success) {
         return {
           success: true,
@@ -55,9 +53,6 @@ const useSearchProducts = () => {
         };
       }
     } catch (error) {
-      console.log(
-        `Erro ao tentar buscar os dados do produto pelo codigo de barras: ${error}`
-      );
       return {
         success: false,
         message: "Erro ao tentar buscar o produto pelo codigo de barras",

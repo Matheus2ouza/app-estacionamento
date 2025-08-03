@@ -1,11 +1,12 @@
 export interface PrimaryButtonProps {
   title: string;
   onPress: () => void;
-  style?: ViewStyle;
-  textStyle?: TextStyle;
+  style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
   disabled?: boolean | { [key: string]: boolean };
   loading?: boolean;
   loadingType?: string;
-  icon?: React.ReactNode; // Nova prop
-  iconPosition?: 'left' | 'right'; // Nova prop
+  loadingText?: string; // Adicione esta linha
+  icon?: React.ReactNode;
+  iconPosition?: 'left' | 'right';
 }

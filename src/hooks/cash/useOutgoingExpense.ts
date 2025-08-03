@@ -4,12 +4,8 @@ import { CashStatus } from "@/src/types/cash";
 
 export const useOutgoingExpense = () => {
   const getExpenses = async (): Promise<ResponseOutgoing & { cashStatus?: CashStatus }> => {
-    console.log("====== [useOutgoingExpense] getExpenses: INICIADO ======");
-
     try {
-      console.log("[useOutgoingExpense] Buscando status do caixa...");
       const cashStatus = await cashApi.statusCash();
-      console.log("[useOutgoingExpense] Status do caixa recebido:", JSON.stringify(cashStatus));
 
       const caixaId = cashStatus?.cash?.id;
       const caixaStatus = cashStatus?.cash?.status;
@@ -20,8 +16,6 @@ export const useOutgoingExpense = () => {
             ? "Nenhum caixa aberto encontrado"
             : "Caixa não encontrado";
 
-        console.warn("[useOutgoingExpense] Caixa inválido:", message);
-
         return {
           success: false,
           message,
@@ -30,14 +24,7 @@ export const useOutgoingExpense = () => {
         };
       }
 
-      console.log(`[useOutgoingExpense] Buscando despesas para o caixa ID ${caixaId}...`);
       const response = await cashApi.outgoing(caixaId);
-
-      console.log("[useOutgoingExpense] Resposta da API de despesas:", {
-        success: response.success,
-        message: response.message,
-        dataCount: response.data?.length,
-      });
 
       return {
         success: response.success,
@@ -52,29 +39,18 @@ export const useOutgoingExpense = () => {
         message: error instanceof Error ? error.message : "Erro desconhecido",
         data: [],
       };
-    } finally {
-      console.log("====== [useOutgoingExpense] getExpenses: FINALIZADO ======");
     }
   };
 
   const registerExpense = async (data: registerExpense) => {
-    console.log("[registerExpense] Registrando nova despesa:", data);
-
     try {
       const amount = parseFloat(data.amount.toString().replace(",", "."));
 
-      console.log("[registerExpense] Enviando para API com amount:", amount);
       const response = await cashApi.registerExpense({
         description: data.description,
         amount,
         method: data.method,
         openCashId: data.openCashId,
-      });
-
-      console.log("[registerExpense] Resposta da API:", {
-        success: response.success,
-        message: response.message,
-        data: response.data,
       });
 
       return {
@@ -95,5 +71,5 @@ export const useOutgoingExpense = () => {
     }
   };
 
-  return { getExpenses, registerExpense, };
+  return { getExpenses, registerExpense };
 };

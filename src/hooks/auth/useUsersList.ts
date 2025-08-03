@@ -23,7 +23,6 @@ export function useEmployees() {
       });
 
       setEmployees(sortedList);
-      console.log("FETCHED:", sortedList);
     } catch (err: any) {
       console.error("[useEmployees] Erro ao buscar funcionários:", err);
       setError("Erro ao buscar funcionários");
