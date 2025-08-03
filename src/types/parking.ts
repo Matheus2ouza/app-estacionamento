@@ -7,8 +7,8 @@ export interface configurationsSetupVacancies {
   success: boolean;
   message: string;
   config: {
-    max_cars: number;
-    max_motorcycles: number;
+    maxCars: number;
+    maxMotorcycles: number;
   }
 }
 

@@ -60,6 +60,7 @@
         "expo-camera",
         {
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "photosPermission": "O $(PRODUCT_NAME) precisa acessar sua galeria para anexar comprovantes",
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
           "recordAudioAndroid": true
         }

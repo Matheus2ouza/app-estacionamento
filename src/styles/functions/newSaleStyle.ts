@@ -75,7 +75,11 @@ export const styles = StyleSheet.create({
   scanIcon: {
     padding: 8,
   },
-
+clearIcon: {
+  padding: 10,
+  position: 'absolute',
+  right: 50, // Ajuste conforme necessário para não sobrepor outros ícones
+},
 });
 
 export const ModalStyle = StyleSheet.create({

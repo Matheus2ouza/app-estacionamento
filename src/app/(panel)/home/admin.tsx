@@ -41,6 +41,7 @@ type ModalState = {
     message: string;
     isSuccess: boolean;
   };
+  cashStatusChecked: boolean; // Novo estado para controlar se o status do caixa foi verificado
 };
 
 export default function AdminHome() {
@@ -55,6 +56,7 @@ export default function AdminHome() {
     loading: false,
     loadingText: "",
     feedback: { visible: false, message: "", isSuccess: false },
+    cashStatusChecked: false, // Inicialmente false
   });
 
   const [cashData, setCashData] = useState<CashData>({
@@ -127,23 +129,26 @@ export default function AdminHome() {
   // Verificar status do caixa
   const checkCashStatus = useCallback(async () => {
     try {
-      await getStatusCash();
+      setModals(prev => ({ ...prev, cashStatusChecked: false })); // Reset antes de verificar
+      const { status, cashId } = await getStatusCash();
 
-      if (cashStatus === "CLOSED") {
-        setModals((prev) => ({ ...prev, closedCashModal: true }));
-      } else if (!openCashId) {
-        setModals((prev) => ({ ...prev, openCashModal: true }));
+      if (status === "CLOSED") {
+        setModals(prev => ({ ...prev, closedCashModal: true, cashStatusChecked: true }));
+      } else if (!cashId) {
+        setModals(prev => ({ ...prev, openCashModal: true, cashStatusChecked: true }));
       } else {
         await fetchCashData();
-        setModals((prev) => ({
+        setModals(prev => ({
           ...prev,
           openCashModal: false,
           closedCashModal: false,
+          cashStatusChecked: true
         }));
       }
     } catch (error) {
       console.error("Erro ao verificar status do caixa:", error);
       showFeedback("Erro ao verificar status do caixa", false);
+      setModals(prev => ({ ...prev, cashStatusChecked: true })); // Mesmo em erro, marcamos como verificado
     }
   }, [cashStatus, openCashId, fetchCashData]);
 
@@ -268,23 +273,27 @@ export default function AdminHome() {
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Modals */}
+      {/* Modals - Só mostra os modais de caixa após verificação */}
       <LoadingModal visible={modals.loading} text={modals.loadingText} />
 
-      <CashStatusModal
-        visible={modals.closedCashModal}
-        onClose={() => setModals((prev) => ({ ...prev, closedCashModal: false }))}
-        onConfirm={() =>
-          setModals((prev) => ({ ...prev, closedCashModal: false, openCashModal: true }))
-        }
-      />
+      {modals.cashStatusChecked && (
+        <>
+          <CashStatusModal
+            visible={modals.closedCashModal}
+            onClose={() => setModals((prev) => ({ ...prev, closedCashModal: false }))}
+            onConfirm={() =>
+              setModals((prev) => ({ ...prev, closedCashModal: false, openCashModal: true }))
+            }
+          />
 
-      <CashRegisterModal
-        visible={modals.openCashModal}
-        mode="open"
-        onClose={() => setModals((prev) => ({ ...prev, openCashModal: false }))}
-        onSubmitCashRegister={handleOpenCash}
-      />
+          <CashRegisterModal
+            visible={modals.openCashModal}
+            mode="open"
+            onClose={() => setModals((prev) => ({ ...prev, openCashModal: false }))}
+            onSubmitCashRegister={handleOpenCash}
+          />
+        </>
+      )}
 
       <FeedbackModal
         visible={modals.feedback.visible}

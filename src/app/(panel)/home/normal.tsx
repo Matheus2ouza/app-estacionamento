@@ -183,8 +183,6 @@ export default function NormalHome() {
       {/* Header */}
       <LinearGradient
         colors={[Colors.gray.zinc, Colors.blue.light]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
         style={styles.header}
       >
         <View style={styles.brandContainer}>
@@ -233,7 +231,11 @@ export default function NormalHome() {
 
             <View style={styles.detailsParking}>
               {renderParkingIcon(
-                <MaterialCommunityIcons name="car-hatchback" size={22} color="black" />,
+                <MaterialCommunityIcons
+                  name="car-hatchback"
+                  size={22}
+                  color="black"
+                />,
                 parkingStatus.details[0]
               )}
 
@@ -260,7 +262,7 @@ export default function NormalHome() {
             </View>
           </Pressable>
 
-          <Pressable onPress={() => router.push("/Functions/exitRegister")}>
+          <Pressable onPress={() => router.push("/Functions/scanExit")}>
             <View style={styles.buttonExit}>
               <Entypo name="log-out" size={40} color={Colors.white} />
             </View>
@@ -269,6 +271,16 @@ export default function NormalHome() {
           <Pressable onPress={() => router.push("/Functions/parking")}>
             <View style={styles.buttonPatio}>
               <FontAwesome name="product-hunt" size={40} color={Colors.white} />
+            </View>
+          </Pressable>
+
+          <Pressable onPress={() => router.push("/Functions/ListSaleScreen")}>
+            <View style={styles.buttonDashboard}>
+              <MaterialCommunityIcons
+                name="food-fork-drink"
+                size={40}
+                color={Colors.white}
+              />
             </View>
           </Pressable>
         </LinearGradient>

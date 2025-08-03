@@ -38,7 +38,8 @@ export default function CreateAccount() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [modalSuccess, setModalSuccess] = useState(false);
-
+  const [showPassword, setShowPassword] = useState(false);
+  
   const handleChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
@@ -143,23 +144,19 @@ export default function CreateAccount() {
                 style={styles.input}
                 error={formErrors.password}
                 theme={{
-                  colors: {
-                    primary: Colors.blue.logo,
-                    background: Colors.white,
-                    error: Colors.red.error,
-                  },
-                  roundness: 8,
-                }}
+                                  colors: {
+                                    primary: Colors.blue.logo,
+                                    background: Colors.white,
+                                  },
+                                  roundness: 8,
+                                }}
                 left={<TextInput.Icon icon="lock" color={Colors.gray.dark} />}
                 right={
-                  formData.password ? (
-                    <TextInput.Icon
-                      icon="close"
-                      color={Colors.gray.dark}
-                      onPress={() => handleChange("password", "")}
-                    />
-                  ) : null
-                }
+                <TextInput.Icon
+                  icon={showPassword ? "eye-off" : "eye"}
+                  onPress={() => setShowPassword(!showPassword)}
+                />
+              }
               />
 
               <RoleMenu

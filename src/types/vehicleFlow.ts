@@ -16,6 +16,7 @@ export interface Car {
   plate: string;
   status: string;
   entry_time: string;
+  entryTime: string;
   operator: string;
   category: string
   description: string;
@@ -29,7 +30,6 @@ export interface CarWithElapsedTime extends Car {
 export interface ParkingConfig {
   maxCars: number;
   maxMotorcycles: number;
-  maxLargeVehicles: number;
 }
 
 export interface RegisterVehicleResponse {

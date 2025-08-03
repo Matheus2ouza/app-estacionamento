@@ -33,6 +33,11 @@ export const cashApi = {
     return response.data;
   },
 
+  reopenCash:async (cashId: string): Promise<CashStatus> => {
+    const response = await axiosInstance.post(`/cash/reopen-cash/${cashId}`);
+    return response.data
+  },
+
   geralCashData: async (id: string): Promise<ResponseGeralCashData> => {
     const response = await axiosInstance.get(`/cash/general-cash-data/${id}`);
     return response.data;

@@ -1,7 +1,7 @@
-// PrimaryButton.tsx
 import { PrimaryButtonProps } from "@/src/types/components";
 import React from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Colors from "@/src/constants/Colors";
 
 export function PrimaryButton({ 
   title, 
@@ -9,49 +9,102 @@ export function PrimaryButton({
   style, 
   textStyle, 
   disabled = false,
+  loading = false,
   loadingType,
-  loadingText
+  icon, // Nova prop para o ícone
+  iconPosition = 'left' // Padrão: ícone à esquerda
 }: PrimaryButtonProps) {
-  // Determina se está desabilitado
-  const isDisabled = typeof disabled === 'boolean' ? disabled : 
-                   (loadingType && typeof disabled === 'object' ? disabled[loadingType] : false);
-  
-  // Determina se está carregando
-  const isLoading = loadingType && typeof disabled === 'object' ? disabled[loadingType] : false;
+  const isDisabled = typeof disabled === 'boolean' 
+    ? disabled 
+    : (loadingType && typeof disabled === 'object' 
+      ? disabled[loadingType] 
+      : false);
+
+  const isLoading = loading || (loadingType && typeof disabled === 'object' 
+    ? disabled[loadingType] 
+    : false);
+
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="small" color={Colors.white} />
+          <Text style={[styles.buttonText, textStyle, styles.loadingText]}>
+            {title}
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.contentContainer}>
+        {icon && iconPosition === 'left' && (
+          <View style={styles.iconContainer}>
+            {icon}
+          </View>
+        )}
+        <Text style={[styles.buttonText, textStyle]}>
+          {title}
+        </Text>
+        {icon && iconPosition === 'right' && (
+          <View style={styles.iconContainer}>
+            {icon}
+          </View>
+        )}
+      </View>
+    );
+  };
 
   return (
     <TouchableOpacity
-      style={[styles.button, style, isDisabled && styles.disabledButton]}
+      style={[
+        styles.button, 
+        style, 
+        (isDisabled || isLoading) && styles.disabledButton
+      ]}
       onPress={onPress}
-      disabled={isDisabled}
+      disabled={isDisabled || isLoading}
+      activeOpacity={0.8}
     >
-      {isLoading ? (
-        <ActivityIndicator color="#fff" />
-      ) : (
-        <Text style={[styles.buttonText, textStyle]}>
-          {loadingText && isLoading ? loadingText : title}
-        </Text>
-      )}
+      {renderContent()}
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    width: '60%',
-    height: 50,
-    backgroundColor: '#1C274C',
-    borderRadius: 50,
+    width: '100%',
+    height: 48,
+    backgroundColor: Colors.blue.logo,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 10,
+    flexDirection: 'row',
   },
   disabledButton: {
-    backgroundColor: '#8a8a8a',
+    backgroundColor: Colors.gray[400],
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: Colors.white,
+    fontFamily: 'Roboto_500Medium',
     fontSize: 16,
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  loadingText: {
+    opacity: 0.8,
+  },
+  contentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  iconContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

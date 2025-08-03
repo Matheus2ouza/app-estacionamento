@@ -20,7 +20,7 @@ import useCashService from "@/src/hooks/cash/useCashStatus";
 import { usePdfActions } from "@/src/hooks/vehicleFlow/usePdfActions";
 import PreviewPDF from "@/src/components/PreviewPDF";
 import ProductListModal from "@/src/components/ListProducts";
-import { downloadPdf } from "@/src/utils/downloadPdf";
+import PixPayment from "@/src/components/PixPayment";
 
 type PaymentMethod = "Dinheiro" | "Crédito" | "Débito" | "Pix" | "";
 
@@ -50,7 +50,9 @@ export default function PaymentProducts() {
   const { registerPayment, error } = useRegisterPayment();
   const [pdfBase64, setPdfBase64] = useState<string | null>(null);
   const [pdfPreviewVisible, setPdfPreviewVisible] = useState(false);
-  const { downloadPdf, printPdf } = usePdfActions();
+  const { downloadPdf } = usePdfActions();
+  const [showPixPayment, setShowPixPayment] = useState(false);
+  const [receiptImage, setReceiptImage] = useState<string | null>(null);
 
   // Extrair parâmetros do produto
   const quantityProducts = params.totalItems
@@ -102,7 +104,19 @@ export default function PaymentProducts() {
       return;
     }
 
-    if (paid < finalPrice) {
+    if (paymentMethod === "Pix" && !receiptImage) {
+      setModalMessage("Por favor, anexe o comprovante do PIX");
+      setModalIsSuccess(false);
+      setModalVisible(true);
+      return;
+    }
+
+    const parsedAmount = Number(paidValue.replace(",", "."));
+    const parsedDiscount = Number(discount.replace(",", "."));
+    const finalPrice = totalAmount - parsedDiscount;
+    const change = parsedAmount - finalPrice;
+
+    if (parsedAmount < finalPrice) {
       setModalMessage("Valor pago é menor que o valor final");
       setModalIsSuccess(false);
       setModalVisible(true);
@@ -124,15 +138,13 @@ export default function PaymentProducts() {
       paymentMethod,
       cashRegisterId: openCashId,
       totalAmount,
-      discountValue,
+      discountValue: parsedDiscount,
       finalPrice,
-      amountReceived: Number(paidValue),
+      amountReceived: parsedAmount,
       changeGiven: change,
       saleItems: parsedSaleItems,
+      receiptImage: paymentMethod === "Pix" ? receiptImage : null, // só envia se for Pix
     };
-
-    console.log("OS DADOS DE PAGAMENTO");
-    console.log(JSON.stringify(paymentData, null, 2));
 
     try {
       const result = await registerPayment(paymentData);
@@ -167,21 +179,33 @@ export default function PaymentProducts() {
     }
   };
 
-const handleDownload = async () => {
-  if (!pdfBase64 || !transactionId) return;
+  const handleDownload = async () => {
+    if (!pdfBase64 || !transactionId) return;
 
-  const dateStr = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
-  const filename = `Comprovante-${transactionId}-${dateStr}.pdf`;
+    const dateStr = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+    const filename = `Comprovante-${transactionId}-${dateStr}.pdf`;
 
-  try {
-    await downloadPdf(pdfBase64, filename);
-    console.log("Download feito com sucesso");
-  } catch (err) {
-    console.error("Erro ao baixar o PDF:", err);
-  }
-};
+    try {
+      await downloadPdf(pdfBase64, filename);
+      console.log("Download feito com sucesso");
+    } catch (err) {
+      console.error("Erro ao baixar o PDF:", err);
+    }
+  };
 
-  const handlePrint = () => {};
+  useEffect(() => {
+    if (totalAmount > 0) {
+      const valorInicial = totalAmount.toFixed(2).replace(".", ",");
+      setPaidValue(valorInicial);
+    }
+  }, [totalAmount]);
+
+  const formatCurrency = (value: string | number): string => {
+    const str =
+      typeof value === "string" ? value.replace(",", ".") : String(value);
+    const num = Number(str);
+    return isNaN(num) ? "0,00" : num.toFixed(2).replace(".", ",");
+  };
 
   const isFormValid = paymentMethod && paidValue;
   return (
@@ -208,7 +232,6 @@ const handleDownload = async () => {
         visible={pdfPreviewVisible}
         onClose={() => setPdfPreviewVisible(false)}
         onDownload={handleDownload}
-        onPrint={handlePrint}
       />
 
       <Header title="Pagamento" titleStyle={{ fontSize: 27 }} />
@@ -254,7 +277,11 @@ const handleDownload = async () => {
                       styles.methodButton,
                       paymentMethod === method && styles.methodButtonSelected,
                     ]}
-                    onPress={() => setPaymentMethod(method)}
+                    onPress={() => {
+                      setPaymentMethod(method);
+                      setShowPixPayment(method === "Pix");
+                      if (method !== "Pix") setReceiptImage(null);
+                    }}
                   >
                     <MaterialIcons
                       name={
@@ -284,6 +311,15 @@ const handleDownload = async () => {
                     </Text>
                   </TouchableOpacity>
                 )
+              )}
+
+              {paymentMethod === "Pix" && (
+                <PixPayment
+                  visible={showPixPayment}
+                  onClose={() => setShowPixPayment(false)}
+                  onReceiptUpload={(uri) => setReceiptImage(uri)}
+                  qrCodeImage={require("@/src/assets/images/QRCODEpagamento.png")}
+                />
               )}
             </View>
           </View>
@@ -320,7 +356,7 @@ const handleDownload = async () => {
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Valor Recebido:</Text>
               <Text style={[styles.summaryValue, { color: Colors.blue.light }]}>
-                R$ {Number(paidValue).toFixed(2).replace(".", ",")}
+                R$ {formatCurrency(paidValue)}
               </Text>
             </View>
             <View style={styles.summaryRow}>

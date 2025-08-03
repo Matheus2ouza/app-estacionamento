@@ -18,7 +18,7 @@ export default {
     light: "#005B96",
     dark: "#002244",
     accent: "#2962FF",
-    extraLight: '#E6F2FF',
+    extraLight: "#E6F2FF",
   },
 
   // Tons de cinza (escala completa)
@@ -33,16 +33,16 @@ export default {
     700: "#616161",
     800: "#424242",
     900: "#212121",
+    darker: "#121212",
     light: "#e1e1e1",
     medium: "#d1d5db",
     dark: "#6b7280",
     zinc: "#1C274C",
     zincDark: "#27272a",
     zincLight: "#e4e4e7",
-    extraLight: '#F5F5F5',
+    extraLight: "#F5F5F5",
     alpha: "rgb(209, 213, 219, 0.6)",
-    // Adicionando lightGray para consistência com o uso nos componentes
-    lightGray: "#f0f0f0" // Um cinza ainda mais claro para fundos
+    lightGray: "#f0f0f0",
   },
 
   // Tons de vermelho (escala completa)
@@ -58,7 +58,7 @@ export default {
     800: "#C62828",
     900: "#B71C1C",
     accent: "#FF1744",
-    error: "#F44336" // Alias para 500
+    error: "#F44336", // Alias para 500
   },
 
   // Tons de verde (escala completa)
@@ -76,7 +76,9 @@ export default {
     light: "#3AEE26",
     dark: "#1e7e34",
     success: "#4CAF50", // Alias para 500
-    accent: "#00E676"
+    accent: "#00E676",
+    successLight: "#E8F5E9",
+    successDark: "#1B5E20",
   },
 
   // Tons de amarelo/laranja (escala completa)
@@ -91,7 +93,7 @@ export default {
     700: "#FBC02D",
     800: "#F9A825",
     900: "#F57F17",
-    accent: "#FFD600"
+    accent: "#FFD600",
   },
 
   orange: {
@@ -107,7 +109,22 @@ export default {
     900: "#E65100",
     accent: "#FF6D00",
     alert: "#FF3A20",
-    button: "#FFA500" // Mantendo seu botão específico
+    button: "#FFA500", // Mantendo botão específico
+  },
+
+  // Tons de roxo
+  purple: {
+    50: "#F3E5F5",
+    100: "#E1BEE7",
+    200: "#CE93D8",
+    300: "#BA68C8",
+    400: "#AB47BC",
+    500: "#9C27B0", // Roxo primário
+    600: "#8E24AA",
+    700: "#7B1FA2",
+    800: "#6A1B9A",
+    900: "#4A148C",
+    accent: "#E040FB",
   },
 
   // Cores funcionais
@@ -121,7 +138,8 @@ export default {
   button: {
     green: "#66BB6A",
     red: "#F44336",
-    blue: "#42A5F5"
+    blue: "#42A5F5",
+    purple: "#9C27B0", // Adicionando roxo aos botões
   },
 
   // Cores de texto
@@ -132,14 +150,14 @@ export default {
     inverted: "#FFFFFF",
     // Adicionando aliases diretos para facilitar o acesso
     textPrimary: "#1C274C", // Mesmo que text.primary
-    textSecondary: "#6b7280" // Mesmo que text.secondary
+    textSecondary: "#6b7280", // Mesmo que text.secondary
   },
 
   // Cores de fundo
   background: "#ffffff",
   surface: "#FFFFFF",
   elevation: "#FAFAFA",
-  
+
   // Sombras (adicionando uma paleta de sombras consistentes)
   // Sombras como objetos
   shadow: {
@@ -184,9 +202,8 @@ export default {
       shadowOpacity: 0.15,
       shadowRadius: 12,
       elevation: 4,
-    }
+    },
   },
 
-  
-  lightGray: "#f0f0f0"
+  lightGray: "#f0f0f0",
 };

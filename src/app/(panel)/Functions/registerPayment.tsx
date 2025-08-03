@@ -24,6 +24,7 @@ import useCashService from "@/src/hooks/cash/useCashStatus";
 import { usePdfActions } from "@/src/hooks/vehicleFlow/usePdfActions";
 import PreviewPDF from "@/src/components/PreviewPDF";
 import { useAuth } from "@/src/context/AuthContext";
+import PixPayment from "@/src/components/PixPayment";
 
 type PaymentMethod = "Dinheiro" | "Crédito" | "Débito" | "Pix" | "";
 
@@ -42,7 +43,7 @@ export default function PaymentVehicle() {
     stayDuration = "",
   } = params;
 
-  const { calculateAmount, registerExit, isProcessing } = useRegisterExit();
+  const { calculateAmount, registerExit } = useRegisterExit();
   const [calculatedAmount, setCalculatedAmount] = useState<number>(0);
   const [isCalculating, setIsCalculating] = useState(false);
   const [discount, setDiscount] = useState("");
@@ -59,6 +60,10 @@ export default function PaymentVehicle() {
   const [pdfPreviewVisible, setPdfPreviewVisible] = useState(false);
   const [zeroAmountModalVisible, setZeroAmountModalVisible] = useState(false);
   const { downloadPdf } = usePdfActions();
+  const [showPixPayment, setShowPixPayment] = useState(false);
+  const [receiptImage, setReceiptImage] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  
 
   // Calcular valores
   const discountValue = parseFloat(discount.replace(",", ".")) || 0;
@@ -127,6 +132,13 @@ export default function PaymentVehicle() {
       return;
     }
 
+    if (paymentMethod === "Pix" && !receiptImage) {
+      setModalMessage("Por favor, anexe o comprovante do PIX");
+      setModalIsSuccess(false);
+      setModalVisible(true);
+      return;
+    }
+
     if (paid < finalPrice) {
       setModalMessage("Valor pago é menor que o valor final");
       setModalIsSuccess(false);
@@ -140,9 +152,11 @@ export default function PaymentVehicle() {
       setModalVisible(true);
       return;
     }
+
     try {
       setTextLoading("Registrando pagamento...");
       setLoadingModal(true);
+      setIsProcessing(true);
 
       // Construir dados para registro de saída
       const exitData = {
@@ -155,6 +169,7 @@ export default function PaymentVehicle() {
         final_amount: finalPrice,
         original_amount: calculatedAmount,
         method: paymentMethod,
+        receiptImage: paymentMethod === "Pix" ? receiptImage : null, // só envia se for Pix
       };
 
       console.log(exitData);
@@ -188,8 +203,22 @@ export default function PaymentVehicle() {
       setModalVisible(true);
     } finally {
       setLoadingModal(false);
+      setIsProcessing(false);
     }
   };
+
+  useEffect(() => {
+    if (!isProcessing) return;
+
+    const interval = setInterval(() => {
+      setDotText((prev) => {
+        if (prev.length >= 3) return ".";
+        return prev + ".";
+      });
+    }, 400);
+
+    return () => clearInterval(interval);
+  }, [isProcessing]);
 
   const handleDownload = async () => {
     if (!pdfBase64 || !transactionId) return;
@@ -203,6 +232,20 @@ export default function PaymentVehicle() {
     } catch (err) {
       console.error("Erro ao baixar o PDF:", err);
     }
+  };
+
+  useEffect(() => {
+    if (calculatedAmount > 0) {
+      const valorInicial = calculatedAmount.toFixed(2).replace(".", ",");
+      setPaidValue(valorInicial);
+    }
+  }, [calculatedAmount]);
+
+  const formatCurrency = (value: string | number): string => {
+    const str =
+      typeof value === "string" ? value.replace(",", ".") : String(value);
+    const num = Number(str);
+    return isNaN(num) ? "0,00" : num.toFixed(2).replace(".", ",");
   };
 
   const isFormValid = paymentMethod && paidValue;
@@ -227,7 +270,6 @@ export default function PaymentVehicle() {
       >
         <View style={modalStyles.modalContainer}>
           <View style={modalStyles.modalContent}>
-            {/* Ícone de atenção (opcional) */}
             <View style={modalStyles.iconContainer}>
               <MaterialIcons name="warning" size={36} color={Colors.red[600]} />
             </View>
@@ -242,7 +284,7 @@ export default function PaymentVehicle() {
             <TouchableOpacity
               style={modalStyles.modalButton}
               onPress={handleNavigateHome}
-              activeOpacity={0.8} // Efeito visual ao pressionar
+              activeOpacity={0.8}
             >
               <Text style={modalStyles.modalButtonText}>Voltar para Home</Text>
             </TouchableOpacity>
@@ -257,16 +299,22 @@ export default function PaymentVehicle() {
         onDownload={handleDownload}
         onNavigateBack={() => {
           if (role === "ADMIN") {
-            router.replace("/home/admin"); // rota da home admin, ajuste conforme sua estrutura
+            router.replace("/home/admin");
           } else {
-            router.replace("/home/normal"); // rota da home normal
+            router.replace("/home/normal");
           }
         }}
       />
 
+      <PixPayment
+        visible={showPixPayment}
+        onClose={() => setShowPixPayment(false)}
+        onReceiptUpload={(uri) => setReceiptImage(uri)}
+        qrCodeImage={require("@/src/assets/images/QRCODEpagamento.png")}
+      />
+
       <Header
         title="Pagamento de Estacionamento"
-        titleStyle={{ fontSize: 27 }}
       />
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -320,7 +368,11 @@ export default function PaymentVehicle() {
                       styles.methodButton,
                       paymentMethod === method && styles.methodButtonSelected,
                     ]}
-                    onPress={() => setPaymentMethod(method)}
+                    onPress={() => {
+                      setPaymentMethod(method);
+                      setShowPixPayment(method === "Pix");
+                      if (method !== "Pix") setReceiptImage(null);
+                    }}
                   >
                     <MaterialIcons
                       name={
@@ -386,10 +438,7 @@ export default function PaymentVehicle() {
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Valor Recebido:</Text>
               <Text style={[styles.summaryValue, { color: Colors.blue.light }]}>
-                R${" "}
-                {(parseFloat(paidValue.replace(",", ".")) || 0)
-                  .toFixed(2)
-                  .replace(".", ",")}
+                R$ {formatCurrency(paidValue)}
               </Text>
             </View>
             <View style={styles.summaryRow}>
@@ -420,7 +469,9 @@ export default function PaymentVehicle() {
         {isProcessing ? (
           <ActivityIndicator color={Colors.white} />
         ) : (
-          <Text style={styles.paymentButtonText}>Confirmar Pagamento</Text>
+          <Text style={styles.paymentButtonText}>
+            {isProcessing ? `Processando${dotText}` : "Confirmar Pagamento"}
+          </Text>
         )}
       </Pressable>
     </View>

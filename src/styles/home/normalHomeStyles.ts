@@ -186,4 +186,12 @@ export const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: Colors.button.blue,
   },
+  buttonDashboard: {
+    width: 50,
+    height: 60,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 5,
+    backgroundColor: Colors.orange[500], // Laranja primário
+  },
 });

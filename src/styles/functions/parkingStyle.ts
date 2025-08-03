@@ -1,171 +1,191 @@
-import Colors from "@/src/constants/Colors";
 import { StyleSheet } from "react-native";
+import Colors from "@/src/constants/Colors";
 
 export const styles = StyleSheet.create({
-  container: {
+  mainContainer: {
     flex: 1,
-    alignItems: "center",
+    backgroundColor: 'transparent',
   },
-  header: {
-    height: "22%",
-    width: "100%",
-  },
-  statusPatio: {
-    width: "100%",
-    padding: 10,
-    alignItems: "center",
-  },
-  percentage: {
-    fontSize: 60,
-    fontFamily: "Montserrat_700Bold",
-    color: Colors.red[500],
-  },
-  separator: {
-    width: "90%",
-    height: 2,
-    backgroundColor: Colors.gray.zinc,
-  },
-  body: {
-    height: "78%",
-    width: "100%",
-    paddingHorizontal: 10,
-  },
-  searchContainer: {
-    flexDirection: "column",
-    gap: 10,
-  },
-  searchInput: {
-    width: "100%",
-  },
-  filterRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 10,
-  },
-  filterGroup: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: 12,
-    marginLeft: 5,
-  },
-  radioItem: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  radioOuter: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: Colors.gray.zinc,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 4,
-  },
-  radioOuterSelected: {
-    borderColor: Colors.blue.logo,
-  },
-  radioInner: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.blue.logo,
-  },
-  radioLabel: {
-    fontSize: 14,
-    color: Colors.gray.zinc,
-  },
-  refreshButton: {
-    backgroundColor: Colors.blue.logo,
-    padding: 8,
-    borderRadius: 8,
-    marginLeft: 10,
-  },
-  list: {
-    marginTop: 5,
-    backgroundColor: "transparent",
-  },
-  listContent: {
-    paddingBottom: 20,
-  },
-  listItem: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    backgroundColor: Colors.gray.light,
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 10,
-    elevation: 2,
-    position: "relative",
-  },
-  itemNumber: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: Colors.blue.logo,
-    marginRight: 15,
-    minWidth: 30,
-    textAlign: "center",
-  },
-  itemData: {
+  loadingContainer: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  itemPlate: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: Colors.gray.dark,
-    marginBottom: 5,
-  },
-  itemDetails: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-  detailText: {
-    fontSize: 13,
+  loadingText: {
+    marginTop: 16,
+    fontFamily: 'Roboto_400Regular',
     color: Colors.gray.dark,
   },
-  itemMainText: {
-    fontSize: 18,
-    fontWeight: "bold",
+  occupancyContainer: {
+    padding: 16,
+    backgroundColor: 'transparent',
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.gray.light,
+  },
+  occupancyLabel: {
+    fontFamily: 'Roboto_500Medium',
+    fontSize: 16,
+    fontWeight: 'bold',
     color: Colors.gray.dark,
     marginBottom: 8,
   },
-  detailColumn: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 4,
+  percentageContainer: {
+    alignItems: 'center',
+    marginVertical: 8,
   },
-  detailTitle: {
-    fontWeight: "bold",
-    color: Colors.gray[600],
-    marginRight: 8,
+  percentageText: {
+    fontFamily: 'Montserrat_700Bold',
+    fontSize: 48,
   },
-  detailValue: {
-    color: Colors.gray.dark,
+  progressBar: {
+    height: 8,
+    backgroundColor: Colors.gray.light,
+    borderRadius: 4,
+    marginTop: 8,
+    overflow: 'hidden',
   },
-  // Adicione ao final do seu arquivo de estilos
-  listItemDeleted: {
-    backgroundColor: Colors.gray[200],
+  progressFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  searchFilterContainer: {
+    padding: 16,
+    backgroundColor: 'transparent',
+  },
+  searchInput: {
+    backgroundColor: Colors.white,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  filterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  filterScroll: {
+    paddingRight: 8,
+    gap: 8,
+  },
+  filterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    backgroundColor: Colors.white,
+    borderColor: Colors.primary,
+    gap: 8,
+  },
+  filterButtonSelected: {
+    backgroundColor: Colors.primary,
+  },
+  filterButtonText: {
+    fontFamily: 'Roboto_500Medium',
+    color: Colors.primary,
+  },
+  filterButtonTextSelected: {
+    color: Colors.white,
+  },
+  refreshButton: {
+    backgroundColor: Colors.primary,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 'auto',
+  },
+  listContainer: {
+    flex: 1,
+    padding: 16,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  emptyText: {
+    fontFamily: 'Roboto_400Regular',
+    fontSize: 16,
+    color: Colors.gray.medium,
+    marginTop: 16,
+  },
+  vehicleCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  vehicleCardPressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.99 }],
+  },
+  vehicleCardDeleted: {
+    backgroundColor: Colors.gray[100],
     opacity: 0.7,
   },
-  itemNumberDeleted: {
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  cardIndex: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.primary + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  indexText: {
+    fontFamily: 'Roboto_700Bold',
+    fontSize: 16,
+    color: Colors.primary,
+  },
+  indexTextDeleted: {
     color: Colors.gray[500],
   },
-  itemMainTextDeleted: {
+  cardTitleContainer: {
+    flex: 1,
+  },
+  cardTitle: {
+    fontFamily: 'Roboto_700Bold',
+    fontSize: 18,
+    color: Colors.gray.darker,
+  },
+  cardTitleDeleted: {
     color: Colors.gray[600],
-    textDecorationLine: "line-through",
+    textDecorationLine: 'line-through',
   },
-  deletedMessageContainer: {
-    paddingVertical: 8,
-  },
-  deletedMessage: {
+  deletedLabel: {
+    fontFamily: 'Roboto_700Bold',
+    fontSize: 12,
     color: Colors.red[500],
-    fontWeight: "bold",
-    fontStyle: "italic",
+    marginTop: 2,
   },
-  deletedItem: {
-    // Estilo para o container do item deletado
+  cardDetails: {
+    gap: 12,
+  },
+  detailsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  detailItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  detailText: {
+    fontFamily: 'Roboto_400Regular',
+    fontSize: 14,
+    color: Colors.gray.dark,
   },
 });

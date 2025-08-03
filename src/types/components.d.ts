@@ -3,12 +3,9 @@ export interface PrimaryButtonProps {
   onPress: () => void;
   style?: ViewStyle;
   textStyle?: TextStyle;
-  disabled?: boolean | {
-    edit?: boolean;
-    delete?: boolean;
-    secondTicket?: boolean;
-    reactivate?: boolean; // Adicione esta linha
-  };
-  loadingType?: 'edit' | 'delete' | 'secondTicket' | 'reactivate'; // Atualize esta linha
-  loadingText?: string;
+  disabled?: boolean | { [key: string]: boolean };
+  loading?: boolean;
+  loadingType?: string;
+  icon?: React.ReactNode; // Nova prop
+  iconPosition?: 'left' | 'right'; // Nova prop
 }

@@ -33,10 +33,11 @@ const useParking = () => {
   const fetchParkingConfig = async () => {
     try {
       const configData = await ParkingApi.getConfigParking();
+      console.log(configData)
       if (configData.success) {
         const config: ParkingConfig = configData.config;
         const totalCapacity =
-          config.maxCars + config.maxMotorcycles + config.maxLargeVehicles;
+          config.maxCars + config.maxMotorcycles;
         setParkingCapacity(totalCapacity);
       }
     } catch (error) {
@@ -49,13 +50,14 @@ const useParking = () => {
     try {
       setLoading(true);
       const data = await VehicleApi.getParked();
-
+      console.log(data)
       if (data.success) {
         const carsWithElapsedTime = data.data.map((car: Car) => {
           const parsedEntryTime = new Date(car.entryTime);
 
           return {
             ...car,
+            description: car.description || "",
             elapsedTime: calculateElapsedTime(parsedEntryTime),
             formattedEntryTime: formatTime(parsedEntryTime),
           };

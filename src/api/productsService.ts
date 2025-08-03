@@ -30,14 +30,14 @@ export const ProductApi = {
       "/products/edit-product",
       data
     );
-    return response.data
+    return response.data;
   },
 
   deletingProducts: async (id: string, barcode: string): Promise<Response> => {
     const response = await axiosInstance.post<Response>(
       `/products/delete-product/${id}/${barcode}`
     );
-    return response.data
+    return response.data;
   },
 
   getProductByBarcode: async (
@@ -80,12 +80,49 @@ export const ProductApi = {
   },
 
   fetchProducts: async (barcode: string): Promise<ResponseProduct> => {
-    const response = await axiosInstance.get(`/products/fetch-product/${barcode}`);
-    return response.data
+    const response = await axiosInstance.get(
+      `/products/fetch-product/${barcode}`
+    );
+    return response.data;
   },
 
-  registerPayment: async(data: RegisterPayment): Promise<RegisterPaymentResponse> => {
-    const response = await axiosInstance.post(`/products/register-payment`, data)
-    return response.data
-  }
+  registerPayment: async (
+    data: RegisterPayment & { receiptImage?: string }
+  ): Promise<RegisterPaymentResponse> => {
+    const formData = new FormData();
+
+    // Campos primitivos
+    formData.append("paymentMethod", data.paymentMethod);
+    formData.append("cashRegisterId", data.cashRegisterId);
+    formData.append("totalAmount", String(data.totalAmount));
+    formData.append("discountValue", String(data.discountValue));
+    formData.append("finalPrice", String(data.finalPrice));
+    formData.append("amountReceived", String(data.amountReceived));
+    formData.append("changeGiven", String(data.changeGiven));
+
+    // Lista de itens (serializando em JSON string)
+    formData.append("saleItems", JSON.stringify(data.saleItems));
+
+    // Comprovante (se houver)
+    if (data.receiptImage) {
+      formData.append("receiptImage", {
+        uri: data.receiptImage,
+        name: "comprovante.jpg",
+        type: "image/jpeg",
+      } as any);
+    }
+
+    // Requisição
+    const response = await axiosInstance.post(
+      `/products/register-payment`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    return response.data;
+  },
 };

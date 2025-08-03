@@ -1,118 +1,134 @@
-import Colors from "@/src/constants/Colors";
 import { StyleSheet } from "react-native";
+import Colors from "@/src/constants/Colors";
 
 export const styles = StyleSheet.create({
-  container: {
+  mainContainer: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 15,
+    backgroundColor: 'transparent',
   },
-  search: {
-    marginBottom: 16,
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.background,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontFamily: 'Roboto_400Regular',
+    color: Colors.gray.dark,
+  },
+  searchContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
   },
   searchInput: {
-    width: "100%",
+    backgroundColor: Colors.white,
+    borderRadius: 8,
   },
-  radioGroup: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
-    marginLeft: 5,
-    gap: 12,
-    marginBottom: 10,
-  },
-  radioItem: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  radioOuter: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: "#444",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 6,
-  },
-  radioOuterSelected: {
-    borderColor: Colors.blue.logo,
-  },
-  radioInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: Colors.blue.logo,
-  },
-  radioLabel: {
-    fontSize: 16,
-    fontFamily: "Roboto_400Regular",
-  },
-  searchBody: {
-    flex: 1, // Ocupa todo o espaço restante
-    width: '100%',
-    marginTop: 10,
-  },  
-  separator: {
-    width: "100%",
-    height: 2,
-    backgroundColor: Colors.gray.light,
-    marginTop: 5,
-    marginBottom: 10,
-  },
-  scrollView: {
-    flex: 1, // Ocupa todo o espaço vertical disponível
-    width: '100%',
-  },
-  scrollContent: {
-    flexGrow: 1, // Garante que o conteúdo pode crescer
-    paddingBottom: 20,
-  },
-  searchDataRow: {
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    width: '100%',
-    marginBottom: 10,
-  },
-  listItem: {
-    backgroundColor: Colors.gray.light,
-    borderRadius: 10,
-    padding: 15,
-    width: '100%',
-  },
-  main: {
-    fontFamily: "Roboto_500Medium",
-    fontSize: 24,
-    marginLeft: 5,
-    marginBottom: 8,
-    color: Colors.gray.dark,
-  },
-  information: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    flexWrap: 'wrap',
-  },
-  informationColumn: {
-    width: '48%',
+  filterContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
-    marginBottom: 5,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.gray.light,
   },
-  informationTitle: {
-    fontWeight: '700',
-    fontSize: 15,
-    color: Colors.gray.dark,
+  filterScroll: {
+    paddingRight: 8,
+    gap: 8,
   },
-  informationValue: {
-    fontSize: 13,
-    color: Colors.gray.dark,
+  filterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    backgroundColor: Colors.white,
+    borderColor: Colors.primary,
+    gap: 8,
+  },
+  filterButtonSelected: {
+    backgroundColor: Colors.primary,
+  },
+  filterButtonText: {
+    fontFamily: 'Roboto_500Medium',
+    color: Colors.primary,
+  },
+  filterButtonTextSelected: {
+    color: Colors.white,
   },
   refreshButton: {
-    backgroundColor: Colors.blue.logo,
-    padding: 8,
-    borderRadius: 8,
+    backgroundColor: Colors.primary,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginLeft: 'auto',
+  },
+  listContainer: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  emptyText: {
+    fontFamily: 'Roboto_400Regular',
+    fontSize: 16,
+    color: Colors.gray[500],
+    marginTop: 16,
+  },
+  vehicleCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  vehicleCardPressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.99 }],
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 12,
+  },
+  cardTitle: {
+    fontFamily: 'Roboto_700Bold',
+    fontSize: 18,
+    color: Colors.gray.darker,
+  },
+  cardDetails: {
+    gap: 8,
+  },
+  detailsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  detailItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    minHeight: 24, // Altura mínima para manter alinhamento
+  },
+  detailText: {
+    fontFamily: 'Roboto_400Regular',
+    fontSize: 14,
+    color: Colors.gray.dark,
   },
 });

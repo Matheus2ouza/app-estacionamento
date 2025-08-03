@@ -25,12 +25,19 @@ import {
 } from "react-native";
 
 export default function CashPanel() {
-  const { getStatusCash, openCash, closeCash, openCashId, cashStatus } =
-    useCashService();
+  const {
+    getStatusCash,
+    openCash,
+    closeCash,
+    reopenCash,
+    openCashId,
+    cashStatus,
+  } = useCashService();
   const { generalCashierData, loading, error } = useCashDetails();
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [cashStatusLoaded, setCashStatusLoaded] = useState(false);
+  const [isReopenModalVisible, setIsReopenModalVisible] = useState(false);
 
   const [isCloseModalVisible, setIsCloseModalVisible] = useState(false);
   const [isCashClosedModalVisible, setIsCashClosedModalVisible] =
@@ -197,6 +204,46 @@ export default function CashPanel() {
     }
   };
 
+const handleReopenCash = async () => {
+  try {
+    // Verifica se temos um openCashId válido
+    if (!openCashId) {
+      setFeedbackModal({
+        visible: true,
+        message: "Nenhum caixa selecionado para reabrir.",
+        isSuccess: false,
+        goBack: false,
+      });
+      return;
+    }
+
+    console.log(openCashId)
+    const { success, message } = await reopenCash(openCashId);
+
+    setFeedbackModal({
+      visible: true,
+      message,
+      isSuccess: success,
+      goBack: false,
+    });
+
+    if (success) {
+      setIsCashClosedModalVisible(false);
+      setIsReopenModalVisible(false);
+    }
+  } catch (err) {
+    setFeedbackModal({
+      visible: true,
+      message: "Não foi possível reabrir o caixa.",
+      isSuccess: false,
+      goBack: false,
+    });
+    console.error(err);
+  } finally {
+    await getStatusCash();
+  }
+};
+
   if (!cashStatusLoaded || loading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -215,10 +262,7 @@ export default function CashPanel() {
       <CashStatusModal
         visible={isCashClosedModalVisible}
         onClose={() => setIsCashClosedModalVisible(false)}
-        onConfirm={() => {
-          setIsCashClosedModalVisible(false);
-          setIsModalVisible(true);
-        }}
+        onConfirm={handleReopenCash}
       />
 
       <CashRegisterModal

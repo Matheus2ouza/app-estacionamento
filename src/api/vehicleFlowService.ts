@@ -88,14 +88,56 @@ export const VehicleApi = {
     );
     return response.data;
   },
-  
-  calculateOutstanding: async(data:{category: string, stayDuration: string}): Promise<ResponseCalculateOutstanding> => {
-    const response = await axiosInstance.post('/vehicles/calculate-outstanding', data);
-    return response.data
+
+  getParkedExit: async (): Promise<ParkedVehiclesResponse> => {
+    const response = await axiosInstance.get<ParkedVehiclesResponse>(
+      "/vehicles/parked-exit"
+    );
+    return response.data;
   },
 
-  registerExit: async(data: exitData): Promise<ResponseRegisterExit> => {
-    const response = await axiosInstance.post('/vehicles/exits', data)
-    return response.data
-  }
+  calculateOutstanding: async (data: {
+    category: string;
+    stayDuration: string;
+  }): Promise<ResponseCalculateOutstanding> => {
+    const response = await axiosInstance.post(
+      "/vehicles/calculate-outstanding",
+      data
+    );
+    return response.data;
+  },
+
+  registerExit: async (
+    data: exitData & { photo?: string }
+  ): Promise<ResponseRegisterExit> => {
+    const formData = new FormData();
+
+    // Adiciona os campos básicos
+    formData.append("plate", data.plate);
+    formData.append("exit_time", data.exit_time);
+    formData.append("openCashId", data.openCashId);
+    formData.append("amount_received", String(data.amount_received));
+    formData.append("change_given", String(data.change_given));
+    formData.append("discount_amount", String(data.discount_amount));
+    formData.append("final_amount", String(data.final_amount));
+    formData.append("original_amount", String(data.original_amount));
+    formData.append("method", data.method);
+
+    // Se houver foto, adiciona como arquivo
+    if (data.photo) {
+      formData.append("photo", {
+        uri: data.photo,
+        name: `${data.plate}_saida.jpg`,
+        type: "image/jpeg",
+      } as any); // `as any` é necessário para compatibilidade com FormData no RN
+    }
+
+    const response = await axiosInstance.post("/vehicles/exits", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return response.data;
+  },
 };

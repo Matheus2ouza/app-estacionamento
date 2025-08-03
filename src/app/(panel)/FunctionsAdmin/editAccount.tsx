@@ -15,7 +15,7 @@ import {
   View,
   Image,
   TouchableOpacity,
-  Alert
+  Alert,
 } from "react-native";
 import { Provider as PaperProvider, TextInput } from "react-native-paper";
 
@@ -29,15 +29,10 @@ export default function EditAccount() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<string | undefined>("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const {
-    editUser,
-    deleteUser,
-    loadingEdit,
-    loadingDelete,
-    error,
-    success
-  } = useUserActions();
+  const { editUser, deleteUser, loadingEdit, loadingDelete, error, success } =
+    useUserActions();
 
   const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState("");
@@ -113,9 +108,9 @@ export default function EditAccount() {
           source={require("@/src/assets/images/splash-icon-blue.png")}
           style={styles.backgroundImage}
         />
-        
+
         <Header title="Editar Usuário" />
-        
+
         <KeyboardAvoidingView
           style={styles.keyboardAvoidingView}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -128,7 +123,7 @@ export default function EditAccount() {
           >
             <View style={styles.card}>
               <Text style={styles.sectionTitle}>Informações do Usuário</Text>
-              
+
               <TextInput
                 label="Nome de usuário"
                 mode="outlined"
@@ -144,35 +139,34 @@ export default function EditAccount() {
                   },
                   roundness: 8,
                 }}
-                left={<TextInput.Icon icon="account" color={Colors.gray.dark} />}
+                left={
+                  <TextInput.Icon icon="account" color={Colors.blue.light} />
+                }
               />
 
-              <TextInput
-                label="Nova senha"
-                mode="outlined"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                disabled={loadingEdit || loadingDelete}
-                style={styles.input}
-                theme={{
+            <TextInput
+              label="Senha"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              mode="outlined"
+              style={styles.input}
+              theme={{
                   colors: {
                     primary: Colors.blue.logo,
                     background: Colors.white,
                   },
                   roundness: 8,
                 }}
-                left={<TextInput.Icon icon="lock" color={Colors.gray.dark} />}
-                right={
-                  password ? (
-                    <TextInput.Icon
-                      icon="close"
-                      color={Colors.gray.dark}
-                      onPress={() => setPassword("")}
-                    />
-                  ) : null
-                }
-              />
+                left={<TextInput.Icon icon="lock" color={Colors.blue.light} />}
+              right={
+                <TextInput.Icon
+                  icon={showPassword ? "eye-off" : "eye"}
+                  onPress={() => setShowPassword(!showPassword)}
+                  color={Colors.blue.light}
+                />
+              }
+            />
               <Text style={styles.passwordHint}>
                 Deixe em branco para manter a senha atual
               </Text>
@@ -187,7 +181,8 @@ export default function EditAccount() {
               />
             </View>
           </ScrollView>
-          
+        </KeyboardAvoidingView>
+
           <View style={styles.footer}>
             <PrimaryButton
               title={loadingEdit ? "Salvando..." : "Salvar Alterações"}
@@ -195,22 +190,24 @@ export default function EditAccount() {
               style={styles.saveButton}
               disabled={loadingEdit || loadingDelete}
             />
-            
+
             <TouchableOpacity
               onPress={handleDeleteUser}
               style={[
                 styles.deleteButton,
-                confirmDelete && { backgroundColor: Colors.red[700] }
+                confirmDelete && { backgroundColor: Colors.red[700] },
               ]}
               disabled={loadingEdit || loadingDelete}
             >
               <Text style={styles.deleteButtonText}>
-                {confirmDelete ? "Confirmar Exclusão" : 
-                 loadingDelete ? "Excluindo..." : "Excluir Usuário"}
+                {confirmDelete
+                  ? "Confirmar Exclusão"
+                  : loadingDelete
+                  ? "Excluindo..."
+                  : "Excluir Usuário"}
               </Text>
             </TouchableOpacity>
           </View>
-        </KeyboardAvoidingView>
 
         <FeedbackModal
           visible={feedbackVisible}

@@ -123,10 +123,40 @@ const useCashService = () => {
     }
   };
 
+  const reopenCash = async (
+    cashId: string
+  ): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await cashApi.reopenCash(cashId);
+
+      if (response.success && response.cash) {
+        setOpenCashId(response.cash.id);
+        await saveCashStatus(response.cash);
+        setCashStatus("OPEN");
+        return {
+          success: true,
+          message: response.message || "Caixa reaberto com sucesso.",
+        };
+      } else {
+        return {
+          success: false,
+          message: response.message || "Não foi possível reabrir o caixa.",
+        };
+      }
+    } catch (err) {
+      console.error("[useCashService] Erro ao reabrir caixa:", err);
+      return {
+        success: false,
+        message: "Erro ao tentar reabrir o caixa.",
+      };
+    }
+  };
+
   return {
     getStatusCash,
     openCash,
     closeCash,
+    reopenCash,
     openCashId,
     cashStatus,
   };

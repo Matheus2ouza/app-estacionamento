@@ -4,7 +4,7 @@ import { StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   screenContainer: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
   backgroundImage: {
     position: "absolute",
@@ -50,7 +50,7 @@ export const styles = StyleSheet.create({
   },
   roleMenu: {
     marginTop: 8,
-    backgroundColor: Colors.white
+    backgroundColor: Colors.white,
   },
   footer: {
     position: "absolute",
@@ -58,10 +58,11 @@ export const styles = StyleSheet.create({
     left: 0,
     right: 0,
     padding: 16,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
   createButton: {
     width: "100%",
     borderRadius: 8,
+    marginBottom: 10,
   },
 });

@@ -136,6 +136,8 @@ export default function ProductSearch() {
     setSelectedProduct(product);
     setIsQuantityModalVisible(true);
     setQuantity("1");
+    setShowSuggestions(false); // Fecha as sugestões imediatamente
+    setShouldShowSuggestions(false); // Garante que não vão reaparecer
   };
 
   // Adicionar produto à lista com quantidade
@@ -144,27 +146,73 @@ export default function ProductSearch() {
 
     const quantityValue = parseInt(quantity) || 1;
 
-    // Verifica se a quantidade é maior que o estoque disponível
-    if (quantityValue > selectedProduct.quantity) {
-      setModalMessage(
-        `Quantidade indisponível! Estoque atual: ${selectedProduct.quantity}`
-      );
-      setModalIsSuccess(false);
-      setModalVisible(true);
-      return; // Impede a adição do produto
+    // Verifica se o produto já existe na lista
+    const existingProductIndex = selectedProducts.findIndex(
+      (p) => p.id === selectedProduct.id
+    );
+
+    if (existingProductIndex !== -1) {
+      // Atualiza a quantidade do produto existente
+      const updatedProducts = [...selectedProducts];
+      const newQuantity =
+        updatedProducts[existingProductIndex].quantity + quantityValue;
+
+      // Verifica o estoque
+      if (newQuantity > selectedProduct.quantity) {
+        setModalMessage(
+          `Quantidade indisponível! Estoque atual: ${selectedProduct.quantity}`
+        );
+        setModalIsSuccess(false);
+        setModalVisible(true);
+        return;
+      }
+
+      updatedProducts[existingProductIndex] = {
+        ...updatedProducts[existingProductIndex],
+        quantity: newQuantity,
+        total: selectedProduct.unitPrice * newQuantity,
+      };
+
+      setSelectedProducts(updatedProducts);
+    } else {
+      // Adiciona novo produto
+      if (quantityValue > selectedProduct.quantity) {
+        setModalMessage(
+          `Quantidade indisponível! Estoque atual: ${selectedProduct.quantity}`
+        );
+        setModalIsSuccess(false);
+        setModalVisible(true);
+        return;
+      }
+
+      const productWithQuantity = {
+        ...selectedProduct,
+        quantity: quantityValue,
+        total: (selectedProduct.unitPrice || 0) * quantityValue,
+      };
+
+      setSelectedProducts((prev) => [...prev, productWithQuantity]);
     }
 
-    const productWithQuantity = {
-      ...selectedProduct,
-      quantity: quantityValue,
-      total: (selectedProduct.unitPrice || 0) * quantityValue,
-    };
-
-    setSelectedProducts((prev) => [...prev, productWithQuantity]);
     setIsQuantityModalVisible(false);
-    setSearchQuery("");
-    setShowSuggestions(false);
   };
+
+  useEffect(() => {
+    // Mostra sugestões apenas quando o input está focado E há texto ou produtos
+    setShowSuggestions(
+      isInputFocused && (searchQuery.length > 0 || products.length > 0)
+    );
+  }, [isInputFocused, searchQuery, products]);
+
+  useEffect(() => {
+    if (!isQuantityModalVisible && selectedProduct) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+        setSelectedProduct(null); // Limpa o produto selecionado
+      }, 100);
+    }
+  }, [isQuantityModalVisible, selectedProduct]);
+
   // Funções de manipulação de foco
   const handleInputFocus = () => {
     setIsInputFocused(true);
@@ -174,7 +222,10 @@ export default function ProductSearch() {
   const handleInputBlur = () => {
     setTimeout(() => {
       setIsInputFocused(false);
-      setShowSuggestions(false);
+      // Só esconde se não tiver um modal aberto
+      if (!isQuantityModalVisible) {
+        setShowSuggestions(false);
+      }
     }, 200);
   };
 
@@ -218,7 +269,10 @@ export default function ProductSearch() {
           animationType="slide"
           transparent={true}
           visible={isQuantityModalVisible}
-          onRequestClose={() => setIsQuantityModalVisible(false)}
+          onRequestClose={() => {
+            setIsQuantityModalVisible(false);
+            setShowSuggestions(false); // Garante que está fechado ao sair
+          }}
         >
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -271,7 +325,9 @@ export default function ProductSearch() {
 
                     <TouchableOpacity
                       style={[ModalStyle.modalButton, ModalStyle.addButton]}
-                      onPress={addProductWithQuantity}
+                      onPress={() => {
+                        addProductWithQuantity();
+                      }}
                     >
                       <Text style={ModalStyle.buttonText}>Adicionar</Text>
                     </TouchableOpacity>
@@ -313,6 +369,21 @@ export default function ProductSearch() {
                 size={24}
                 color={Colors.blue.logo}
               />
+
+              <TouchableOpacity
+                style={styles.clearIcon}
+                onPress={() => {
+                  setSearchQuery("");
+                  setFilteredProducts(filterProducts("")); // Mostra os produtos mais relevantes
+                  searchInputRef.current?.focus();
+                }}
+              >
+                <MaterialIcons
+                  name="close"
+                  size={20}
+                  color={Colors.gray.dark}
+                />
+              </TouchableOpacity>
             </TouchableOpacity>
           </View>
 
@@ -339,9 +410,7 @@ export default function ProductSearch() {
                     style={styles.suggestionItem}
                     onPress={() => {
                       openQuantityModal(product);
-                      setSearchQuery("");
-                      setShowSuggestions(false); // Fecha a lista de sugestões
-                      setShouldShowSuggestions(false); // Garante que não vai reaparecer
+                      searchInputRef.current?.focus(); // Mantém o foco no input
                     }}
                   >
                     <Text style={styles.suggestionText} numberOfLines={1}>

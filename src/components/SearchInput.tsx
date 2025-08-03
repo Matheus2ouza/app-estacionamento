@@ -7,21 +7,24 @@ interface Props {
   search: string;
   setSearch: (value: string) => void;
   inputWidth?: string | number;
+  placeholder?: string;
 }
 
 export default function SearchInput({
   search,
   setSearch,
   inputWidth = "100%",
+  placeholder = "Buscar",
 }: Props) {
   return (
     <TextInput
-      label="Buscar"
+      label={placeholder} // Usamos o placeholder como label
       value={search}
       mode="outlined"
       autoCapitalize="none"
       onChangeText={setSearch}
       style={[styles.searchInput, { width: inputWidth as DimensionValue }]}
+      placeholder={placeholder} // Adicionamos o placeholder também
     />
   );
 }

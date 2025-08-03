@@ -15,21 +15,22 @@ import {
   View,
   StyleSheet,
   Image,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform
 } from "react-native";
 import { TextInput } from "react-native-paper";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
+import Colors from "@/src/constants/Colors";
 
 export default function EntreyRegister() {
   const [plate, setPlate] = useState("");
   const [observation, setObservation] = useState("");
   const [photo, setPhoto] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<"carro" | "moto">(
-    "carro"
-  );
+  const [selectedCategory, setSelectedCategory] = useState<"carro" | "moto">("carro");
 
-  const { registerVehicle, loading, error, success, reset } =
-    useRegisterVehicle();
+  const { registerVehicle, loading, error, success, reset } = useRegisterVehicle();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
@@ -71,7 +72,7 @@ export default function EntreyRegister() {
     const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
       aspect: [4, 3],
-      quality: 0.7,
+      quality: 0.5,
       base64: false,
     });
 
@@ -92,9 +93,13 @@ export default function EntreyRegister() {
 
     try {
       await downloadPdf(pdfBase64, filename);
-      console.log("Download feito com sucesso");
+      setModalMessage("Ticket baixado com sucesso!");
+      setModalIsSuccess(true);
+      setModalVisible(true);
     } catch (err) {
-      console.error("Erro ao baixar o PDF:", err);
+      setModalMessage("Erro ao baixar o ticket");
+      setModalIsSuccess(false);
+      setModalVisible(true);
     }
   };
 
@@ -105,113 +110,144 @@ export default function EntreyRegister() {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
-        <Header title="Entrada" />
-        <View style={styles.content}>
-          <View style={styles.formContainer}>
-            <TextInput
-              label="Placa *"
-              value={plate}
-              style={styles.input}
-              mode="outlined"
-              autoCapitalize="characters"
-              onChangeText={setPlate}
-              outlineColor="#ddd"
-              activeOutlineColor="#002B50"
-            />
+        <Image
+          source={require("@/src/assets/images/splash-icon-blue.png")}
+          style={styles.backgroundImage}
+        />
+        
+        <Header title="Registrar Entrada" />
+        
+        <KeyboardAvoidingView
+          style={styles.keyboardAvoidingView}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
+        >
+          <ScrollView
+            contentContainerStyle={styles.scrollContainer}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.card}>
+              <Text style={styles.sectionTitle}>Informações do Veículo</Text>
+              
+              <TextInput
+                label="Placa *"
+                value={plate}
+                style={styles.input}
+                mode="outlined"
+                autoCapitalize="characters"
+                onChangeText={setPlate}
+                theme={{
+                  colors: {
+                    primary: Colors.blue.logo,
+                    background: Colors.white,
+                  },
+                  roundness: 8,
+                }}
+                left={<TextInput.Icon icon="car" color={Colors.gray.dark} />}
+              />
 
-            <View style={styles.observationContainer}>
+              <View style={styles.categoryContainer}>
+                <Text style={styles.sectionLabel}>Categoria *</Text>
+                <View style={styles.categoryButtons}>
+                  <TouchableOpacity
+                    style={[
+                      styles.categoryButton,
+                      selectedCategory === "carro" && styles.categoryButtonSelected,
+                    ]}
+                    onPress={() => setSelectedCategory("carro")}
+                  >
+                    <MaterialIcons 
+                      name="directions-car" 
+                      size={24} 
+                      color={selectedCategory === "carro" ? Colors.white : Colors.gray.dark} 
+                    />
+                    <Text style={[
+                      styles.categoryButtonText,
+                      selectedCategory === "carro" && styles.categoryButtonTextSelected,
+                    ]}>
+                      Carro
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.categoryButton,
+                      selectedCategory === "moto" && styles.categoryButtonSelected,
+                    ]}
+                    onPress={() => setSelectedCategory("moto")}
+                  >
+                    <MaterialIcons 
+                      name="two-wheeler" 
+                      size={24} 
+                      color={selectedCategory === "moto" ? Colors.white : Colors.gray.dark} 
+                    />
+                    <Text style={[
+                      styles.categoryButtonText,
+                      selectedCategory === "moto" && styles.categoryButtonTextSelected,
+                    ]}>
+                      Moto
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
               <TextInput
                 placeholder="Observação (opcional)"
                 value={observation}
-                style={styles.observationInput}
+                style={[styles.input, styles.observationInput]}
                 mode="outlined"
                 multiline
                 numberOfLines={4}
                 maxLength={150}
                 onChangeText={setObservation}
-                outlineColor="#ddd"
-                activeOutlineColor="#002B50"
-                dense={true}
+                theme={{
+                  colors: {
+                    primary: Colors.blue.logo,
+                    background: Colors.white,
+                  },
+                  roundness: 8,
+                }}
               />
               <Text style={styles.characterCount}>
                 {observation.length}/150
               </Text>
-            </View>
 
-            <View style={styles.photoSection}>
-              <Text style={styles.sectionLabel}>Foto (opcional)</Text>
-              {photo ? (
-                <View style={styles.photoPreviewContainer}>
-                  <Image source={{ uri: photo }} style={styles.photoPreview} />
+              <View style={styles.photoSection}>
+                <Text style={styles.sectionLabel}>Foto (opcional)</Text>
+                {photo ? (
+                  <View style={styles.photoPreviewContainer}>
+                    <Image source={{ uri: photo }} style={styles.photoPreview} />
+                    <TouchableOpacity
+                      style={styles.removePhotoButton}
+                      onPress={handleRemovePhoto}
+                    >
+                      <MaterialIcons name="close" size={20} color="white" />
+                    </TouchableOpacity>
+                  </View>
+                ) : (
                   <TouchableOpacity
-                    style={styles.removePhotoButton}
-                    onPress={handleRemovePhoto}
+                    style={styles.addPhotoButton}
+                    onPress={handleTakePhoto}
                   >
-                    <MaterialIcons name="close" size={20} color="white" />
+                    <MaterialIcons name="add-a-photo" size={24} color={Colors.blue.logo} />
+                    <Text style={styles.addPhotoText}>Adicionar Foto</Text>
                   </TouchableOpacity>
-                </View>
-              ) : (
-                <TouchableOpacity
-                  style={styles.addPhotoButton}
-                  onPress={handleTakePhoto}
-                >
-                  <MaterialIcons name="add-a-photo" size={24} color="#002B50" />
-                  <Text style={styles.addPhotoText}>Adicionar Foto</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            <View style={styles.categoryContainer}>
-              <Text style={styles.sectionLabel}>Categoria do Veículo *</Text>
-              <View style={styles.categoryButtons}>
-                <TouchableOpacity
-                  style={[
-                    styles.categoryButton,
-                    selectedCategory === "carro" &&
-                      styles.categoryButtonSelected,
-                  ]}
-                  onPress={() => setSelectedCategory("carro")}
-                >
-                  <Text
-                    style={[
-                      styles.categoryButtonText,
-                      selectedCategory === "carro" &&
-                        styles.categoryButtonTextSelected,
-                    ]}
-                  >
-                    Carro
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[
-                    styles.categoryButton,
-                    selectedCategory === "moto" &&
-                      styles.categoryButtonSelected,
-                  ]}
-                  onPress={() => setSelectedCategory("moto")}
-                >
-                  <Text
-                    style={[
-                      styles.categoryButtonText,
-                      selectedCategory === "moto" &&
-                        styles.categoryButtonTextSelected,
-                    ]}
-                  >
-                    Moto
-                  </Text>
-                </TouchableOpacity>
+                )}
               </View>
             </View>
-          </View>
+          </ScrollView>          
+        </KeyboardAvoidingView>
 
-          <PrimaryButton
-            title={loading ? "Registrando..." : "Confirmar Entrada"}
-            onPress={handleRegister}
-            style={styles.confirmButton}
-            disabled={!plate || loading}
-          />
-        </View>
+          <View style={styles.footer}>
+            <PrimaryButton
+              title={loading ? "Registrando..." : "Confirmar Entrada"}
+              onPress={handleRegister}
+              style={styles.createButton}
+              disabled={!plate || loading}
+              loading={loading}
+            />
+          </View>
 
         <FeedbackModal
           visible={modalVisible}

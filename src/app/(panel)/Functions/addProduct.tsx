@@ -5,7 +5,7 @@ import useRegisterProduct from "@/src/hooks/products/useRegisterProduct";
 import { styles } from "@/src/styles/functions/addProductStyle";
 import LoadingModal from "@/src/components/LoadingModal";
 import { Product } from "@/src/types/products";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, } from "react";
 import {
   Pressable,
   ScrollView,
@@ -21,6 +21,7 @@ import {
 import { TextInput } from "react-native-paper";
 import { MaterialIcons } from "@expo/vector-icons";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import { router } from "expo-router";
 
 export default function AddProduct() {
   const [productName, setProductName] = useState("");
@@ -37,6 +38,7 @@ export default function AddProduct() {
   const { registerProduct, fetchProductByBarcode } = useRegisterProduct();
   const [LoadingIsModal, setLoadingIsModal] = useState(false);
   const [textLoading, setTextLoading] = useState("");
+  const [shouldNavigateBack, setShouldNavigateBack] = useState(false);
 
   // Estados para a câmera
   const [facing, setFacing] = useState<"front" | "back">("back");
@@ -98,31 +100,31 @@ export default function AddProduct() {
   }, [isAdding]);
 
   // Função para lidar com código de barras escaneado
-const handleBarCodeScanned = async ({ data }: { data: string }) => {
-  if (!isScanning || isProcessing) return;
+  const handleBarCodeScanned = async ({ data }: { data: string }) => {
+    if (!isScanning || isProcessing) return;
 
-  setIsScanning(false);
-  setIsProcessing(true);
-  setBarcode(data); // Define o código imediatamente
+    setIsScanning(false);
+    setIsProcessing(true);
+    setBarcode(data); // Define o código imediatamente
 
-  try {
-    await fetchProduct(data);
-  } catch (error) {
-    console.error("Erro ao processar código:", error);
-  } finally {
-    setTimeout(() => {
-      setIsProcessing(false);
-      // Reativar scanner após 2 segundos
-      setTimeout(() => setIsScanning(true), 2000);
-    }, 1500);
-  }
-};
+    try {
+      await fetchProduct(data);
+    } catch (error) {
+      console.error("Erro ao processar código:", error);
+    } finally {
+      setTimeout(() => {
+        setIsProcessing(false);
+        // Reativar scanner após 2 segundos
+        setTimeout(() => setIsScanning(true), 2000);
+      }, 1500);
+    }
+  };
 
 const fetchProduct = async (code: string) => {
   setTextLoading("Buscando Produto...");
   setLoadingIsModal(true);
-  setIsScannerVisible(false); // Fechar o scanner após a leitura
-  setBarcode(code); // Sempre preenche o código de barras, independente do resultado
+  setIsScannerVisible(false);
+  setBarcode(code);
 
   try {
     const productData = await fetchProductByBarcode(code);
@@ -131,10 +133,10 @@ const fetchProduct = async (code: string) => {
       setModalMessage("Produto não encontrado na base de dados. Preencha os dados manualmente.");
       setModalIsSuccess(false);
       setModalVisible(true);
+      setShouldNavigateBack(false); // Não navega
       return;
     }
 
-    // Extrair apenas os dados essenciais
     const essentialData = {
       name: productData.product_name_pt || productData.product_name || "",
       quantity: productData.product_quantity || "",
@@ -142,63 +144,67 @@ const fetchProduct = async (code: string) => {
       packaging: productData.packaging || "",
     };
 
-    // Preencher automaticamente o nome do produto
     if (essentialData.name) {
-      setProductName(
-        `${essentialData.name} - ${essentialData.quantity}${essentialData.unit}`
-      );
+      setProductName(`${essentialData.name} - ${essentialData.quantity}${essentialData.unit}`);
     }
+
+    setModalMessage("Produto encontrado! Verifique os dados e complete se necessário.");
+    setModalIsSuccess(true);
+    setModalVisible(true);
+    setShouldNavigateBack(false); // Não navega mesmo no sucesso
   } catch (err: any) {
     setModalMessage("Erro ao tentar buscar o produto. Preencha os dados manualmente.");
+    setModalIsSuccess(false);
     setModalVisible(true);
+    setShouldNavigateBack(false); // Não navega
   } finally {
     setLoadingIsModal(false);
   }
 };
 
-  const handleRegister = async () => {
-    setIsAdding(true);
-    setIsAdding(true);
+const handleRegister = async () => {
+  setIsAdding(true);
 
+  try {
     const parsedPrice = parseFloat(unitPrice.replace(",", "."));
     const parsedQuantity = parseInt(quantity, 10);
     const parsedExpiration = expirationDate || undefined;
 
-    // Gerar um ID temporário (pode ser substituído pelo backend)
-    const tempId = `temp_${Date.now()}`;
-
     const product: Product = {
-      id: tempId, // ID temporário
+      id: `temp_${Date.now()}`,
       productName,
       barcode,
       unitPrice: parsedPrice,
       quantity: parsedQuantity,
       expirationDate: parsedExpiration,
     };
-    try {
-      const response = await registerProduct(product);
 
-      if (response.success) {
-        setModalMessage("Produto cadastrado com sucesso!");
-        setModalIsSuccess(true);
-        setProductName("");
-        setUnitPrice("");
-        setQuantity("");
-        setExpirationDate("");
-        setBarcode("");
-      } else {
-        setModalMessage(response.message);
-        setModalIsSuccess(false);
-      }
-    } catch (err: any) {
-      setModalMessage(err.message || "Erro inesperado.");
+    const response = await registerProduct(product);
+
+    if (response.success) {
+      setModalMessage("Produto cadastrado com sucesso!");
+      setModalIsSuccess(true);
+      setShouldNavigateBack(true); // Navega apenas no sucesso do registro
+      // Limpa os campos
+      setProductName("");
+      setUnitPrice("");
+      setQuantity("");
+      setExpirationDate("");
+      setBarcode("");
+    } else {
+      setModalMessage(response.message);
       setModalIsSuccess(false);
-    } finally {
-      setIsAdding(false);
-      setModalVisible(true);
+      setShouldNavigateBack(false); // Não navega
     }
-  };
-
+  } catch (err: any) {
+    setModalMessage(err.message || "Erro inesperado.");
+    setModalIsSuccess(false);
+    setShouldNavigateBack(false); // Não navega
+  } finally {
+    setIsAdding(false);
+    setModalVisible(true);
+  }
+};
   // Alternar entre câmera frontal e traseira
   const toggleCameraFacing = () => {
     setFacing((current) => (current === "back" ? "front" : "back"));
@@ -267,7 +273,6 @@ const fetchProduct = async (code: string) => {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                backgroundColor: "rgba(0, 0, 0, 0.7)",
               }}
             >
               {/* Parte de cima do overlay */}
@@ -369,15 +374,17 @@ const fetchProduct = async (code: string) => {
         </View>
       </Modal>
 
-      <FeedbackModal
-        visible={modalVisible}
-        message={modalMessage}
-        isSuccess={modalIsSuccess}
-        shouldGoBack={true}
-        onClose={() => {
-          setModalVisible(false);
-        }}
-      />
+<FeedbackModal
+  visible={modalVisible}
+  message={modalMessage}
+  isSuccess={modalIsSuccess}
+  onClose={() => {
+    setModalVisible(false);
+    if (shouldNavigateBack && modalIsSuccess) {
+      router.back(); // Navega apenas se for sucesso no registro
+    }
+  }}
+/>
 
       <LoadingModal visible={LoadingIsModal} text={textLoading} />
 

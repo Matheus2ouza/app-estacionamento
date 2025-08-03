@@ -5,6 +5,7 @@ export interface Product {
   unitPrice: number;
   quantity: number;
   expirationDate?: string;
+  total?: number;
 }
 
 export interface SaleItem {

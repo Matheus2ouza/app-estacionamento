@@ -1,68 +1,230 @@
-import Colors from "@/src/constants/Colors";
 import { StyleSheet } from "react-native";
+import Colors from "@/src/constants/Colors";
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
-  searchContainer: {
-    width: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 10,
+  filterContainer: {
+    padding: 16,
+    backgroundColor: 'transparent',
   },
-  body: {
+  searchRow: {
+    marginBottom: 12,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  filterDropdown: {
+    width: '48%',
+  },
+  dropdown: {
+    backgroundColor: Colors.white,
+    borderColor: Colors.gray.light,
+    borderRadius: 10,
+    minHeight: 50,
+    borderWidth: 1.5,
+  },
+  dropdownContainer: {
+    backgroundColor: Colors.white,
+    borderColor: Colors.gray.light,
+    borderWidth: 1.5,
+    borderRadius: 10,
+    marginTop: 5,
+  },
+  dropdownText: {
+    fontSize: 14,
+    color: Colors.gray.dark,
+  },
+  transactionsContainer: {
     flex: 1,
-    alignItems: "center",
-    paddingHorizontal: 10,
+    padding: 16,
   },
-  historicalRow: {
-    flexDirection: "row",
-    width: "100%",
-    paddingVertical: 5,
+  transactionWrapper: {
+    marginBottom: 16,
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  datahistorical: {
-    width: "80%",
-    paddingHorizontal: 15
+  transactionCard: {
+    marginBottom: 12,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  mainDataContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    flex: 1,
   },
   mainData: {
-    fontFamily: "Roboto_700Bold",
-    fontSize: 24,
+    fontFamily: 'Roboto_700Bold',
+    fontSize: 18,
+    color: Colors.blue.dark,
+    flex: 1,
   },
-  secondaryDatarow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
+  transactionTypeBadge: {
+    backgroundColor: Colors.blue.light,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  typeBadgeText: {
+    color: Colors.white,
+    fontSize: 12,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+  },
+  detailsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     marginLeft: 8,
-    gap: 3,
+    marginTop: 8,
   },
-  secondaryData: {
-    width: "48%",
-    fontSize: 13,
-    color: "#333",
-    marginBottom: 4,
+  detailCell: {
+    width: '50%', // 2 colunas
+    paddingRight: 8,
+    marginBottom: 12,
   },
-  buttontwoway: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingLeft: 8,
-    maxWidth: 60,
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  detailText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: Colors.gray.dark,
     flexShrink: 1,
   },
-  buttonArea: {
-    backgroundColor: Colors.blueLogo,
-    borderRadius: 10,
-    minWidth: 60,
-    minHeight: 60,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 8,
+  actionButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 8,
+  },
+  secondCopyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.blue.logo,
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    marginLeft: 10,
+  },
+  photoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.green.dark,
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    marginLeft: 10,
   },
   buttonText: {
-    color: "#fff",
-    fontWeight: "semibold",
+    color: Colors.white,
+    fontWeight: 'bold',
+    fontSize: 14,
+    marginLeft: 6,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  emptyText: {
     fontSize: 18,
-    textAlign: "center",
-    lineHeight: 18, // opcional para controlar espaçamento entre as linhas
+    color: Colors.gray.dark,
+    marginTop: 16,
+    fontWeight: '500',
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: Colors.gray.medium,
+    marginTop: 4,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: Colors.white,
+  },
+  errorText: {
+    color: Colors.red[500],
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: Colors.blue.logo,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  fullScreenLoading: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  loadingText: {
+    color: Colors.white,
+    marginTop: 10,
+    fontSize: 16,
+  },
+  errorModal: {
+    position: 'absolute',
+    top: '50%',
+    left: '20%',
+    right: '20%',
+    backgroundColor: Colors.white,
+    padding: 20,
+    borderRadius: 10,
+    zIndex: 1000,
+    transform: [{ translateY: -50 }],
+    alignItems: 'center',
+  },
+  errorModalText: {
+    color: Colors.red[500],
+    fontSize: 16,
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  errorModalButton: {
+    backgroundColor: Colors.blue.logo,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 5,
+  },
+  errorModalButtonText: {
+    color: Colors.white,
+    fontWeight: 'bold',
   },
 });

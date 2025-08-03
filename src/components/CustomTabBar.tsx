@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
   bottomBar: {
     height: '12%',
     width: '100%',
-    backgroundColor: Colors.gray.zinc,
+    backgroundColor: 'transparent',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',

@@ -19,7 +19,6 @@ interface CarWithElapsedTime extends Car {
 interface ParkingConfig {
   maxCars: number;
   maxMotorcycles: number;
-  maxLargeVehicles: number;
 }
 
 const useParking = () => {
@@ -48,7 +47,7 @@ const useParking = () => {
       if (configData.success) {
         const config: ParkingConfig = configData.config;
         const totalCapacity =
-          config.maxCars + config.maxMotorcycles + config.maxLargeVehicles;
+          config.maxCars + config.maxMotorcycles;
         setParkingCapacity(totalCapacity);
       }
     } catch (error) {
@@ -60,7 +59,7 @@ const useParking = () => {
   const fetchCars = async () => {
     try {
       setLoading(true);
-      const data = await VehicleApi.getParked();
+      const data = await VehicleApi.getParkedExit();
       console.log(data)
 
       if (data.success) {

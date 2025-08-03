@@ -1,6 +1,7 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Colors from "../constants/Colors";
+import { ViewStyle } from "react-native";
 
 export type FilterOption = string;
 
@@ -9,10 +10,11 @@ interface FilterOptionItem {
   value: FilterOption;
 }
 
-interface Props {
+export interface Props {
   filter: FilterOption;
   setFilter: (value: FilterOption) => void;
-  options?: FilterOptionItem[]; // agora as opções podem ser passadas
+  options: { label: string; value: string }[];
+  style?: ViewStyle; // <- adicionado
 }
 
 const defaultOptions: FilterOptionItem[] = [
