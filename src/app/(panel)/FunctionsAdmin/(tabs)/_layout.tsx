@@ -8,10 +8,10 @@ export default function CashPanelTabsLayout() {
       tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{ headerShown: false }}
     >
-      <Tabs.Screen name="/cashPanel" options={{ title: 'painel' }} />
-      <Tabs.Screen name="/detailsCash" options={{ title: 'detalhes' }} />
-      <Tabs.Screen name="/graphicsData" options={{ title: 'grafico' }} />
-      <Tabs.Screen name="/listData" options={{ title: 'lista' }} />
+      <Tabs.Screen name="cashPanel" options={{ title: 'painel' }} />
+      <Tabs.Screen name="detailsCash" options={{ title: 'detalhes' }} />
+      <Tabs.Screen name="graphicsData" options={{ title: 'grafico' }} />
+      <Tabs.Screen name="listData" options={{ title: 'lista' }} />
     </Tabs>
   );
 }

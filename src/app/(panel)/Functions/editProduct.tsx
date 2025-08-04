@@ -110,7 +110,7 @@ export default function EditProduct() {
 
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-      {/* Modais */}
+      {/* Modais - permanecem iguais */}
       <FeedbackModal
         visible={modalVisible}
         message={modalMessage}
@@ -145,65 +145,116 @@ export default function EditProduct() {
 
       <LoadingModal visible={LoadingIsModal} text={textLoading} />
 
-      {/* Conteúdo principal */}
-      <Header title="Editar Produto" titleStyle={{ fontSize: 27 }} />
+      {/* Cabeçalho com estilo melhorado */}
+      <Header 
+        title="Editar Produto" 
+        titleStyle={{ 
+          fontSize: 24, 
+          fontWeight: '600',
+          color: Colors.blue.dark,
+          marginBottom: 8 
+        }} 
+        containerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 16,
+          paddingBottom: 8,
+          borderBottomWidth: 1,
+          borderBottomColor: Colors.gray[200],
+          backgroundColor: Colors.white
+        }}
+      />
 
-      <ScrollView>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.formContainer}>
           {/* Nome do Produto */}
           <TextInput
             label="Nome do Produto"
             mode="outlined"
             style={styles.input}
-            placeholderTextColor={Colors.blue.logo}
+            placeholderTextColor={Colors.gray[400]}
             value={productName}
             onChangeText={setProductName}
             cursorColor={Colors.blue.light}
+            outlineColor={Colors.gray[300]}
+            activeOutlineColor={Colors.blue.light}
+            theme={{
+              colors: {
+                text: Colors.blue.dark,
+                placeholder: Colors.gray[400]
+              }
+            }}
           />
 
-          {/* Codigo de barras */}
+          {/* Código de barras */}
           <Pressable
             onPress={() =>
               ToastAndroid.show(
-                "O codigo de barras não pode ser editado",
+                "O código de barras não pode ser editado",
                 ToastAndroid.SHORT
               )
             }
+            style={{ marginTop: 16 }}
           >
             <TextInput
               label="Código de Barras"
               mode="outlined"
-              style={[styles.input, { marginTop: 20 }]}
-              placeholderTextColor={Colors.gray[500]}
+              style={styles.input}
+              placeholderTextColor={Colors.gray[400]}
               value={barcode}
               editable={false}
               pointerEvents="none"
+              outlineColor={Colors.gray[300]}
+              theme={{
+                colors: {
+                  text: Colors.gray[600],
+                  placeholder: Colors.gray[400]
+                }
+              }}
             />
           </Pressable>
 
           {/* Valor e Quantidade em linha */}
           <View style={styles.inputRow}>
-            <View style={styles.smallInput}>
+            <View style={[styles.smallInput, { marginTop: 16 }]}>
               <TextInput
                 label="Valor (R$)"
                 mode="outlined"
                 style={styles.input}
-                placeholderTextColor={Colors.gray[500]}
+                placeholderTextColor={Colors.gray[400]}
                 keyboardType="numeric"
                 value={unitPrice}
                 onChangeText={setUnitPrice}
+                outlineColor={Colors.gray[300]}
+                activeOutlineColor={Colors.blue.light}
+                theme={{
+                  colors: {
+                    text: Colors.blue.dark,
+                    placeholder: Colors.gray[400]
+                  }
+                }}
               />
             </View>
 
-            <View style={styles.smallInput}>
+            <View style={[styles.smallInput, { marginTop: 16 }]}>
               <TextInput
                 label="Quantidade"
                 mode="outlined"
                 style={styles.input}
-                placeholderTextColor={Colors.gray[500]}
+                placeholderTextColor={Colors.gray[400]}
                 keyboardType="numeric"
                 value={quantity}
                 onChangeText={setQuantity}
+                outlineColor={Colors.gray[300]}
+                activeOutlineColor={Colors.blue.light}
+                theme={{
+                  colors: {
+                    text: Colors.blue.dark,
+                    placeholder: Colors.gray[400]
+                  }
+                }}
               />
             </View>
           </View>
@@ -211,11 +262,19 @@ export default function EditProduct() {
           <TextInput
             label="Validade (MM/AAAA)"
             mode="outlined"
-            style={[styles.input, { marginTop: 25 }]}
-            placeholderTextColor={Colors.gray[500]}
+            style={[styles.input, { marginTop: 16 }]}
+            placeholderTextColor={Colors.gray[400]}
             value={expirationDate}
             onChangeText={setExpirationDate}
             keyboardType="ascii-capable"
+            outlineColor={Colors.gray[300]}
+            activeOutlineColor={Colors.blue.light}
+            theme={{
+              colors: {
+                text: Colors.blue.dark,
+                placeholder: Colors.gray[400]
+              }
+            }}
           />
           <Text style={styles.description}>*A validade é opcional*</Text>
         </View>
@@ -224,9 +283,12 @@ export default function EditProduct() {
       <View style={styles.buttonsContainer}>
         {/* Botão de Excluir */}
         <Pressable
-          style={[
+          style={({ pressed }) => [
             styles.deleteButton,
-            isDeleting && { backgroundColor: Colors.gray[500] },
+            (isDeleting || pressed) && { 
+              backgroundColor: Colors.red[600],
+              opacity: pressed ? 0.8 : 1
+            },
           ]}
           disabled={isDeleting}
           onPress={confirmDelete}
@@ -238,23 +300,19 @@ export default function EditProduct() {
 
         {/* Botão de Atualizar */}
         <Pressable
-          style={[
+          style={({ pressed }) => [
             styles.addButton,
             (!isFormValid || isAdding || isDeleting) && {
-              backgroundColor: Colors.gray[500],
+              backgroundColor: Colors.gray[400],
             },
+            pressed && {
+              opacity: 0.8
+            }
           ]}
           disabled={!isFormValid || isAdding || isDeleting}
           onPress={handleUpdate}
         >
-          <Text
-            style={[
-              styles.addButtonText,
-              (!isFormValid || isAdding || isDeleting) && {
-                color: Colors.gray.light,
-              },
-            ]}
-          >
+          <Text style={styles.addButtonText}>
             {isAdding ? `Atualizando${dotText}` : "Atualizar Produto"}
           </Text>
         </Pressable>

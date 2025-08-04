@@ -41,6 +41,7 @@ export const useRegisterExit = () => {
       final_amount: number;
       original_amount: number;
       method: string;
+      receiptImage?: string;
     }
   ): Promise<ResponseRegisterExit> => {
     setIsProcessing(true);

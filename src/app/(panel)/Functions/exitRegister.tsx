@@ -118,11 +118,6 @@ export default function ExitRegister() {
       </View>
 
       <View style={styles.filterContainer}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterScroll}
-        >
           {FILTER_OPTIONS.map((opt) => {
             const isSelected = filter === opt.value;
             return (
@@ -150,15 +145,6 @@ export default function ExitRegister() {
               </Pressable>
             );
           })}
-        </ScrollView>
-
-        <Pressable
-          onPress={onRefresh}
-          style={styles.refreshButton}
-          android_ripple={{ color: Colors.white, borderless: true }}
-        >
-          <FontAwesome name="refresh" size={20} color={Colors.white} />
-        </Pressable>
       </View>
 
       <ScrollView

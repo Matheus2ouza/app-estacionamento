@@ -89,6 +89,7 @@ export interface exitData {
   final_amount: number;
   original_amount: number;
   method: string;
+  receiptImage?: string | null;
 }
 
 export interface ResponseRegisterExit {

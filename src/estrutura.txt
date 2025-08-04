@@ -6,6 +6,7 @@ C:.
 ÃÄÄÄapi
 ³       axiosInstance.ts
 ³       cashService.ts
+³       dashboardService.ts
 ³       parkingService.ts
 ³       productsService.ts
 ³       userService.ts
@@ -25,13 +26,18 @@ C:.
 ³   ³   ³       
 ³   ³   ÃÄÄÄFunctions
 ³   ³   ³       addProduct.tsx
+³   ³   ³       createOutgoing.tsx
+³   ³   ³       editProduct.tsx
 ³   ³   ³       editRegister.tsx
 ³   ³   ³       entreyRegister.tsx
 ³   ³   ³       exitRegister.tsx
 ³   ³   ³       history.tsx
 ³   ³   ³       informationExit.tsx
 ³   ³   ³       inventory.tsx
+³   ³   ³       ListSaleScreen.tsx
+³   ³   ³       outgoingExpense.tsx
 ³   ³   ³       parking.tsx
+³   ³   ³       paymentProducts.tsx
 ³   ³   ³       registerPayment.tsx
 ³   ³   ³       scanExit.tsx
 ³   ³   ³       _layout.tsx
@@ -40,10 +46,11 @@ C:.
 ³   ³   ³   ³   accountInfo.tsx
 ³   ³   ³   ³   createAccount.tsx
 ³   ³   ³   ³   createPayment.tsx
-³   ³   ³   ³   dashboard.tsx
 ³   ³   ³   ³   editAccount.tsx
+³   ³   ³   ³   goalsConfiguration.tsx
 ³   ³   ³   ³   methodPayment.tsx
 ³   ³   ³   ³   patioConfig.tsx
+³   ³   ³   ³   reports.tsx
 ³   ³   ³   ³   _layout.tsx
 ³   ³   ³   ³   
 ³   ³   ³   ÀÄÄÄ(tabs)
@@ -62,6 +69,9 @@ C:.
 ³           login.tsx
 ³           
 ÃÄÄÄassets
+³   ÃÄÄÄanimations
+³   ³       DeleteFilesLoop.json
+³   ³       
 ³   ÀÄÄÄimages
 ³           adaptive-icon-black.png
 ³           adaptive-icon-blue.png
@@ -69,6 +79,7 @@ C:.
 ³           favico-blue.png
 ³           favicon-black.png
 ³           favicon-white.png
+³           QRCODEpagamento.png
 ³           splash-icon-black.png
 ³           splash-icon-blue.png
 ³           splash-icon-white.png
@@ -80,11 +91,16 @@ C:.
 ³       CashStatusModal.tsx
 ³       ConfirmationModal.tsx
 ³       CustomTabBar.tsx
+³       DeleteAnimationModal.tsx
 ³       FeedbackModal.tsx
 ³       FilterByField.tsx
 ³       Header.tsx
+³       ListProducts.tsx
+³       LoadingModal.tsx
+³       PhotoViewer.tsx
+³       PixPayment.tsx
 ³       PopUp.tsx
-³       previewPDF.tsx
+³       PreviewPDF.tsx
 ³       PrimaryButton.tsx
 ³       RoleMenu.tsx
 ³       SearchInput.tsx
@@ -95,7 +111,6 @@ C:.
 ³       storage.ts
 ³       
 ÃÄÄÄconstants
-³       BillingMethods.ts
 ³       Colors.ts
 ³       Fonts.ts
 ³       
@@ -114,28 +129,38 @@ C:.
 ³   ³       
 ³   ÃÄÄÄcash
 ³   ³       useCashDetails.ts
+³   ³       useCashHistory.ts
 ³   ³       useCashStatus.ts
-³   ³       usePaymentConfig.ts
+³   ³       useOutgoingExpense.ts
+³   ³       
+³   ÃÄÄÄdashboard
+³   ³       useDetailsCash.ts
+³   ³       useGoalConfig.ts
 ³   ³       
 ³   ÃÄÄÄhistory
-³   ³       useHistoricalDataRenderer.ts
+³   ³       useHistory.ts
 ³   ³       
 ³   ÃÄÄÄparking
 ³   ³       useParking.ts
 ³   ³       usePatioConfig.ts
 ³   ³       
 ³   ÃÄÄÄproducts
+³   ³       useRegisterPayment.ts
 ³   ³       useRegisterProduct.ts
 ³   ³       useSearchProduc.ts
 ³   ³       
 ³   ÀÄÄÄvehicleFlow
+³           useCreatePayment.ts
 ³           useEditVehicle.ts
 ³           useExitConfirmation.ts
 ³           useExitData.ts
 ³           useFetchVehicle.ts
+³           usePaymentConfig.ts
 ³           usePdfActions.ts
 ³           useRegisterEntry.ts
+³           useRegisterExit.ts
 ³           
+ÃÄÄÄservices
 ÃÄÄÄstyles
 ³   ÃÄÄÄconfig
 ³   ³       ConfigStyle.ts
@@ -145,19 +170,26 @@ C:.
 ³   ³       addProductStyle.ts
 ³   ³       cashpanelStyle.ts
 ³   ³       createAccountStyle.ts
+³   ³       createOutgoingStyele.ts
 ³   ³       createPaymentStyle.ts
 ³   ³       dashboardStyle.ts
+³   ³       detailsCashStyle.ts
 ³   ³       editAcccontStyle.ts
 ³   ³       editStyle.ts
 ³   ³       entreyStyle.ts
 ³   ³       exitStyle.ts
+³   ³       goalsStyle.ts
 ³   ³       historicalStyle.ts
 ³   ³       informationStyle.ts
 ³   ³       inventoryStyles.ts
+³   ³       listDataStyle.ts
 ³   ³       methodPaymentStyle.ts
+³   ³       newSaleStyle.ts
+³   ³       outgoingStyle.ts
 ³   ³       parkingStyle.ts
 ³   ³       patioConfigStyle.ts
-³   ³       registerPayment.ts
+³   ³       paymentProductStyle.ts
+³   ³       registerPaymentStyle.ts
 ³   ³       scanExit.ts
 ³   ³       
 ³   ÃÄÄÄhome
@@ -171,10 +203,17 @@ C:.
 ³       auth.ts
 ³       cash.ts
 ³       components.d.ts
+³       dashboard.ts
+³       env.d.ts
+³       formatHelpers.ts
+³       historic.ts
 ³       parking.ts
+³       payment.ts
+³       printerTypes.ts
 ³       products.ts
 ³       vehicleFlow.ts
 ³       
 ÀÄÄÄutils
         dateUtils.ts
+        downloadPdf.ts
         

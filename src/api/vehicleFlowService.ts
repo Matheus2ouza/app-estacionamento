@@ -108,7 +108,7 @@ export const VehicleApi = {
   },
 
   registerExit: async (
-    data: exitData & { photo?: string }
+    data: exitData & { receiptImage?: string }
   ): Promise<ResponseRegisterExit> => {
     const formData = new FormData();
 
@@ -124,9 +124,9 @@ export const VehicleApi = {
     formData.append("method", data.method);
 
     // Se houver foto, adiciona como arquivo
-    if (data.photo) {
+    if (data.receiptImage) {
       formData.append("photo", {
-        uri: data.photo,
+        uri: data.receiptImage,
         name: `${data.plate}_saida.jpg`,
         type: "image/jpeg",
       } as any); // `as any` é necessário para compatibilidade com FormData no RN

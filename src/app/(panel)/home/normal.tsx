@@ -1,41 +1,60 @@
-import CashRegisterModal from "@/src/components/CashRegisterModal"; 
+import CashRegisterModal from "@/src/components/CashRegisterModal";
 import FeedbackModal from "@/src/components/FeedbackModal";
 import Separator from "@/src/components/Separator";
 import Colors from "@/src/constants/Colors";
-import useCashService from "@/src/hooks/cash/useCashStatus"; 
 import { styles } from "@/src/styles/home/normalHomeStyles";
-import {AntDesign, Entypo, FontAwesome, MaterialCommunityIcons, Feather} from "@expo/vector-icons";
+import {
+  AntDesign,
+  Entypo,
+  FontAwesome,
+  MaterialCommunityIcons,
+  Feather,
+} from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useFocusEffect } from "expo-router";
-import { useEffect, useState, useCallback } from "react"; 
+import { useEffect, useState, useCallback } from "react";
 import { Pressable, Text, TouchableOpacity, View } from "react-native";
 import useCashDetails from "@/src/hooks/cash/useCashDetails";
 import LoadingModal from "@/src/components/LoadingModal";
 import React, { ReactNode } from "react";
+import { useCash } from "@/src/context/CashContext";
+import CashStatusModal from "@/src/components/CashStatusModal"; // Importe o modal de status
 
 type ParkingStatus = {
   free: number;
   used: number;
-  details: [number, number]; // [carros, motos, outros]
+  details: [number, number]; // [carros, motos]
 };
 
 export default function NormalHome() {
-  // Services
-  const { getStatusCash, openCash, openCashId } = useCashService();
+  // Obtém o contexto do caixa
+  const { 
+    openCashId, 
+    cashStatus, 
+    getStatusCash, 
+    openCash,
+    loading: cashLoading 
+  } = useCash();
+
+  // Outros serviços
   const { parkingToHome } = useCashDetails();
 
   // State
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [cashStatusLoaded, setCashStatusLoaded] = useState(false);
-  const [loading, setLoading] = useState({
-    visible: false,
-    text: "",
+  const [modals, setModals] = useState({
+    openCashModal: false,
+    closedCashModal: false,
+    loading: {
+      visible: false,
+      text: "",
+    },
+    feedback: {
+      visible: false,
+      message: "",
+      isSuccess: false,
+    },
+    cashStatusChecked: false,
   });
-  const [feedbackModal, setFeedbackModal] = useState({
-    visible: false,
-    message: "",
-    isSuccess: false,
-  });
+
   const [parkingStatus, setParkingStatus] = useState<ParkingStatus>({
     free: 0,
     used: 0,
@@ -47,14 +66,16 @@ export default function NormalHome() {
     if (!data) {
       return { free: 0, used: 0, details: [0, 0] };
     }
-    
-    const free = (data.carVacancies + data.motorcycleVacancies) - 
-                 (data.totalCarsInside + data.totalMotosInside);
-    
+
+    const free =
+      data.carVacancies +
+      data.motorcycleVacancies -
+      (data.totalCarsInside + data.totalMotosInside);
+
     return {
       free,
       used: data.totalCarsInside + data.totalMotosInside,
-      details: [data.totalCarsInside, data.totalMotosInside]
+      details: [data.totalCarsInside, data.totalMotosInside],
     };
   };
 
@@ -72,36 +93,49 @@ export default function NormalHome() {
   }, []);
 
   // Verificar status do caixa
-  const fetchCashStatus = async () => {
+  const checkCashStatus = useCallback(async () => {
     try {
+      setModals(prev => ({ ...prev, cashStatusChecked: false }));
       await getStatusCash();
-      setCashStatusLoaded(true);
+
+      if (cashStatus === "CLOSED") {
+        setModals(prev => ({ ...prev, closedCashModal: true, cashStatusChecked: true }));
+      } else if (!openCashId) {
+        setModals(prev => ({ ...prev, openCashModal: true, cashStatusChecked: true }));
+      } else {
+        setModals(prev => ({
+          ...prev,
+          openCashModal: false,
+          closedCashModal: false,
+          cashStatusChecked: true
+        }));
+      }
     } catch (error) {
       console.error("Erro ao verificar status do caixa:", error);
       showFeedback("Erro ao verificar status do caixa", false);
+      setModals(prev => ({ ...prev, cashStatusChecked: true }));
     }
-  };
+  }, [cashStatus, openCashId]);
 
   // Atualizar todos os dados
   const handleRefreshAll = async () => {
-    setLoading({ visible: true, text: "Atualizando dados..." });
+    setModals(prev => ({ ...prev, loading: { visible: true, text: "Atualizando dados..." } }));
     try {
-      await Promise.all([fetchCashStatus(), fetchParkingStatus()]);
+      await Promise.all([checkCashStatus(), fetchParkingStatus()]);
     } catch (error) {
       console.error("Erro ao atualizar:", error);
       showFeedback("Erro ao atualizar dados", false);
     } finally {
-      setLoading({ visible: false, text: "" });
+      setModals(prev => ({ ...prev, loading: { visible: false, text: "" } }));
     }
   };
 
   // Helpers de UI
   const showFeedback = (message: string, isSuccess: boolean) => {
-    setFeedbackModal({
-      visible: true,
-      message,
-      isSuccess,
-    });
+    setModals(prev => ({
+      ...prev,
+      feedback: { visible: true, message, isSuccess },
+    }));
   };
 
   const handleOpenCash = async (initialValue: string) => {
@@ -113,20 +147,20 @@ export default function NormalHome() {
         return;
       }
 
-      setLoading({ visible: true, text: "Abrindo caixa..." });
+      setModals(prev => ({ ...prev, loading: { visible: true, text: "Abrindo caixa..." } }));
       const { success, message } = await openCash(parsedValue);
 
       showFeedback(message, success);
 
       if (success) {
-        setIsModalVisible(false);
-        await fetchCashStatus();
+        setModals(prev => ({ ...prev, openCashModal: false }));
+        await checkCashStatus();
       }
     } catch (err) {
       showFeedback("Não foi possível abrir o caixa.", false);
       console.error(err);
     } finally {
-      setLoading({ visible: false, text: "" });
+      setModals(prev => ({ ...prev, loading: { visible: false, text: "" } }));
     }
   };
 
@@ -134,24 +168,33 @@ export default function NormalHome() {
   useFocusEffect(
     useCallback(() => {
       let isActive = true;
+
       const loadData = async () => {
         if (!isActive) return;
-        await handleRefreshAll();
+
+        try {
+          setModals(prev => ({ ...prev, loading: { visible: true, text: "Carregando..." } }));
+          await checkCashStatus();
+          await fetchParkingStatus();
+        } catch (error) {
+          console.error("Erro ao carregar dados:", error);
+          showFeedback("Erro ao carregar dados", false);
+        } finally {
+          if (isActive) {
+            setModals(prev => ({ ...prev, loading: { visible: false, text: "" } }));
+          }
+        }
       };
+
       loadData();
       return () => {
         isActive = false;
       };
-    }, [])
+    }, [checkCashStatus, fetchParkingStatus])
   );
 
-  useEffect(() => {
-    if (cashStatusLoaded && openCashId === null) {
-      setIsModalVisible(true);
-    } else {
-      setIsModalVisible(false);
-    }
-  }, [openCashId, cashStatusLoaded]);
+  // Combinar estados de loading
+  const isLoading = modals.loading.visible || cashLoading;
 
   // Componentes de renderização
   const renderParkingIcon = (icon: ReactNode, value: number) => (
@@ -164,20 +207,37 @@ export default function NormalHome() {
   return (
     <View style={{ flex: 1 }}>
       {/* Modals */}
-      <LoadingModal visible={loading.visible} text={loading.text} />
+      <LoadingModal visible={isLoading} text={modals.loading.text || "Processando..."} />
 
-      <CashRegisterModal
-        visible={isModalVisible}
-        mode="open"
-        onClose={() => setIsModalVisible(false)}
-        onSubmitCashRegister={handleOpenCash}
-      />
+      {modals.cashStatusChecked && (
+        <>
+          <CashStatusModal
+            visible={modals.closedCashModal}
+            onClose={() => setModals(prev => ({ ...prev, closedCashModal: false }))}
+            onConfirm={() => setModals(prev => ({ 
+              ...prev, 
+              closedCashModal: false, 
+              openCashModal: true 
+            }))}
+          />
+
+          <CashRegisterModal
+            visible={modals.openCashModal}
+            mode="open"
+            onClose={() => setModals(prev => ({ ...prev, openCashModal: false }))}
+            onSubmitCashRegister={handleOpenCash}
+          />
+        </>
+      )}
 
       <FeedbackModal
-        visible={feedbackModal.visible}
-        message={feedbackModal.message}
-        isSuccess={feedbackModal.isSuccess}
-        onClose={() => setFeedbackModal({ ...feedbackModal, visible: false })}
+        visible={modals.feedback.visible}
+        message={modals.feedback.message}
+        isSuccess={modals.feedback.isSuccess}
+        onClose={() => setModals(prev => ({ 
+          ...prev, 
+          feedback: { ...prev.feedback, visible: false } 
+        }))}
       />
 
       {/* Header */}

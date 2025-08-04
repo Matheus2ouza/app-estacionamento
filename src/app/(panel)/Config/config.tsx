@@ -27,7 +27,7 @@ export default function Config() {
           }}
         >
           <View style={styles.optionsRow}>
-            <Text style={styles.label}>Entrada</Text>
+            <Text style={styles.label}>Entrada de Veiculos</Text>
             <AntDesign
               name="right"
               size={24}
@@ -44,7 +44,7 @@ export default function Config() {
           }}
         >
           <View style={styles.optionsRow}>
-            <Text style={styles.label}>Saída</Text>
+            <Text style={styles.label}>Saída de Veiculos</Text>
             <AntDesign
               name="right"
               size={24}
@@ -107,20 +107,7 @@ export default function Config() {
             />
           </View>
         </Pressable>
-        <View style={styles.separator} />
-
-        <Pressable>
-          <View style={styles.optionsRow}>
-            <Text style={styles.label}>Despesas</Text>
-            <AntDesign
-              name="right"
-              size={24}
-              color={Colors.blue.logo}
-              style={{ transform: [{ scaleY: 1.5 }] }}
-            />
-          </View>
-        </Pressable>
-
+        
         <View style={styles.separator} />
 
         <Pressable onPress={handleLogout}>

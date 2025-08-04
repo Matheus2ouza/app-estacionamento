@@ -29,14 +29,11 @@ export const styles = StyleSheet.create({
   filterContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 15,
     paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: Colors.gray.light,
-  },
-  filterScroll: {
-    paddingRight: 8,
-    gap: 8,
+    gap: 5,
   },
   filterButton: {
     flexDirection: 'row',

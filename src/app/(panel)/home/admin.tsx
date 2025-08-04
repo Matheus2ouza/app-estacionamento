@@ -1,8 +1,8 @@
 import { useCallback, useState } from "react";
 import { View, Text, Pressable, TouchableOpacity } from "react-native";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import {AntDesign, Entypo, FontAwesome, MaterialCommunityIcons, Feather} from "@expo/vector-icons";
+import { AntDesign, Entypo, FontAwesome, MaterialCommunityIcons, Feather } from "@expo/vector-icons";
 import React, { ReactNode } from "react";
 
 import Colors from "@/src/constants/Colors";
@@ -12,9 +12,8 @@ import CashRegisterModal from "@/src/components/CashRegisterModal";
 import CashStatusModal from "@/src/components/CashStatusModal";
 import FeedbackModal from "@/src/components/FeedbackModal";
 import LoadingModal from "@/src/components/LoadingModal";
-import useCashService from "@/src/hooks/cash/useCashStatus";
+import { useCash } from "@/src/context/CashContext";
 import useCashDetails from "@/src/hooks/cash/useCashDetails";
-import { router } from "expo-router";
 
 type CashData = {
   "Valor Inicial": number;
@@ -34,29 +33,36 @@ type ParkingStatus = {
 type ModalState = {
   openCashModal: boolean;
   closedCashModal: boolean;
-  loading: boolean;
-  loadingText: string;
   feedback: {
     visible: boolean;
     message: string;
     isSuccess: boolean;
   };
-  cashStatusChecked: boolean; // Novo estado para controlar se o status do caixa foi verificado
+  cashStatusChecked: boolean;
 };
 
 export default function AdminHome() {
-  // Services
-  const { getStatusCash, openCash, openCashId, cashStatus } = useCashService();
+  // Contexto do caixa
+  const { 
+    openCashId, 
+    cashStatus, 
+    getStatusCash, 
+    openCash,
+    closeCash,
+    reopenCash,
+    loading: cashLoading,
+    error: cashError
+  } = useCash();
+
+  // Serviços de dados
   const { dataToHome, parkingToHome } = useCashDetails();
 
   // State
   const [modals, setModals] = useState<ModalState>({
     openCashModal: false,
     closedCashModal: false,
-    loading: false,
-    loadingText: "",
     feedback: { visible: false, message: "", isSuccess: false },
-    cashStatusChecked: false, // Inicialmente false
+    cashStatusChecked: false,
   });
 
   const [cashData, setCashData] = useState<CashData>({
@@ -76,14 +82,10 @@ export default function AdminHome() {
 
   // Converter dados de estacionamento
   const convertParkingData = (data: any): ParkingStatus => {
-    if (!data) {
-      return { free: 0, used: 0, details: [0, 0] };
-    }
+    if (!data) return { free: 0, used: 0, details: [0, 0] };
 
-    // Soma o total de vagas livres
-    const totalFree = data.carVacancies + data.motorcycleVacancies;
     return {
-      free: totalFree,
+      free: data.carVacancies + data.motorcycleVacancies,
       used: data.totalCarsInside + data.totalMotosInside,
       details: [data.totalCarsInside, data.totalMotosInside],
     };
@@ -127,12 +129,12 @@ export default function AdminHome() {
   // Verificar status do caixa
   const checkCashStatus = useCallback(async () => {
     try {
-      setModals(prev => ({ ...prev, cashStatusChecked: false })); // Reset antes de verificar
-      const { status, cashId } = await getStatusCash();
+      setModals(prev => ({ ...prev, cashStatusChecked: false }));
+      await getStatusCash();
 
-      if (status === "CLOSED") {
+      if (cashStatus === "CLOSED") {
         setModals(prev => ({ ...prev, closedCashModal: true, cashStatusChecked: true }));
-      } else if (!cashId) {
+      } else if (!openCashId) {
         setModals(prev => ({ ...prev, openCashModal: true, cashStatusChecked: true }));
       } else {
         await fetchCashData();
@@ -146,7 +148,7 @@ export default function AdminHome() {
     } catch (error) {
       console.error("Erro ao verificar status do caixa:", error);
       showFeedback("Erro ao verificar status do caixa", false);
-      setModals(prev => ({ ...prev, cashStatusChecked: true })); // Mesmo em erro, marcamos como verificado
+      setModals(prev => ({ ...prev, cashStatusChecked: true }));
     }
   }, [cashStatus, openCashId, fetchCashData]);
 
@@ -158,76 +160,88 @@ export default function AdminHome() {
       return showFeedback("Valor inválido", false);
     }
 
-    setLoading("Abrindo caixa...");
-
     try {
       const { success, message } = await openCash(parsedValue);
       showFeedback(message, success);
 
       if (success) {
-        setModals((prev) => ({ ...prev, openCashModal: false }));
+        setModals(prev => ({ ...prev, openCashModal: false }));
         await checkCashStatus();
       }
     } catch (err) {
       console.error(err);
       showFeedback("Erro ao abrir o caixa", false);
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  // Fechar caixa
+  const handleCloseCash = async (finalValue: number) => {
+    if (!openCashId) return;
+
+    try {
+      const { success, message } = await closeCash(openCashId, finalValue);
+      showFeedback(message, success);
+
+      if (success) {
+        setModals(prev => ({ ...prev, closedCashModal: false }));
+      }
+    } catch (err) {
+      console.error(err);
+      showFeedback("Erro ao fechar o caixa", false);
+    }
+  };
+
+  // Reabrir caixa
+  const handleReopenCash = async () => {
+    if (!openCashId) return;
+
+    try {
+      const { success, message } = await reopenCash(openCashId);
+      showFeedback(message, success);
+
+      if (success) {
+        setModals(prev => ({ ...prev, closedCashModal: false }));
+        await checkCashStatus();
+      }
+    } catch (err) {
+      console.error(err);
+      showFeedback("Erro ao reabrir o caixa", false);
     }
   };
 
   // Helpers de UI
   const showFeedback = (message: string, isSuccess: boolean) => {
-    setModals((prev) => ({
+    setModals(prev => ({
       ...prev,
       feedback: { visible: true, message, isSuccess },
     }));
   };
 
-  const setLoading = (loadingText: string | false) => {
-    setModals((prev) => ({
-      ...prev,
-      loading: loadingText !== false,
-      loadingText: loadingText || "",
-    }));
-  };
-
-  // Atualizar somente os dados do caixa
+  // Atualizações de dados
   const handleRefreshCash = async () => {
-    setLoading("Atualizando dados do caixa...");
     try {
       await checkCashStatus();
     } catch (error) {
       console.error("Erro ao atualizar caixa:", error);
       showFeedback("Erro ao atualizar dados do caixa", false);
-    } finally {
-      setLoading(false);
     }
   };
 
-  // Atualizar somente os dados das vagas
   const handleRefreshParking = async () => {
-    setLoading("Atualizando dados das vagas...");
     try {
       await fetchParkingStatus();
     } catch (error) {
       console.error("Erro ao atualizar vagas:", error);
       showFeedback("Erro ao atualizar dados das vagas", false);
-    } finally {
-      setLoading(false);
     }
   };
 
-  // Atualizar todos os dados
   const handleRefreshAll = async () => {
-    setLoading("Atualizando dados...");
     try {
       await Promise.all([checkCashStatus(), fetchParkingStatus()]);
     } catch (error) {
       console.error("Erro ao atualizar:", error);
       showFeedback("Erro ao atualizar dados", false);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -237,13 +251,10 @@ export default function AdminHome() {
       let isActive = true;
       const loadData = async () => {
         if (!isActive) return;
-        setLoading("Carregando dados...");
         try {
           await handleRefreshAll();
         } catch (error) {
           console.error("Erro ao carregar dados:", error);
-        } finally {
-          if (isActive) setLoading(false);
         }
       };
       loadData();
@@ -272,7 +283,7 @@ export default function AdminHome() {
   return (
     <View style={{ flex: 1 }}>
       {/* Modals - Só mostra os modais de caixa após verificação */}
-      <LoadingModal visible={modals.loading} text={modals.loadingText} />
+      <LoadingModal visible={cashLoading} text="Processando..." />
 
       {modals.cashStatusChecked && (
         <>

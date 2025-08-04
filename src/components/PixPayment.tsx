@@ -26,6 +26,7 @@ const PixPayment: React.FC<PixPaymentProps> = ({
 }) => {
   const [receiptImage, setReceiptImage] = useState<string | null>(null);
 
+  // Modifique a função takePicture no PixPayment
   const takePicture = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
@@ -42,7 +43,8 @@ const PixPayment: React.FC<PixPaymentProps> = ({
 
     if (!result.canceled) {
       setReceiptImage(result.assets[0].uri);
-      onReceiptUpload(result.assets[0].uri);
+      onReceiptUpload(result.assets[0].uri); // Continua enviando normalmente
+      onClose(); // Fecha o modal automaticamente
     }
   };
 

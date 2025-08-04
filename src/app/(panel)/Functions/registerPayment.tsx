@@ -63,7 +63,7 @@ export default function PaymentVehicle() {
   const [showPixPayment, setShowPixPayment] = useState(false);
   const [receiptImage, setReceiptImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  
+  const [showPixSuccess, setShowPixSuccess] = useState(false);
 
   // Calcular valores
   const discountValue = parseFloat(discount.replace(",", ".")) || 0;
@@ -169,7 +169,7 @@ export default function PaymentVehicle() {
         final_amount: finalPrice,
         original_amount: calculatedAmount,
         method: paymentMethod,
-        receiptImage: paymentMethod === "Pix" ? receiptImage : null, // só envia se for Pix
+        receiptImage: paymentMethod === "Pix" ? receiptImage || undefined : undefined,
       };
 
       // Chamar função de registro de saída
@@ -307,13 +307,21 @@ export default function PaymentVehicle() {
       <PixPayment
         visible={showPixPayment}
         onClose={() => setShowPixPayment(false)}
-        onReceiptUpload={(uri) => setReceiptImage(uri)}
+        onReceiptUpload={(uri) => {
+          setReceiptImage(uri);
+          setShowPixSuccess(true); // Mostra feedback quando o comprovante é salvo
+        }}
         qrCodeImage={require("@/src/assets/images/QRCODEpagamento.png")}
       />
 
-      <Header
-        title="Pagamento de Estacionamento"
+      <FeedbackModal
+        visible={showPixSuccess}
+        message="Comprovante PIX salvo com sucesso!"
+        isSuccess={true}
+        onClose={() => setShowPixSuccess(false)}
       />
+
+      <Header title="Pagamento de Estacionamento" />
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.vehicleInfo}>

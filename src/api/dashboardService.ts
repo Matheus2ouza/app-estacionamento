@@ -7,6 +7,7 @@ import {
   ResponseDetailsCash,
 } from "../types/dashboard";
 
+
 export const dashboardApi = {
   history: async (
     filter: "day" | "week" | "month" = "day"

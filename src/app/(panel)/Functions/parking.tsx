@@ -75,95 +75,9 @@ export default function Parking() {
   return (
     <View style={styles.mainContainer}>
       <Header title="Pátio" />
-
-      {/* Status de ocupação */}
-      <View style={styles.occupancyContainer}>
-        <Text style={styles.occupancyLabel}>Ocupação do Pátio</Text>
-        <View style={styles.percentageContainer}>
-          <Text
-            style={[
-              styles.percentageText,
-              { color: getPercentageColor(occupancyPercentage) },
-            ]}
-          >
-            {occupancyPercentage}%
-          </Text>
-        </View>
-        <View style={styles.progressBar}>
-          <View
-            style={[
-              styles.progressFill,
-              {
-                width: `${occupancyPercentage}%`,
-                backgroundColor: getPercentageColor(occupancyPercentage),
-              },
-            ]}
-          />
-        </View>
-      </View>
-
-      {/* Barra de pesquisa e filtros */}
-      <View style={styles.searchFilterContainer}>
-        <TextInput
-          label="Buscar veículo"
-          value={search}
-          mode="outlined"
-          autoCapitalize="none"
-          onChangeText={setSearch}
-          style={styles.searchInput}
-          left={<TextInput.Icon icon="magnify" color={Colors.gray.medium} />}
-          outlineColor={Colors.gray.light}
-          activeOutlineColor={Colors.primary}
-        />
-
-        <View style={styles.filterContainer}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterScroll}
-          >
-            {FILTER_OPTIONS.map((opt) => {
-              const isSelected = filter === opt.value;
-              return (
-                <Pressable
-                  key={opt.value}
-                  onPress={() => setFilter(opt.value)}
-                  style={[
-                    styles.filterButton,
-                    isSelected && styles.filterButtonSelected,
-                  ]}
-                >
-                  <MaterialCommunityIcons
-                    name={opt.icon}
-                    size={20}
-                    color={isSelected ? Colors.white : Colors.primary}
-                  />
-                  <Text
-                    style={[
-                      styles.filterButtonText,
-                      isSelected && styles.filterButtonTextSelected,
-                    ]}
-                  >
-                    {opt.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-
-          <Pressable
-            onPress={onRefresh}
-            style={styles.refreshButton}
-            android_ripple={{ color: Colors.white, borderless: true }}
-          >
-            <FontAwesome name="refresh" size={20} color={Colors.white} />
-          </Pressable>
-        </View>
-      </View>
-
-      {/* Lista de veículos */}
+      
       <ScrollView
-        style={styles.listContainer}
+        contentContainerStyle={styles.scrollContainer}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -172,118 +86,193 @@ export default function Parking() {
           />
         }
       >
-        {filteredCars.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <MaterialCommunityIcons
-              name="car-off"
-              size={50}
-              color={Colors.gray.medium}
-            />
-            <Text style={styles.emptyText}>
-              {search
-                ? "Nenhum veículo encontrado"
-                : "Nenhum veículo estacionado"}
-            </Text>
-          </View>
-        ) : (
-          filteredCars.map((car, index) => (
-            <Pressable
-              key={`${car.plate}-${index}`}
-              onPress={() => {
-                router.push({
-                  pathname: "/Functions/editRegister",
-                  params: {
-                    id: car.id,
-                    plate: car.plate,
-                    status: car.status,
-                    category: car.category,
-                    description: car.description,
-                  },
-                });
-              }}
-              style={({ pressed }) => [
-                styles.vehicleCard,
-                pressed && styles.vehicleCardPressed,
-                car.status === "DELETED" && styles.vehicleCardDeleted,
+        {/* Status de ocupação */}
+        <View style={styles.occupancyContainer}>
+          <Text style={styles.occupancyLabel}>Ocupação do Pátio</Text>
+          <View style={styles.percentageContainer}>
+            <Text
+              style={[
+                styles.percentageText,
+                { color: getPercentageColor(occupancyPercentage) },
               ]}
             >
-              <View style={styles.cardHeader}>
-                <View style={styles.cardIndex}>
-                  <Text
+              {occupancyPercentage}%
+            </Text>
+          </View>
+          <View style={styles.progressBar}>
+            <View
+              style={[
+                styles.progressFill,
+                {
+                  width: `${occupancyPercentage}%`,
+                  backgroundColor: getPercentageColor(occupancyPercentage),
+                },
+              ]}
+            />
+          </View>
+        </View>
+
+        {/* Barra de pesquisa e filtros */}
+        <View style={styles.searchFilterContainer}>
+          <TextInput
+            label="Buscar veículo"
+            value={search}
+            mode="outlined"
+            autoCapitalize="none"
+            onChangeText={setSearch}
+            style={styles.searchInput}
+            left={<TextInput.Icon icon="magnify" color={Colors.gray.medium} />}
+            outlineColor={Colors.gray.light}
+            activeOutlineColor={Colors.primary}
+          />
+
+          <View style={styles.filterContainer}>
+              {FILTER_OPTIONS.map((opt) => {
+                const isSelected = filter === opt.value;
+                return (
+                  <Pressable
+                    key={opt.value}
+                    onPress={() => setFilter(opt.value)}
                     style={[
-                      styles.indexText,
-                      car.status === "DELETED" && styles.indexTextDeleted,
+                      styles.filterButton,
+                      isSelected && styles.filterButtonSelected,
                     ]}
                   >
-                    {index + 1}
-                  </Text>
-                </View>
-
-                <View style={styles.cardTitleContainer}>
-                  <Text
-                    style={[
-                      styles.cardTitle,
-                      car.status === "DELETED" && styles.cardTitleDeleted,
-                    ]}
-                  >
-                    {filter === "plate"
-                      ? car.plate
-                      : filter === "category"
-                      ? car.category
-                      : car.operator}
-                  </Text>
-                  {car.status === "DELETED" && (
-                    <Text style={styles.deletedLabel}>EXCLUÍDO</Text>
-                  )}
-                </View>
-              </View>
-
-              <View style={styles.cardDetails}>
-                <View style={styles.detailsRow}>
-                  <View style={styles.detailItem}>
                     <MaterialCommunityIcons
-                      name="clock-time-four-outline"
-                      size={16}
-                      color={Colors.gray.dark}
+                      name={opt.icon}
+                      size={20}
+                      color={isSelected ? Colors.white : Colors.primary}
                     />
-                    <Text style={styles.detailText}>
-                      {car.formattedEntryTime}
+                    <Text
+                      style={[
+                        styles.filterButtonText,
+                        isSelected && styles.filterButtonTextSelected,
+                      ]}
+                    >
+                      {opt.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+          </View>
+        </View>
+
+        {/* Lista de veículos */}
+        <View style={styles.listContainer}>
+          {filteredCars.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <MaterialCommunityIcons
+                name="car-off"
+                size={50}
+                color={Colors.gray.medium}
+              />
+              <Text style={styles.emptyText}>
+                {search
+                  ? "Nenhum veículo encontrado"
+                  : "Nenhum veículo estacionado"}
+              </Text>
+            </View>
+          ) : (
+            filteredCars.map((car, index) => (
+              <Pressable
+                key={`${car.plate}-${index}`}
+                onPress={() => {
+                  router.push({
+                    pathname: "/Functions/editRegister",
+                    params: {
+                      id: car.id,
+                      plate: car.plate,
+                      status: car.status,
+                      category: car.category,
+                      description: car.description,
+                    },
+                  });
+                }}
+                style={({ pressed }) => [
+                  styles.vehicleCard,
+                  pressed && styles.vehicleCardPressed,
+                  car.status === "DELETED" && styles.vehicleCardDeleted,
+                ]}
+              >
+                <View style={styles.cardHeader}>
+                  <View style={styles.cardIndex}>
+                    <Text
+                      style={[
+                        styles.indexText,
+                        car.status === "DELETED" && styles.indexTextDeleted,
+                      ]}
+                    >
+                      {index + 1}
                     </Text>
                   </View>
 
-                  <View style={styles.detailItem}>
-                    <MaterialCommunityIcons
-                      name="timer-sand"
-                      size={16}
-                      color={Colors.gray.dark}
-                    />
-                    <Text style={styles.detailText}>{car.elapsedTime}</Text>
+                  <View style={styles.cardTitleContainer}>
+                    <Text
+                      style={[
+                        styles.cardTitle,
+                        car.status === "DELETED" && styles.cardTitleDeleted,
+                      ]}
+                    >
+                      {filter === "plate"
+                        ? car.plate
+                        : filter === "category"
+                        ? car.category
+                        : car.operator}
+                    </Text>
+                    {car.status === "DELETED" && (
+                      <Text style={styles.deletedLabel}>EXCLUÍDO</Text>
+                    )}
                   </View>
                 </View>
+                {car.status !== "DELETED" && (
+                  <View style={styles.cardDetails}>
+                    <View style={styles.detailsRow}>
+                      <View style={styles.detailItem}>
+                        <MaterialCommunityIcons
+                          name="clock-time-four-outline"
+                          size={16}
+                          color={Colors.gray.dark}
+                        />
+                        <Text style={styles.detailText}>
+                          {car.formattedEntryTime}
+                        </Text>
+                      </View>
 
-                <View style={styles.detailsRow}>
-                  <View style={styles.detailItem}>
-                    <MaterialCommunityIcons
-                      name="tag"
-                      size={16}
-                      color={Colors.gray.dark}
-                    />
-                    <Text style={styles.detailText}>{car.category}</Text>
-                  </View>
+                      <View style={styles.detailItem}>
+                        <MaterialCommunityIcons
+                          name="timer-sand"
+                          size={16}
+                          color={Colors.gray.dark}
+                        />
+                        <Text style={styles.detailText}>{car.elapsedTime}</Text>
+                      </View>
+                    </View>
 
-                  <View style={styles.detailItem}>
-                    <MaterialCommunityIcons
-                      name="account"
-                      size={16}
-                      color={Colors.gray.dark}
-                    />
-                    <Text style={styles.detailText}>{car.operator}</Text>
+                    <View style={styles.detailsRow}>
+                      <View style={styles.detailItem}>
+                        <MaterialCommunityIcons
+                          name="tag"
+                          size={16}
+                          color={Colors.gray.dark}
+                        />
+                        <Text style={styles.detailText}>{car.category}</Text>
+                      </View>
+
+                      <View style={styles.detailItem}>
+                        <MaterialCommunityIcons
+                          name="account"
+                          size={16}
+                          color={Colors.gray.dark}
+                        />
+                        <Text style={styles.detailText}>{car.operator}</Text>
+                      </View>
+                    </View>
                   </View>
-                </View>
-              </View>
-            </Pressable>
-          ))
-        )}
+                )}
+              </Pressable>
+            ))
+          )}
+        </View>
       </ScrollView>
     </View>
   );

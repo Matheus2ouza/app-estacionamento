@@ -1,28 +1,36 @@
-import { cashApi } from "@/src/api/cashService";
-import {
-  clearCashStatus,
-  getCashStatus,
-  saveCashStatus,
-  updateCashStatus,
-} from "@/src/context/cashStorage";
-import { useState } from "react";
+// src/context/CashContext.tsx
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { cashApi } from '@/src/api/cashService';
+import { clearCashStatus, getCashStatus, saveCashStatus, updateCashStatus } from './cashStorage';
 
-const useCashService = () => {
+type CashContextType = {
+  openCashId: string | null;
+  cashStatus: string | null;
+  getStatusCash: () => Promise<void>;
+  openCash: (initialValue: number) => Promise<{ success: boolean; message: string }>;
+  closeCash: (id: string, finalValue: number) => Promise<{ success: boolean; message: string }>;
+  reopenCash: (cashId: string) => Promise<{ success: boolean; message: string }>;
+  loading: boolean;
+  error: string | null;
+};
+
+const CashContext = createContext<CashContextType | undefined>(undefined);
+
+export const CashProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
   const [openCashId, setOpenCashId] = useState<string | null>(null);
-  const [cashStatus, setCashStatus] = useState<string | null>("OPEN");
+  const [cashStatus, setCashStatus] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const getStatusCash = async (): Promise<{
-    status: string | null;
-    cashId: string | null;
-  }> => {
+  const getStatusCash = async (): Promise<void> => {
+    setLoading(true);
     try {
       const localStatus = await getCashStatus();
       
-      console.log(localStatus)
       if (localStatus?.cash) {
         setOpenCashId(localStatus.cash.id);
         setCashStatus(localStatus.cash.status);
-        return { status: localStatus.cash.status, cashId: localStatus.cash.id };
+        return;
       }
 
       const response = await cashApi.statusCash();
@@ -31,16 +39,14 @@ const useCashService = () => {
         await saveCashStatus(response.cash);
         setOpenCashId(response.cash.id);
         setCashStatus(response.cash.status);
-
-        return { status: response.cash.status, cashId: response.cash.id };
       }
-
-      return { status: null, cashId: null };
     } catch (err: any) {
-      console.error("[useCashService] Erro ao buscar status do caixa:", err);
+      console.error("[CashContext] Erro ao buscar status do caixa:", err);
+      setError("Erro ao buscar status do caixa");
       setOpenCashId(null);
       await clearCashStatus();
-      return { status: null, cashId: null };
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -54,6 +60,7 @@ const useCashService = () => {
       };
     }
 
+    setLoading(true);
     try {
       const cash = await cashApi.openCash(initialValue);
 
@@ -71,11 +78,13 @@ const useCashService = () => {
         };
       }
     } catch (err) {
-      console.error("[useCashService] Erro ao abrir caixa:", err);
+      console.error("[CashContext] Erro ao abrir caixa:", err);
       return {
         success: false,
         message: "Erro ao tentar abrir o caixa.",
       };
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -90,6 +99,7 @@ const useCashService = () => {
       };
     }
 
+    setLoading(true);
     try {
       const response = await cashApi.closeCash(id, finalValue);
 
@@ -113,12 +123,15 @@ const useCashService = () => {
         success: false,
         message,
       };
+    } finally {
+      setLoading(false);
     }
   };
 
   const reopenCash = async (
     cashId: string
   ): Promise<{ success: boolean; message: string }> => {
+    setLoading(true);
     try {
       const response = await cashApi.reopenCash(cashId);
 
@@ -137,22 +150,43 @@ const useCashService = () => {
         };
       }
     } catch (err) {
-      console.error("[useCashService] Erro ao reabrir caixa:", err);
+      console.error("[CashContext] Erro ao reabrir caixa:", err);
       return {
         success: false,
         message: "Erro ao tentar reabrir o caixa.",
       };
+    } finally {
+      setLoading(false);
     }
   };
 
-return {
-  getStatusCash,
-  openCash,
-  closeCash,
-  reopenCash,
-  openCashId,
-  cashStatus, 
-};
+  // Carrega o status do caixa quando o provider é montado
+  useEffect(() => {
+    getStatusCash();
+  }, []);
+
+  return (
+    <CashContext.Provider
+      value={{
+        openCashId,
+        cashStatus,
+        getStatusCash,
+        openCash,
+        closeCash,
+        reopenCash,
+        loading,
+        error,
+      }}
+    >
+      {children}
+    </CashContext.Provider>
+  );
 };
 
-export default useCashService;
+export const useCash = (): CashContextType => {
+  const context = useContext(CashContext);
+  if (!context) {
+    throw new Error('useCash must be used within a CashProvider');
+  }
+  return context;
+};

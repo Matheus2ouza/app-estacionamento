@@ -6,6 +6,9 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
   },
+  scrollContainer: {
+    flexGrow: 1,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -60,21 +63,18 @@ export const styles = StyleSheet.create({
   filterContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  filterScroll: {
-    paddingRight: 8,
-    gap: 8,
+    gap: 10
   },
   filterButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: 7,
+    paddingHorizontal: 15,
     borderRadius: 20,
     borderWidth: 1,
     backgroundColor: Colors.white,
     borderColor: Colors.primary,
-    gap: 8,
+    gap: 6,
   },
   filterButtonSelected: {
     backgroundColor: Colors.primary,
@@ -96,7 +96,6 @@ export const styles = StyleSheet.create({
     marginLeft: 'auto',
   },
   listContainer: {
-    flex: 1,
     padding: 16,
   },
   emptyContainer: {

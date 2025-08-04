@@ -74,9 +74,9 @@ export type ResponseGoalConfig = {
 };
 
 export type BasicDataCash = {
-  totalCash: number;
+  totalCash: string;
   statusCash: string;
-  openingTimeCash: string; // ISO string
+  openingTimeCash: string;
   closingTimeCash: string | null;
   operatorCash: string;
   transactionsCash: number;
@@ -117,5 +117,7 @@ export type ResponseDetailsCash = {
     goalProgress: GoalProgress;
     graficoSemanal: GraficoSemanalItem[];
   };
-  goalConfigs: GoalConfig
+  goalConfigs: GoalConfig;
+  warnings?: string[];
+  error?: string;
 };

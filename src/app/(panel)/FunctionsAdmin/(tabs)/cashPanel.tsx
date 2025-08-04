@@ -51,20 +51,48 @@ export default function CashPanel() {
   });
 
   const [transactionValues, setTransactionValues] = useState<{
-    finalValue: number | "";
-    totalValue: number | null;
-    valuesEntry: number | null;
-    valuesExit: number | null;
-    veicles: number | null;
-    products: number | null;
+    initialValue: number;
+    finalValue: number;
+    totalValue: number;
+    valuesEntry: number;
+    valuesExit: number;
+    veicles: number;
+    products: number;
   }>({
-    finalValue: "",
-    totalValue: null,
-    valuesEntry: null,
-    valuesExit: null,
-    veicles: null,
-    products: null,
+    initialValue: 0,
+    finalValue: 0,
+    totalValue: 0,
+    valuesEntry: 0,
+    valuesExit: 0,
+    veicles: 0,
+    products: 0,
   });
+
+  const formatCurrency = (value: number | null | undefined) => {
+    // Verifica se é null/undefined ou não é número
+    if (
+      value === null ||
+      value === undefined ||
+      typeof value !== "number" ||
+      isNaN(value)
+    ) {
+      return "R$ 0,00";
+    }
+    return `R$ ${value.toFixed(2).replace(".", ",")}`;
+  };
+
+  const formatCurrencyNegative = (value: number | null | undefined) => {
+    // Verifica se é null/undefined ou não é número
+    if (
+      value === null ||
+      value === undefined ||
+      typeof value !== "number" ||
+      isNaN(value)
+    ) {
+      return "R$ 0,00";
+    }
+    return `R$ -${value.toFixed(2).replace(".", ",")}`;
+  };
 
   const fetchCashStatus = async () => {
     await getStatusCash();
@@ -96,15 +124,24 @@ export default function CashPanel() {
       if (cashStatusLoaded && openCashId !== null) {
         const data = await generalCashierData(openCashId);
         if (data) {
+          // Função auxiliar para converter valores com segurança
+          const safeParse = (value: any): number => {
+            if (value === null || value === undefined) return 0;
+            const num =
+              typeof value === "string" ? parseFloat(value) : Number(value);
+            return isNaN(num) ? 0 : num;
+          };
+
           setTransactionValues({
-            finalValue: Number(data.final_value),
-            totalValue: data.totalValue || 0,
+            initialValue: safeParse(data.initialValue),
+            finalValue: safeParse(data.final_value),
+            totalValue: safeParse(data.totalValue),
             valuesEntry:
-              Number(data.general_sale_total) +
-              Number(data.vehicle_entry_total),
-            valuesExit: data.outgoing_expense_total || 0,
-            veicles: Number(data.vehicle_entry_total) || 0,
-            products: data.general_sale_total || 0,
+              safeParse(data.general_sale_total) +
+              safeParse(data.vehicle_entry_total),
+            valuesExit: safeParse(data.outgoing_expense_total),
+            veicles: safeParse(data.vehicle_entry_total),
+            products: safeParse(data.general_sale_total),
           });
         }
       }
@@ -202,44 +239,44 @@ export default function CashPanel() {
     }
   };
 
-const handleReopenCash = async () => {
-  try {
-    // Verifica se temos um openCashId válido
-    if (!openCashId) {
+  const handleReopenCash = async () => {
+    try {
+      // Verifica se temos um openCashId válido
+      if (!openCashId) {
+        setFeedbackModal({
+          visible: true,
+          message: "Nenhum caixa selecionado para reabrir.",
+          isSuccess: false,
+          goBack: false,
+        });
+        return;
+      }
+
+      const { success, message } = await reopenCash(openCashId);
+
       setFeedbackModal({
         visible: true,
-        message: "Nenhum caixa selecionado para reabrir.",
+        message,
+        isSuccess: success,
+        goBack: false,
+      });
+
+      if (success) {
+        setIsCashClosedModalVisible(false);
+        setIsReopenModalVisible(false);
+      }
+    } catch (err) {
+      setFeedbackModal({
+        visible: true,
+        message: "Não foi possível reabrir o caixa.",
         isSuccess: false,
         goBack: false,
       });
-      return;
+      console.error(err);
+    } finally {
+      await getStatusCash();
     }
-
-    const { success, message } = await reopenCash(openCashId);
-
-    setFeedbackModal({
-      visible: true,
-      message,
-      isSuccess: success,
-      goBack: false,
-    });
-
-    if (success) {
-      setIsCashClosedModalVisible(false);
-      setIsReopenModalVisible(false);
-    }
-  } catch (err) {
-    setFeedbackModal({
-      visible: true,
-      message: "Não foi possível reabrir o caixa.",
-      isSuccess: false,
-      goBack: false,
-    });
-    console.error(err);
-  } finally {
-    await getStatusCash();
-  }
-};
+  };
 
   if (!cashStatusLoaded || loading) {
     return (
@@ -265,7 +302,7 @@ const handleReopenCash = async () => {
       <CashRegisterModal
         visible={isCloseModalVisible}
         mode="open"
-        initialValue={String(transactionValues.finalValue)}
+        initialValue={transactionValues.finalValue.toString()}
         onClose={() => setIsCloseModalVisible(false)}
         onSubmitCashRegister={handleOpenCash}
       />
@@ -273,7 +310,7 @@ const handleReopenCash = async () => {
       <CashRegisterModal
         visible={isCloseModalVisible}
         mode="close"
-        initialValue={String(transactionValues.finalValue)}
+        initialValue={transactionValues.finalValue.toString()}
         onClose={() => setIsCloseModalVisible(false)}
         onSubmitCashRegister={(value) => handleCloseCash(value)}
       />
@@ -295,7 +332,7 @@ const handleReopenCash = async () => {
         <View style={styles.previewBalence}>
           <View style={styles.cornerTopLeft} />
           <Text style={styles.totalValue}>
-            R$ {Number(transactionValues.finalValue)?.toFixed(2) || "0,00"}
+            {formatCurrency(transactionValues.finalValue)}
           </Text>
           <View style={styles.cornerBottomRight} />
         </View>
@@ -312,7 +349,7 @@ const handleReopenCash = async () => {
             </View>
             <View>
               <Text style={[styles.Number, { color: Colors.green[500] }]}>
-                R$ {Number(transactionValues.valuesEntry)?.toFixed(2) || "0,00"}
+                {formatCurrency(transactionValues.valuesEntry)}
               </Text>
               <Text style={styles.Label}>Entradas</Text>
             </View>
@@ -328,7 +365,7 @@ const handleReopenCash = async () => {
             </View>
             <View>
               <Text style={[styles.Number, { color: Colors.red[500] }]}>
-                R$ {Number(transactionValues.valuesExit)?.toFixed(2) || "0,00"}
+                {formatCurrency(transactionValues.valuesExit)}
               </Text>
               <Text style={styles.Label}>Saídas</Text>
             </View>
@@ -340,6 +377,32 @@ const handleReopenCash = async () => {
           contentContainerStyle={styles.scrollContent}
         >
           <View style={styles.transactionList}>
+            {/* 0. Valor de entrada */}
+            <View style={styles.transactionItem}>
+              <View style={styles.transactionIcon}>
+                <MaterialCommunityIcons
+                  name="cash-check"
+                  size={30}
+                  color={Colors.blue.light}
+                />
+              </View>
+              <View style={styles.transactionInfo}>
+                <Text style={styles.transactionTitle}>Entrada</Text>
+                <Text style={styles.transactionSubtitle}>
+                  Valor de entrada do caixa
+                </Text>
+              </View>
+              <Text
+                style={
+                  transactionValues.initialValue === 0
+                    ? styles.transactionValueSNeutral
+                    : styles.transactionValue
+                }
+              >
+                {formatCurrency(transactionValues.initialValue)}
+              </Text>
+            </View>
+
             {/* 1. Veículos */}
             <View style={styles.transactionItem}>
               <View style={styles.transactionIcon}>
@@ -355,12 +418,12 @@ const handleReopenCash = async () => {
               </View>
               <Text
                 style={
-                  transactionValues.veicles === 0
+                  transactionValues.initialValue === 0
                     ? styles.transactionValueSNeutral
                     : styles.transactionValue
                 }
               >
-                R$ {transactionValues.veicles?.toFixed(2) || "0,00"}
+                {formatCurrency(transactionValues.initialValue)}
               </Text>
             </View>
 
@@ -379,12 +442,12 @@ const handleReopenCash = async () => {
               </View>
               <Text
                 style={
-                  Number(transactionValues.products) === 0
+                  transactionValues.initialValue === 0
                     ? styles.transactionValueSNeutral
                     : styles.transactionValue
                 }
               >
-                R$ {Number(transactionValues.products)?.toFixed(2) || "0,00"}
+                {formatCurrency(transactionValues.initialValue)}
               </Text>
             </View>
 
@@ -403,12 +466,12 @@ const handleReopenCash = async () => {
               </View>
               <Text
                 style={
-                  Number(transactionValues.valuesExit) === 0
+                  transactionValues.initialValue === 0
                     ? styles.transactionValueSNeutral
-                    : styles.transactionValueExit
+                    : styles.transactionValue
                 }
               >
-                R$ -{Number(transactionValues.valuesExit)?.toFixed(2) || "0,00"}
+                {formatCurrency(transactionValues.initialValue)}
               </Text>
             </View>
           </View>

@@ -118,6 +118,11 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.white,
   },
+  loadingText: {
+    marginTop: 10,
+    color: Colors.blue.dark,
+    fontSize: 16,
+  },
   errorContainer: {
     flex: 1,
     justifyContent: "center",
@@ -250,5 +255,41 @@ switchLabel: {
 activeLabel: {
   color: Colors.blue.dark,
   fontWeight: '600',
+},
+configWarningContainer: {
+  backgroundColor: Colors.white,
+  borderRadius: 10,
+  padding: 20,
+  marginHorizontal: 20,
+  marginTop: 20,
+  shadowColor: Colors.gray.dark,
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  elevation: 3,
+},
+configWarningTitle: {
+  fontSize: 18,
+  fontWeight: 'bold',
+  color: Colors.blue.dark,
+  marginBottom: 10,
+  textAlign: 'center',
+},
+configWarningText: {
+  fontSize: 14,
+  color: Colors.gray.dark,
+  marginBottom: 20,
+  textAlign: 'center',
+},
+configButton: {
+  backgroundColor: Colors.blue.dark,
+  paddingVertical: 12,
+  borderRadius: 8,
+  alignItems: 'center',
+},
+configButtonText: {
+  color: Colors.white,
+  fontWeight: 'bold',
+  fontSize: 16,
 },
 });

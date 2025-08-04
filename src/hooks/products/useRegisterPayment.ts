@@ -19,6 +19,7 @@ export const useRegisterPayment = () => {
     setError(null);
 
     try {
+      console.log(data)
       const response = await ProductApi.registerPayment(data);
 
       if (response.success) {

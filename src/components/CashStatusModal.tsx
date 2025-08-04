@@ -29,7 +29,7 @@ const CashStatusModal: React.FC<CashStatusModalProps> = ({
           <View style={styles.modalContent}>
             <Text style={styles.title}>Caixa Fechado</Text>
             <Text style={styles.message}>
-              O caixa já foi fechado. Deseja reabrir o caixa?
+              O caixa já foi fechado. Pode ser que alguns recursos não funcionem como esperado. Deseja reabrir o caixa?
             </Text>
             
             <View style={styles.buttonGroup}>

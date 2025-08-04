@@ -6,7 +6,17 @@ export const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 15,
     paddingHorizontal: 16,
-    backgroundColor: Colors.white,
+  },
+  heroImage: {
+    position: "absolute",
+    top: 80,
+    right: -270,
+    width: "130%",
+    height: "95%",
+    transform: [{ scaleX: -1 }],
+    resizeMode: "cover",
+    opacity: 0.1,
+    zIndex: -1,
   },
   header: {
     fontSize: 22,

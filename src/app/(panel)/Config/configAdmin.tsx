@@ -27,7 +27,7 @@ export default function ConfigAdmin() {
             }}
           >
             <View style={styles.optionsRow}>
-              <Text style={styles.label}>Entrada</Text>
+              <Text style={styles.label}>Entrada de Veiculos</Text>
               <AntDesign
                 name="right"
                 size={24}
@@ -45,7 +45,7 @@ export default function ConfigAdmin() {
             }}
           >
             <View style={styles.optionsRow}>
-              <Text style={styles.label}>Saída</Text>
+              <Text style={styles.label}>Saída de Veiculos</Text>
               <AntDesign
                 name="right"
                 size={24}

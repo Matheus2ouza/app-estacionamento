@@ -143,6 +143,7 @@ export default function PaymentProducts() {
       receiptImage: paymentMethod === "Pix" ? receiptImage : null, // só envia se for Pix
     };
 
+    console.log(paymentData)
     try {
       const result = await registerPayment(paymentData);
 
