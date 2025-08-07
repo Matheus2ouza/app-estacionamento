@@ -13,7 +13,6 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
-  StyleSheet,
   Image,
   ScrollView,
   KeyboardAvoidingView,
@@ -23,23 +22,45 @@ import { TextInput } from "react-native-paper";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import Colors from "@/src/constants/Colors";
+import CashAlertModal from "@/src/components/CashAlertModal"; // Adicionado
+import { useCash } from "@/src/context/CashContext"; // Adicionado
 
-export default function EntreyRegister() {
+export default function EntryRegister() {
   const [plate, setPlate] = useState("");
   const [observation, setObservation] = useState("");
   const [photo, setPhoto] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<"carro" | "moto">("carro");
 
   const { registerVehicle, loading, error, success, reset } = useRegisterVehicle();
+  const { cashStatus, getStatusCash } = useCash(); // Adicionado
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [modalIsSuccess, setModalIsSuccess] = useState(false);
   const [pdfBase64, setPdfBase64] = useState<string | null>(null);
   const [pdfPreviewVisible, setPdfPreviewVisible] = useState(false);
+  const [showCashAlert, setShowCashAlert] = useState(false); // Adicionado
   const { downloadPdf } = usePdfActions();
 
+  // Verificar status do caixa ao montar o componente
+  useEffect(() => {
+    getStatusCash();
+  }, []);
+
+  // Mostrar alerta se caixa não estiver aberto
+  useEffect(() => {
+    if (cashStatus && cashStatus !== "OPEN") {
+      setShowCashAlert(true);
+    }
+  }, [cashStatus]);
+
   const handleRegister = async () => {
+    // Verificar se o caixa está aberto antes de registrar
+    if (cashStatus !== "OPEN") {
+      setShowCashAlert(true);
+      return;
+    }
+
     const data = {
       plate: plate.toUpperCase().trim(),
       category: selectedCategory,
@@ -60,6 +81,12 @@ export default function EntreyRegister() {
   };
 
   const handleTakePhoto = async () => {
+    // Verificar se o caixa está aberto antes de tirar foto
+    if (cashStatus !== "OPEN") {
+      setShowCashAlert(true);
+      return;
+    }
+
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 
     if (!permissionResult.granted) {
@@ -110,6 +137,16 @@ export default function EntreyRegister() {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
+        {/* Adicionar o CashAlertModal */}
+        <CashAlertModal
+          visible={showCashAlert}
+          type="block"
+          onClose={() => {
+            setShowCashAlert(false);
+            router.back(); // Ou navegar para a tela de abertura de caixa
+          }}
+        />
+
         <Image
           source={require("@/src/assets/images/splash-icon-blue.png")}
           style={styles.backgroundImage}
@@ -239,15 +276,15 @@ export default function EntreyRegister() {
           </ScrollView>          
         </KeyboardAvoidingView>
 
-          <View style={styles.footer}>
-            <PrimaryButton
-              title={loading ? "Registrando..." : "Confirmar Entrada"}
-              onPress={handleRegister}
-              style={styles.createButton}
-              disabled={!plate || loading}
-              loading={loading}
-            />
-          </View>
+        <View style={styles.footer}>
+          <PrimaryButton
+            title={loading ? "Registrando..." : "Confirmar Entrada"}
+            onPress={handleRegister}
+            style={styles.createButton}
+            disabled={!plate || loading || cashStatus !== "OPEN"} // Desabilitar se caixa não estiver aberto
+            loading={loading}
+          />
+        </View>
 
         <FeedbackModal
           visible={modalVisible}

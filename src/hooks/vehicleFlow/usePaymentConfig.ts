@@ -15,6 +15,7 @@ export const useActivePaymentMethod = () => {
       const response = await cashApi.getBillingMethodsActive();
       
       if (response.success) {
+        console.log(response.data)
         setActiveMethod(response.data || null);
         return response.data;
       }

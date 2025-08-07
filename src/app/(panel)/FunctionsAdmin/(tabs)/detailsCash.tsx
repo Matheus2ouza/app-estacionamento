@@ -20,7 +20,8 @@ import Colors from "@/src/constants/Colors";
 import { router } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useDetailsCash } from "@/src/hooks/dashboard/useDetailsCash";
-import useCashService from "@/src/hooks/cash/useCashStatus";
+import { useCash } from "@/src/context/CashContext";
+import CashAlertModal from "@/src/components/CashAlertModal";
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -43,7 +44,6 @@ const getDiasSemana = (start: number, end: number): number[] => {
   return dias;
 };
 
-// Função para converter dia da semana numérico para abreviação
 const getDiaSemanaAbrev = (dia: number): string => {
   const dias = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
   return dias[dia];
@@ -58,22 +58,34 @@ const translateStatus = (status: string): string => {
 };
 
 export default function DetailsCash() {
-  const { cashStatus, getStatusCash, openCashId } = useCashService();
-  const [cashStatusLoaded, setCashStatusLoaded] = useState(false);
-  const [showValue, setShowValue] = useState(false);
+  const { 
+    openCashId, 
+    cashStatus, 
+    getStatusCash, 
+    loading: cashLoading,
+    error: cashError
+  } = useCash();
+  
+  const [showBlockModal, setShowBlockModal] = useState(false);
+  const [showValue, setShowValue] = useState(false); // Adicionei esta linha
 
-  const { data, loading, error } = useDetailsCash(openCashId || "");
-
-  const checkCashStatus = async () => {
-    await getStatusCash();
-    setCashStatusLoaded(true);
-  };
+  // Só busca os dados se o caixa estiver aberto
+  const { data, loading, error, refetch } = useDetailsCash(
+    cashStatus === "OPEN" ? openCashId || "" : ""
+  );
 
   useEffect(() => {
-    checkCashStatus();
+    getStatusCash();
   }, []);
 
-  if (!cashStatusLoaded) {
+  // Mostra modal de bloqueio se não houver caixa aberto
+  useEffect(() => {
+    if (!cashLoading && (!openCashId || cashStatus !== "OPEN")) {
+      setShowBlockModal(true);
+    }
+  }, [cashLoading, openCashId, cashStatus]);
+
+  if (cashLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={Colors.blue.dark} />
@@ -81,10 +93,18 @@ export default function DetailsCash() {
     );
   }
 
-  if (loading && !data) {
+  // Modal de bloqueio - aparece quando não há caixa aberto
+  if (!openCashId || cashStatus !== "OPEN") {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.blue.dark} />
+      <View style={{ flex: 1, backgroundColor: Colors.gray.zinc }}>
+        <CashAlertModal
+          visible={showBlockModal}
+          type="block"
+          onClose={() => {
+            setShowBlockModal(false);
+            router.back();
+          }}
+        />
       </View>
     );
   }
@@ -96,10 +116,7 @@ export default function DetailsCash() {
           {error || "Erro ao carregar dados"}
         </Text>
         <TouchableOpacity
-          onPress={() => {
-            setCashStatusLoaded(false);
-            checkCashStatus();
-          }}
+          onPress={() => refetch()}
           style={styles.retryButton}
         >
           <Text style={styles.retryButtonText}>Tentar novamente</Text>
@@ -117,7 +134,6 @@ export default function DetailsCash() {
   } = data.data;
   const goalConfigs = data.goalConfigs || null;
 
-  // Verifica se temos dados completos ou apenas básicos
   const hasFullData = goalConfigs !== null;
 
   const formatTime = (dateString: string | null) => {
@@ -136,10 +152,7 @@ export default function DetailsCash() {
         colors={[Colors.gray.zinc, Colors.blue.light]}
         style={styles.header}
       >
-        <View
-          style={{ flexDirection: "row", alignItems: "center", marginTop: 15 }}
-        >
-          {/* Botão de voltar */}
+        <View style={{ flexDirection: "row", alignItems: "center", marginTop: 15 }}>
           <TouchableOpacity
             onPress={() => router.push("/Config/configAdmin")}
             style={{ marginRight: 10, marginTop: -10 }}
@@ -152,13 +165,11 @@ export default function DetailsCash() {
             />
           </TouchableOpacity>
 
-          {/* Título */}
           <View style={styles.brandContainer}>
             <Text style={styles.titleHeader}>Dados do Caixa</Text>
           </View>
         </View>
 
-        {/* Botão de configurações */}
         <TouchableOpacity
           onPress={() => router.push("/FunctionsAdmin/goalsConfiguration")}
           style={{ marginTop: 10 }}

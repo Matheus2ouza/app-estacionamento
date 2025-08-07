@@ -4,14 +4,13 @@ import Header from "@/src/components/Header";
 import { PrimaryButton } from "@/src/components/PrimaryButton";
 import Colors from "@/src/constants/Colors";
 import useCashDetails from "@/src/hooks/cash/useCashDetails";
-import useCashService from "@/src/hooks/cash/useCashStatus";
+import { useCash } from "@/src/context/CashContext";
 import { styles } from "@/src/styles/functions/cashpanelStyle";
 import CashStatusModal from "@/src/components/CashStatusModal";
 import {
   FontAwesome5,
   Ionicons,
   MaterialCommunityIcons,
-  Entypo,
 } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
@@ -26,22 +25,22 @@ import {
 
 export default function CashPanel() {
   const {
+    openCashId,
+    cashStatus,
     getStatusCash,
     openCash,
     closeCash,
     reopenCash,
-    openCashId,
-    cashStatus,
-  } = useCashService();
-  const { generalCashierData, loading, error } = useCashDetails();
+    loading: cashLoading,
+    error: cashError,
+  } = useCash();
+  
+  const { generalCashierData, loading: detailsLoading, error: detailsError } = useCashDetails();
 
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [cashStatusLoaded, setCashStatusLoaded] = useState(false);
   const [isReopenModalVisible, setIsReopenModalVisible] = useState(false);
-
   const [isCloseModalVisible, setIsCloseModalVisible] = useState(false);
-  const [isCashClosedModalVisible, setIsCashClosedModalVisible] =
-    useState(false);
+  const [isCashClosedModalVisible, setIsCashClosedModalVisible] = useState(false);
 
   const [feedbackModal, setFeedbackModal] = useState({
     visible: false,
@@ -50,15 +49,7 @@ export default function CashPanel() {
     goBack: false,
   });
 
-  const [transactionValues, setTransactionValues] = useState<{
-    initialValue: number;
-    finalValue: number;
-    totalValue: number;
-    valuesEntry: number;
-    valuesExit: number;
-    veicles: number;
-    products: number;
-  }>({
+  const [transactionValues, setTransactionValues] = useState({
     initialValue: 0,
     finalValue: 0,
     totalValue: 0,
@@ -69,71 +60,50 @@ export default function CashPanel() {
   });
 
   const formatCurrency = (value: number | null | undefined) => {
-    // Verifica se é null/undefined ou não é número
-    if (
-      value === null ||
-      value === undefined ||
-      typeof value !== "number" ||
-      isNaN(value)
-    ) {
+    if (value === null || value === undefined || typeof value !== "number" || isNaN(value)) {
       return "R$ 0,00";
     }
     return `R$ ${value.toFixed(2).replace(".", ",")}`;
   };
 
   const formatCurrencyNegative = (value: number | null | undefined) => {
-    // Verifica se é null/undefined ou não é número
-    if (
-      value === null ||
-      value === undefined ||
-      typeof value !== "number" ||
-      isNaN(value)
-    ) {
+    if (value === null || value === undefined || typeof value !== "number" || isNaN(value)) {
       return "R$ 0,00";
     }
     return `R$ -${value.toFixed(2).replace(".", ",")}`;
   };
 
-  const fetchCashStatus = async () => {
-    await getStatusCash();
-    setCashStatusLoaded(true);
-  };
-
   useFocusEffect(
     useCallback(() => {
-      setCashStatusLoaded(false);
-      fetchCashStatus();
+      getStatusCash();
     }, [])
   );
 
   useEffect(() => {
-    if (!cashStatusLoaded) return;
-
     if (cashStatus === "CLOSED") {
       setIsCashClosedModalVisible(true);
-    } else if (openCashId === null) {
+    } else if (!openCashId) {
       setIsModalVisible(true);
     } else {
       setIsModalVisible(false);
       setIsCashClosedModalVisible(false);
     }
-  }, [openCashId, cashStatus, cashStatusLoaded]);
+  }, [openCashId, cashStatus]);
 
   useEffect(() => {
     const fetchCashDetails = async () => {
-      if (cashStatusLoaded && openCashId !== null) {
+      if (openCashId) {
         const data = await generalCashierData(openCashId);
+        console.log(data)
         if (data) {
-          // Função auxiliar para converter valores com segurança
           const safeParse = (value: any): number => {
             if (value === null || value === undefined) return 0;
-            const num =
-              typeof value === "string" ? parseFloat(value) : Number(value);
+            const num = typeof value === "string" ? parseFloat(value) : Number(value);
             return isNaN(num) ? 0 : num;
           };
 
           setTransactionValues({
-            initialValue: safeParse(data.initialValue),
+            initialValue: safeParse(data.initial_value),
             finalValue: safeParse(data.final_value),
             totalValue: safeParse(data.totalValue),
             valuesEntry:
@@ -148,18 +118,18 @@ export default function CashPanel() {
     };
 
     fetchCashDetails();
-  }, [cashStatusLoaded, openCashId]);
+  }, [openCashId]);
 
   useEffect(() => {
-    if (error) {
+    if (cashError || detailsError) {
       setFeedbackModal({
         visible: true,
-        message: error,
+        message: cashError || detailsError || "Erro desconhecido",
         isSuccess: false,
         goBack: false,
       });
     }
-  }, [error]);
+  }, [cashError, detailsError]);
 
   const handleOpenCash = async (initialValue: string) => {
     try {
@@ -195,8 +165,6 @@ export default function CashPanel() {
         goBack: false,
       });
       console.error(err);
-    } finally {
-      await getStatusCash();
     }
   };
 
@@ -214,7 +182,17 @@ export default function CashPanel() {
         return;
       }
 
-      const { success, message } = await closeCash(openCashId!, parsedValue);
+      if (!openCashId) {
+        setFeedbackModal({
+          visible: true,
+          message: "Nenhum caixa aberto para fechar.",
+          isSuccess: false,
+          goBack: false,
+        });
+        return;
+      }
+
+      const { success, message } = await closeCash(openCashId, parsedValue);
 
       setFeedbackModal({
         visible: true,
@@ -234,14 +212,11 @@ export default function CashPanel() {
         goBack: false,
       });
       console.error(err);
-    } finally {
-      await getStatusCash();
     }
   };
 
   const handleReopenCash = async () => {
     try {
-      // Verifica se temos um openCashId válido
       if (!openCashId) {
         setFeedbackModal({
           visible: true,
@@ -273,12 +248,10 @@ export default function CashPanel() {
         goBack: false,
       });
       console.error(err);
-    } finally {
-      await getStatusCash();
     }
   };
 
-  if (!cashStatusLoaded || loading) {
+  if (cashLoading || detailsLoading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" color="#007AFF" />
@@ -293,26 +266,29 @@ export default function CashPanel() {
         style={styles.heroImage}
       />
 
+      {/* Modal para caixa fechado */}
       <CashStatusModal
         visible={isCashClosedModalVisible}
         onClose={() => setIsCashClosedModalVisible(false)}
         onConfirm={handleReopenCash}
       />
 
+      {/* Modal para abrir caixa (quando não existe caixa aberto) */}
       <CashRegisterModal
-        visible={isCloseModalVisible}
+        visible={isModalVisible}
         mode="open"
         initialValue={transactionValues.finalValue.toString()}
-        onClose={() => setIsCloseModalVisible(false)}
+        onClose={() => setIsModalVisible(false)}
         onSubmitCashRegister={handleOpenCash}
       />
 
+      {/* Modal para fechar caixa */}
       <CashRegisterModal
         visible={isCloseModalVisible}
         mode="close"
         initialValue={transactionValues.finalValue.toString()}
         onClose={() => setIsCloseModalVisible(false)}
-        onSubmitCashRegister={(value) => handleCloseCash(value)}
+        onSubmitCashRegister={handleCloseCash}
       />
 
       <FeedbackModal
@@ -377,7 +353,7 @@ export default function CashPanel() {
           contentContainerStyle={styles.scrollContent}
         >
           <View style={styles.transactionList}>
-            {/* 0. Valor de entrada */}
+            {/* Valor de entrada */}
             <View style={styles.transactionItem}>
               <View style={styles.transactionIcon}>
                 <MaterialCommunityIcons
@@ -403,7 +379,7 @@ export default function CashPanel() {
               </Text>
             </View>
 
-            {/* 1. Veículos */}
+            {/* Veículos */}
             <View style={styles.transactionItem}>
               <View style={styles.transactionIcon}>
                 <MaterialCommunityIcons
@@ -418,16 +394,16 @@ export default function CashPanel() {
               </View>
               <Text
                 style={
-                  transactionValues.initialValue === 0
+                  transactionValues.veicles === 0
                     ? styles.transactionValueSNeutral
                     : styles.transactionValue
                 }
               >
-                {formatCurrency(transactionValues.initialValue)}
+                {formatCurrency(transactionValues.veicles)}
               </Text>
             </View>
 
-            {/* 2. Produtos */}
+            {/* Produtos */}
             <View style={styles.transactionItem}>
               <View style={styles.transactionIcon}>
                 <Ionicons
@@ -442,20 +418,20 @@ export default function CashPanel() {
               </View>
               <Text
                 style={
-                  transactionValues.initialValue === 0
+                  transactionValues.products === 0
                     ? styles.transactionValueSNeutral
                     : styles.transactionValue
                 }
               >
-                {formatCurrency(transactionValues.initialValue)}
+                {formatCurrency(transactionValues.products)}
               </Text>
             </View>
 
-            {/* 3. Despesas */}
+            {/* Despesas */}
             <View style={styles.transactionItem}>
               <View style={styles.transactionIcon}>
-                <Ionicons
-                  name="cube-outline"
+                <MaterialCommunityIcons
+                  name="cash-minus"
                   size={30}
                   color={Colors.blue.light}
                 />
@@ -466,22 +442,26 @@ export default function CashPanel() {
               </View>
               <Text
                 style={
-                  transactionValues.initialValue === 0
+                  transactionValues.valuesExit === 0
                     ? styles.transactionValueSNeutral
                     : styles.transactionValue
                 }
               >
-                {formatCurrency(transactionValues.initialValue)}
+                {formatCurrencyNegative(transactionValues.valuesExit)}
               </Text>
             </View>
           </View>
 
           <View style={styles.buttonContainer}>
             <PrimaryButton
-              title="Fechar Caixa"
-              onPress={() => setIsCloseModalVisible(true)}
+              title={openCashId ? "Fechar Caixa" : "Abrir Caixa"}
+              onPress={() =>
+                openCashId
+                  ? setIsCloseModalVisible(true)
+                  : setIsModalVisible(true)
+              }
               style={styles.button}
-              disabled={openCashId === null || cashStatus === "CLOSED"}
+              disabled={cashStatus === "CLOSED" && !!openCashId}
             />
           </View>
         </ScrollView>

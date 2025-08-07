@@ -8,7 +8,6 @@ import Colors from "@/src/constants/Colors";
 import FeedbackModal from "@/src/components/FeedbackModal";
 import { styles } from "@/src/styles/functions/createOutgoingStyele";
 import LoadingModal from "@/src/components/LoadingModal";
-import useCashService from "@/src/hooks/cash/useCashStatus";
 import { useOutgoingExpense } from "@/src/hooks/cash/useOutgoingExpense";
 import { useLocalSearchParams } from "expo-router/build/hooks";
 

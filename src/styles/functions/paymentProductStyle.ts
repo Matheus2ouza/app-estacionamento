@@ -19,12 +19,12 @@ export const styles = StyleSheet.create({
   },
   fullListButton: {
     backgroundColor: Colors.blue.light,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 5,
     height: 50,
-    width: '45%',
+    width: "45%",
     borderRadius: 6,
   },
   fullListButtonText: {
@@ -124,6 +124,15 @@ export const styles = StyleSheet.create({
   paymentButtonText: {
     color: Colors.white,
     fontSize: 18,
+    fontWeight: "bold",
+  },
+  cashWarning: {
+    backgroundColor: Colors.red[500],
+    padding: 10,
+    alignItems: "center",
+  },
+  cashWarningText: {
+    color: Colors.white,
     fontWeight: "bold",
   },
 });

@@ -16,17 +16,17 @@ import FeedbackModal from "@/src/components/FeedbackModal";
 import { styles } from "@/src/styles/functions/paymentProductStyle";
 import LoadingModal from "@/src/components/LoadingModal";
 import { useRegisterPayment } from "@/src/hooks/products/useRegisterPayment";
-import useCashService from "@/src/hooks/cash/useCashStatus";
 import { usePdfActions } from "@/src/hooks/vehicleFlow/usePdfActions";
 import PreviewPDF from "@/src/components/PreviewPDF";
 import ProductListModal from "@/src/components/ListProducts";
 import PixPayment from "@/src/components/PixPayment";
+import { useCash } from "@/src/context/CashContext"; // Importe o contexto do caixa
 
 type PaymentMethod = "Dinheiro" | "Crédito" | "Débito" | "Pix" | "";
 
 export default function PaymentProducts() {
-  const { getStatusCash, openCash, openCashId, cashStatus } = useCashService();
   const params = useLocalSearchParams();
+  const { openCashId, cashStatus, loading: cashLoading } = useCash(); // Use o contexto do caixa
 
   const parsedSaleItems = params.saleItems
     ? JSON.parse(String(params.saleItems))
@@ -67,11 +67,11 @@ export default function PaymentProducts() {
 
   useEffect(() => {
     const fetchCashStatus = async () => {
-      setTextLoading("Buscando Dados...");
+      setTextLoading("Verificando status do caixa...");
       setLoadingModal(true);
 
       try {
-        await getStatusCash();
+        // Verificação do caixa já é feita pelo contexto
       } finally {
         setLoadingModal(false);
       }
@@ -94,6 +94,20 @@ export default function PaymentProducts() {
   }, [isProcessing]);
 
   const handlePayment = async () => {
+    if (cashStatus !== 'OPEN') {
+      setModalMessage("O caixa não está aberto. Por favor, abra o caixa antes de registrar pagamentos.");
+      setModalIsSuccess(false);
+      setModalVisible(true);
+      return;
+    }
+
+    if (!openCashId) {
+      setModalMessage("Nenhum caixa aberto encontrado");
+      setModalIsSuccess(false);
+      setModalVisible(true);
+      return;
+    }
+
     if (!paymentMethod) {
       setModalMessage("Selecione um método de pagamento");
       setModalIsSuccess(false);
@@ -120,30 +134,22 @@ export default function PaymentProducts() {
       return;
     }
 
-    if (!openCashId) {
-      setModalMessage("Nenhum caixa aberto. Abra um caixa para continuar.");
-      setModalIsSuccess(false);
-      setModalVisible(true);
-      return;
-    }
-
     setTextLoading("Registrando pagamento...");
     setLoadingModal(true);
     setIsProcessing(true);
 
     const paymentData = {
       paymentMethod,
-      cashRegisterId: openCashId,
+      cashRegisterId: openCashId, // Usando o ID do caixa do contexto
       totalAmount,
       discountValue: parsedDiscount,
       finalPrice,
       amountReceived: parsedAmount,
       changeGiven: change,
       saleItems: parsedSaleItems,
-      receiptImage: paymentMethod === "Pix" ? receiptImage : null, // só envia se for Pix
+      receiptImage: paymentMethod === "Pix" ? receiptImage : null,
     };
 
-    console.log(paymentData)
     try {
       const result = await registerPayment(paymentData);
 
@@ -204,7 +210,8 @@ export default function PaymentProducts() {
     return isNaN(num) ? "0,00" : num.toFixed(2).replace(".", ",");
   };
 
-  const isFormValid = paymentMethod && paidValue;
+  const isFormValid = paymentMethod && paidValue && cashStatus === 'OPEN';
+
   return (
     <View style={styles.container}>
       <LoadingModal visible={loadingModal} text={textLoading} />
@@ -233,6 +240,14 @@ export default function PaymentProducts() {
 
       <Header title="Pagamento" titleStyle={{ fontSize: 27 }} />
 
+          {cashStatus !== 'OPEN' && (
+        <View style={styles.cashWarning}>
+          <Text style={styles.cashWarningText}>
+            {cashLoading ? "Verificando status do caixa..." : "Caixa não está aberto"}
+          </Text>
+        </View>
+      )}
+    
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.productInfo}>
           <Text style={styles.productTitle}>
@@ -374,15 +389,17 @@ export default function PaymentProducts() {
       <Pressable
         style={[
           styles.paymentButton,
-          (!isFormValid || isProcessing) && {
+          (!isFormValid || isProcessing || cashStatus !== 'OPEN') && {
             backgroundColor: Colors.gray.dark,
           },
         ]}
-        disabled={!isFormValid || isProcessing}
+        disabled={!isFormValid || isProcessing || cashStatus !== 'OPEN'}
         onPress={handlePayment}
       >
         {isProcessing ? (
           <ActivityIndicator color={Colors.white} />
+        ) : cashStatus !== 'OPEN' ? (
+          <Text style={styles.paymentButtonText}>Caixa Fechado</Text>
         ) : (
           <Text style={styles.paymentButtonText}>
             {isProcessing ? `Processando${dotText}` : "Confirmar Pagamento"}

@@ -20,7 +20,7 @@ import {
 } from "@/src/styles/functions/registerPaymentStyle";
 import LoadingModal from "@/src/components/LoadingModal";
 import { useRegisterExit } from "@/src/hooks/vehicleFlow/useRegisterExit";
-import useCashService from "@/src/hooks/cash/useCashStatus";
+import { useCash } from "@/src/context/CashContext";
 import { usePdfActions } from "@/src/hooks/vehicleFlow/usePdfActions";
 import PreviewPDF from "@/src/components/PreviewPDF";
 import { useAuth } from "@/src/context/AuthContext";
@@ -30,7 +30,7 @@ type PaymentMethod = "Dinheiro" | "Crédito" | "Débito" | "Pix" | "";
 
 export default function PaymentVehicle() {
   const { role, isLoading, isAuthenticated } = useAuth();
-  const { getStatusCash, openCashId } = useCashService();
+  const { cashStatus, openCashId, getStatusCash } = useCash();
   const params = useLocalSearchParams();
 
   // Extrair parâmetros do veículo
@@ -77,7 +77,7 @@ export default function PaymentVehicle() {
       setLoadingModal(true);
 
       try {
-        await getStatusCash();
+        await getStatusCash(); // Agora usando getStatusCash do contexto
 
         if (category && stayDuration) {
           setIsCalculating(true);
@@ -158,11 +158,10 @@ export default function PaymentVehicle() {
       setLoadingModal(true);
       setIsProcessing(true);
 
-      // Construir dados para registro de saída
       const exitData = {
         plate: String(plate),
-        exit_time: new Date().toISOString(), // Usar hora atual
-        openCashId: openCashId || "",
+        exit_time: new Date().toISOString(),
+        openCashId: openCashId || "", // Usando openCashId do contexto
         amount_received: paid,
         change_given: change,
         discount_amount: discountValue,
@@ -172,11 +171,9 @@ export default function PaymentVehicle() {
         receiptImage: paymentMethod === "Pix" ? receiptImage || undefined : undefined,
       };
 
-      // Chamar função de registro de saída
       const response = await registerExit(exitData);
 
       if (response.success) {
-        // Mostrar comprovante se existir
         if (response.receipt) {
           setPdfBase64(response.receipt);
           setTransactionId(response.exitData || null);

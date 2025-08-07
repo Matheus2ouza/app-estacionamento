@@ -69,7 +69,7 @@ export default function MethodPayment() {
                 {activeMethod.rules.map((rule) => (
                   <View key={rule.id} style={styles.vehicleSection}>
                     <Text style={styles.vehicleLabel}>
-                      {rule.vehicle_type === "CARRO" ? "Carro" : "Moto"}
+                      {rule.vehicle_type === "carro" ? "Carro" : "Moto"}
                     </Text>
 
                     <Text style={styles.inputDetail}>

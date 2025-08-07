@@ -170,4 +170,23 @@ export const styles = StyleSheet.create({
     marginLeft: 6,
     fontWeight: "500",
   },
+  blockedContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  blockedText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginTop: 16,
+    color: Colors.orange[500],
+    textAlign: "center",
+  },
+  blockedSubtext: {
+    fontSize: 16,
+    marginTop: 8,
+    textAlign: "center",
+    color: Colors.gray.zinc,
+  },
 });

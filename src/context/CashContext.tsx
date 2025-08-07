@@ -1,50 +1,78 @@
-// src/context/CashContext.tsx
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { cashApi } from '@/src/api/cashService';
-import { clearCashStatus, getCashStatus, saveCashStatus, updateCashStatus } from './cashStorage';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { cashApi } from "@/src/api/cashService";
+
+// Tipo refletindo exatamente o enum do backend + estado especial frontend
+type CashStatusState = "OPEN" | "CLOSED" | "NOT_CREATED" | null;
 
 type CashContextType = {
   openCashId: string | null;
-  cashStatus: string | null;
+  cashStatus: CashStatusState;
   getStatusCash: () => Promise<void>;
-  openCash: (initialValue: number) => Promise<{ success: boolean; message: string }>;
-  closeCash: (id: string, finalValue: number) => Promise<{ success: boolean; message: string }>;
-  reopenCash: (cashId: string) => Promise<{ success: boolean; message: string }>;
+  openCash: (
+    initialValue: number
+  ) => Promise<{ success: boolean; message: string }>;
+  closeCash: (
+    id: string,
+    finalValue: number
+  ) => Promise<{ success: boolean; message: string }>;
+  reopenCash: (
+    cashId: string
+  ) => Promise<{ success: boolean; message: string }>;
   loading: boolean;
   error: string | null;
 };
 
 const CashContext = createContext<CashContextType | undefined>(undefined);
 
-export const CashProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
+export const CashProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [openCashId, setOpenCashId] = useState<string | null>(null);
-  const [cashStatus, setCashStatus] = useState<string | null>(null);
+  const [cashStatus, setCashStatus] = useState<CashStatusState>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const getStatusCash = async (): Promise<void> => {
     setLoading(true);
-    try {
-      const localStatus = await getCashStatus();
-      
-      if (localStatus?.cash) {
-        setOpenCashId(localStatus.cash.id);
-        setCashStatus(localStatus.cash.status);
-        return;
-      }
+    setError(null);
 
+    try {
       const response = await cashApi.statusCash();
 
+      // Caixa encontrado - fazemos type guard para garantir que o status é válido
       if (response.success && response.cash) {
-        await saveCashStatus(response.cash);
         setOpenCashId(response.cash.id);
-        setCashStatus(response.cash.status);
+
+        // Validação segura do status
+        if (
+          response.cash.status === "OPEN" ||
+          response.cash.status === "CLOSED"
+        ) {
+          setCashStatus(response.cash.status);
+        } else {
+          console.warn(`Status inesperado do caixa: ${response.cash.status}`);
+          setCashStatus(null);
+          setError("Status do caixa inválido");
+        }
+      }
+      // Caixa não encontrado (404)
+      else if (response.status === 404) {
+        setCashStatus("NOT_CREATED");
+        setOpenCashId(null);
+      }
+      // Outros erros
+      else {
+        setError(response.message || "Erro ao verificar status do caixa");
       }
     } catch (err: any) {
-      console.error("[CashContext] Erro ao buscar status do caixa:", err);
-      setError("Erro ao buscar status do caixa");
-      setOpenCashId(null);
-      await clearCashStatus();
+      console.error("[CashContext] Erro ao buscar status:", err);
+
+      if (err.response?.status === 404) {
+        setCashStatus("NOT_CREATED");
+        setOpenCashId(null);
+      } else {
+        setError("Falha na conexão com o servidor");
+      }
     } finally {
       setLoading(false);
     }
@@ -62,11 +90,11 @@ export const CashProvider: React.FC<{children: React.ReactNode}> = ({ children }
 
     setLoading(true);
     try {
-      const cash = await cashApi.openCash(initialValue);
+      const response = await cashApi.openCash(initialValue);
 
-      if (cash.success && cash.cash) {
-        setOpenCashId(cash.cash.id);
-        await saveCashStatus(cash.cash);
+      if (response.success && response.cash) {
+        setOpenCashId(response.cash.id);
+        setCashStatus("OPEN");
         return {
           success: true,
           message: "Caixa aberto com sucesso.",
@@ -74,7 +102,7 @@ export const CashProvider: React.FC<{children: React.ReactNode}> = ({ children }
       } else {
         return {
           success: false,
-          message: cash.message || "Não foi possível abrir o caixa.",
+          message: response.message || "Não foi possível abrir o caixa.",
         };
       }
     } catch (err) {
@@ -95,7 +123,7 @@ export const CashProvider: React.FC<{children: React.ReactNode}> = ({ children }
     if (finalValue <= 0) {
       return {
         success: false,
-        message: "O valor final tem que ser um numero maior que zero",
+        message: "O valor final deve ser maior que zero",
       };
     }
 
@@ -104,7 +132,8 @@ export const CashProvider: React.FC<{children: React.ReactNode}> = ({ children }
       const response = await cashApi.closeCash(id, finalValue);
 
       if (response.success) {
-        await updateCashStatus("CLOSED");
+        setCashStatus("CLOSED");
+        setOpenCashId(null);
         return {
           success: true,
           message: response.message || "Caixa fechado com sucesso",
@@ -112,13 +141,12 @@ export const CashProvider: React.FC<{children: React.ReactNode}> = ({ children }
       } else {
         return {
           success: false,
-          message: response.message || "Não foi possivel fechar o caixa",
+          message: response.message || "Não foi possível fechar o caixa",
         };
       }
     } catch (err: any) {
       const message =
         err?.response?.data?.message || "Erro ao tentar fechar o caixa";
-
       return {
         success: false,
         message,
@@ -137,7 +165,6 @@ export const CashProvider: React.FC<{children: React.ReactNode}> = ({ children }
 
       if (response.success && response.cash) {
         setOpenCashId(response.cash.id);
-        await saveCashStatus(response.cash);
         setCashStatus("OPEN");
         return {
           success: true,
@@ -186,7 +213,7 @@ export const CashProvider: React.FC<{children: React.ReactNode}> = ({ children }
 export const useCash = (): CashContextType => {
   const context = useContext(CashContext);
   if (!context) {
-    throw new Error('useCash must be used within a CashProvider');
+    throw new Error("useCash must be used within a CashProvider");
   }
   return context;
 };

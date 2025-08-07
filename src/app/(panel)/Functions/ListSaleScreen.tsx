@@ -1,494 +1,494 @@
-import {
-  TouchableWithoutFeedback,
-  View,
-  ActivityIndicator,
-  ScrollView,
-  Keyboard,
-  TouchableOpacity,
-  Text,
-  TextInput,
-  Modal,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
-import Colors from "@/src/constants/Colors";
-import useSearchProducts from "@/src/hooks/products/useSearchProduc";
-import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
-import BarcodeScanner from "@/src/components/BarcodeScanner";
-import { useState, useCallback, useEffect, useRef } from "react";
-import { Product } from "@/src/types/products";
-import {
-  styles,
-  productListStyles,
-  ModalStyle,
-} from "@/src/styles/functions/newSaleStyle";
-import Header from "@/src/components/Header";
-import FeedbackModal from "@/src/components/FeedbackModal";
-import { router } from "expo-router";
+  import {
+    TouchableWithoutFeedback,
+    View,
+    ActivityIndicator,
+    ScrollView,
+    Keyboard,
+    TouchableOpacity,
+    Text,
+    TextInput,
+    Modal,
+    KeyboardAvoidingView,
+    Platform,
+  } from "react-native";
+  import Colors from "@/src/constants/Colors";
+  import useSearchProducts from "@/src/hooks/products/useSearchProduc";
+  import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
+  import BarcodeScanner from "@/src/components/BarcodeScanner";
+  import { useState, useCallback, useEffect, useRef } from "react";
+  import { Product } from "@/src/types/products";
+  import {
+    styles,
+    productListStyles,
+    ModalStyle,
+  } from "@/src/styles/functions/newSaleStyle";
+  import Header from "@/src/components/Header";
+  import FeedbackModal from "@/src/components/FeedbackModal";
+  import { router } from "expo-router";
 
-export default function ProductSearch() {
-  const [searchQuery, setSearchQuery] = useState("");
+  export default function ProductSearch() {
+    const [searchQuery, setSearchQuery] = useState("");
 
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalMessage, setModalMessage] = useState("");
-  const [modalIsSuccess, setModalIsSuccess] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalMessage, setModalMessage] = useState("");
+    const [modalIsSuccess, setModalIsSuccess] = useState(false);
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-  const [isInputFocused, setIsInputFocused] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const [products, setProducts] = useState<Product[]>([]);
+    const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+    const [isInputFocused, setIsInputFocused] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  const [barcode, setBarcode] = useState("");
-  const [isScannerVisible, setIsScannerVisible] = useState(false);
+    const [barcode, setBarcode] = useState("");
+    const [isScannerVisible, setIsScannerVisible] = useState(false);
 
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [shouldShowSuggestions, setShouldShowSuggestions] = useState(false);
-  const [filterTimeout, setFilterTimeout] = useState<NodeJS.Timeout | null>(
-    null
-  );
-
-  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
-  const [isQuantityModalVisible, setIsQuantityModalVisible] = useState(false);
-  const [quantity, setQuantity] = useState("1");
-
-  const { searchProducts, loading } = useSearchProducts();
-  const searchInputRef = useRef<TextInput>(null);
-
-  useEffect(() => {
-    const loadProducts = async () => {
-      const result = await searchProducts();
-      if (result.success) {
-        setProducts(result.list);
-        setFilteredProducts(result.list);
-      }
-    };
-    loadProducts();
-  }, []);
-
-  useEffect(() => {
-    setShouldShowSuggestions(
-      isInputFocused && (searchQuery.length > 0 || products.length > 0)
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [shouldShowSuggestions, setShouldShowSuggestions] = useState(false);
+    const [filterTimeout, setFilterTimeout] = useState<NodeJS.Timeout | null>(
+      null
     );
-  }, [isInputFocused, searchQuery, products]);
 
-  // Filtrar produtos conforme pesquisa
-  const filterProducts = useCallback(
-    (query: string) => {
-      if (!query) {
-        // Se não há query, mostrar produtos mais relevantes (ex: mais vendidos, em estoque)
-        return products
-          .filter((p) => p.quantity > 0) // Mostrar apenas com estoque
-          .slice(0, 5); // Limitar a 5 itens
-      }
+    const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
+    const [isQuantityModalVisible, setIsQuantityModalVisible] = useState(false);
+    const [quantity, setQuantity] = useState("1");
 
-      // Filtro inteligente que busca no nome e no código de barras
-      const queryLower = query.toLowerCase();
-      return products.filter(
-        (product) =>
-          product.productName.toLowerCase().includes(queryLower) ||
-          (product.barcode && product.barcode.includes(query))
+    const { searchProducts, loading } = useSearchProducts();
+    const searchInputRef = useRef<TextInput>(null);
+
+    useEffect(() => {
+      const loadProducts = async () => {
+        const result = await searchProducts();
+        if (result.success) {
+          setProducts(result.list);
+          setFilteredProducts(result.list);
+        }
+      };
+      loadProducts();
+    }, []);
+
+    useEffect(() => {
+      setShouldShowSuggestions(
+        isInputFocused && (searchQuery.length > 0 || products.length > 0)
       );
-    },
-    [products]
-  );
+    }, [isInputFocused, searchQuery, products]);
 
-  // Handler de mudança de texto otimizado
-  const handleSearchChange = (text: string) => {
-    setSearchQuery(text);
+    // Filtrar produtos conforme pesquisa
+    const filterProducts = useCallback(
+      (query: string) => {
+        if (!query) {
+          // Se não há query, mostrar produtos mais relevantes (ex: mais vendidos, em estoque)
+          return products
+            .filter((p) => p.quantity > 0) // Mostrar apenas com estoque
+            .slice(0, 5); // Limitar a 5 itens
+        }
 
-    if (filterTimeout) {
-      clearTimeout(filterTimeout);
-    }
+        // Filtro inteligente que busca no nome e no código de barras
+        const queryLower = query.toLowerCase();
+        return products.filter(
+          (product) =>
+            product.productName.toLowerCase().includes(queryLower) ||
+            (product.barcode && product.barcode.includes(query))
+        );
+      },
+      [products]
+    );
 
-    // Debounce para evitar processamento a cada tecla pressionada
-    const timeout = setTimeout(() => {
-      setFilteredProducts(filterProducts(text));
-    }, 200);
+    // Handler de mudança de texto otimizado
+    const handleSearchChange = (text: string) => {
+      setSearchQuery(text);
 
-    setFilterTimeout(timeout as unknown as NodeJS.Timeout);
-  };
+      if (filterTimeout) {
+        clearTimeout(filterTimeout);
+      }
 
-  useEffect(() => {
-    return () => {
-      if (filterTimeout) clearTimeout(filterTimeout);
+      // Debounce para evitar processamento a cada tecla pressionada
+      const timeout = setTimeout(() => {
+        setFilteredProducts(filterProducts(text));
+      }, 200);
+
+      setFilterTimeout(timeout as unknown as NodeJS.Timeout);
     };
-  }, [filterTimeout]);
 
-  // Buscar por código de barras
-  const handleBarcodeScanned = (data: string) => {
-    setBarcode(data);
-    setIsScannerVisible(false);
+    useEffect(() => {
+      return () => {
+        if (filterTimeout) clearTimeout(filterTimeout);
+      };
+    }, [filterTimeout]);
 
-    const productFound = products.find((product) => product.barcode === data);
+    // Buscar por código de barras
+    const handleBarcodeScanned = (data: string) => {
+      setBarcode(data);
+      setIsScannerVisible(false);
 
-    if (productFound) {
-      setSelectedProduct(productFound);
+      const productFound = products.find((product) => product.barcode === data);
+
+      if (productFound) {
+        setSelectedProduct(productFound);
+        setIsQuantityModalVisible(true);
+      } else {
+        setModalMessage("Produto não encontrado com este código de barras");
+        setModalIsSuccess(false);
+        setModalVisible(true);
+      }
+    };
+
+    // Abrir modal para adicionar quantidade
+    const openQuantityModal = (product: Product) => {
+      setSelectedProduct(product);
       setIsQuantityModalVisible(true);
-    } else {
-      setModalMessage("Produto não encontrado com este código de barras");
-      setModalIsSuccess(false);
-      setModalVisible(true);
-    }
-  };
+      setQuantity("1");
+      setShowSuggestions(false); // Fecha as sugestões imediatamente
+      setShouldShowSuggestions(false); // Garante que não vão reaparecer
+    };
 
-  // Abrir modal para adicionar quantidade
-  const openQuantityModal = (product: Product) => {
-    setSelectedProduct(product);
-    setIsQuantityModalVisible(true);
-    setQuantity("1");
-    setShowSuggestions(false); // Fecha as sugestões imediatamente
-    setShouldShowSuggestions(false); // Garante que não vão reaparecer
-  };
+    // Adicionar produto à lista com quantidade
+    const addProductWithQuantity = () => {
+      if (!selectedProduct) return;
 
-  // Adicionar produto à lista com quantidade
-  const addProductWithQuantity = () => {
-    if (!selectedProduct) return;
+      const quantityValue = parseInt(quantity) || 1;
 
-    const quantityValue = parseInt(quantity) || 1;
+      // Verifica se o produto já existe na lista
+      const existingProductIndex = selectedProducts.findIndex(
+        (p) => p.id === selectedProduct.id
+      );
 
-    // Verifica se o produto já existe na lista
-    const existingProductIndex = selectedProducts.findIndex(
-      (p) => p.id === selectedProduct.id
-    );
+      if (existingProductIndex !== -1) {
+        // Atualiza a quantidade do produto existente
+        const updatedProducts = [...selectedProducts];
+        const newQuantity =
+          updatedProducts[existingProductIndex].quantity + quantityValue;
 
-    if (existingProductIndex !== -1) {
-      // Atualiza a quantidade do produto existente
-      const updatedProducts = [...selectedProducts];
-      const newQuantity =
-        updatedProducts[existingProductIndex].quantity + quantityValue;
+        // Verifica o estoque
+        if (newQuantity > selectedProduct.quantity) {
+          setModalMessage(
+            `Quantidade indisponível! Estoque atual: ${selectedProduct.quantity}`
+          );
+          setModalIsSuccess(false);
+          setModalVisible(true);
+          return;
+        }
 
-      // Verifica o estoque
-      if (newQuantity > selectedProduct.quantity) {
-        setModalMessage(
-          `Quantidade indisponível! Estoque atual: ${selectedProduct.quantity}`
-        );
-        setModalIsSuccess(false);
-        setModalVisible(true);
-        return;
+        updatedProducts[existingProductIndex] = {
+          ...updatedProducts[existingProductIndex],
+          quantity: newQuantity,
+          total: selectedProduct.unitPrice * newQuantity,
+        };
+
+        setSelectedProducts(updatedProducts);
+      } else {
+        // Adiciona novo produto
+        if (quantityValue > selectedProduct.quantity) {
+          setModalMessage(
+            `Quantidade indisponível! Estoque atual: ${selectedProduct.quantity}`
+          );
+          setModalIsSuccess(false);
+          setModalVisible(true);
+          return;
+        }
+
+        const productWithQuantity = {
+          ...selectedProduct,
+          quantity: quantityValue,
+          total: (selectedProduct.unitPrice || 0) * quantityValue,
+        };
+
+        setSelectedProducts((prev) => [...prev, productWithQuantity]);
       }
 
-      updatedProducts[existingProductIndex] = {
-        ...updatedProducts[existingProductIndex],
-        quantity: newQuantity,
-        total: selectedProduct.unitPrice * newQuantity,
-      };
+      setIsQuantityModalVisible(false);
+    };
 
-      setSelectedProducts(updatedProducts);
-    } else {
-      // Adiciona novo produto
-      if (quantityValue > selectedProduct.quantity) {
-        setModalMessage(
-          `Quantidade indisponível! Estoque atual: ${selectedProduct.quantity}`
-        );
-        setModalIsSuccess(false);
-        setModalVisible(true);
-        return;
+    useEffect(() => {
+      // Mostra sugestões apenas quando o input está focado E há texto ou produtos
+      setShowSuggestions(
+        isInputFocused && (searchQuery.length > 0 || products.length > 0)
+      );
+    }, [isInputFocused, searchQuery, products]);
+
+    useEffect(() => {
+      if (!isQuantityModalVisible && selectedProduct) {
+        setTimeout(() => {
+          searchInputRef.current?.focus();
+          setSelectedProduct(null); // Limpa o produto selecionado
+        }, 100);
       }
+    }, [isQuantityModalVisible, selectedProduct]);
 
-      const productWithQuantity = {
-        ...selectedProduct,
-        quantity: quantityValue,
-        total: (selectedProduct.unitPrice || 0) * quantityValue,
-      };
+    // Funções de manipulação de foco
+    const handleInputFocus = () => {
+      setIsInputFocused(true);
+      setShowSuggestions(true);
+    };
 
-      setSelectedProducts((prev) => [...prev, productWithQuantity]);
-    }
-
-    setIsQuantityModalVisible(false);
-  };
-
-  useEffect(() => {
-    // Mostra sugestões apenas quando o input está focado E há texto ou produtos
-    setShowSuggestions(
-      isInputFocused && (searchQuery.length > 0 || products.length > 0)
-    );
-  }, [isInputFocused, searchQuery, products]);
-
-  useEffect(() => {
-    if (!isQuantityModalVisible && selectedProduct) {
+    const handleInputBlur = () => {
       setTimeout(() => {
-        searchInputRef.current?.focus();
-        setSelectedProduct(null); // Limpa o produto selecionado
-      }, 100);
-    }
-  }, [isQuantityModalVisible, selectedProduct]);
+        setIsInputFocused(false);
+        // Só esconde se não tiver um modal aberto
+        if (!isQuantityModalVisible) {
+          setShowSuggestions(false);
+        }
+      }, 200);
+    };
 
-  // Funções de manipulação de foco
-  const handleInputFocus = () => {
-    setIsInputFocused(true);
-    setShowSuggestions(true);
-  };
+    // Remover produto da lista
+    const removeProduct = (id: string) => {
+      setSelectedProducts((prev) => prev.filter((p) => p.id !== id));
+    };
 
-  const handleInputBlur = () => {
-    setTimeout(() => {
-      setIsInputFocused(false);
-      // Só esconde se não tiver um modal aberto
-      if (!isQuantityModalVisible) {
-        setShowSuggestions(false);
-      }
-    }, 200);
-  };
+    // Calcular total da venda
+    const calculateTotal = () => {
+      return selectedProducts.reduce(
+        (sum, product) => sum + product.unitPrice * product.quantity,
+        0
+      );
+    };
 
-  // Remover produto da lista
-  const removeProduct = (id: string) => {
-    setSelectedProducts((prev) => prev.filter((p) => p.id !== id));
-  };
+    return (
+      <TouchableWithoutFeedback
+        onPress={() => {
+          Keyboard.dismiss();
+          handleInputBlur();
+        }}
+      >
+        <View style={{ flex: 1 }}>
+          <FeedbackModal
+            visible={modalVisible}
+            message={modalMessage}
+            isSuccess={modalIsSuccess}
+            onClose={() => setModalVisible(false)}
+          />
 
-  // Calcular total da venda
-  const calculateTotal = () => {
-    return selectedProducts.reduce(
-      (sum, product) => sum + product.unitPrice * product.quantity,
-      0
-    );
-  };
+          {/* Scanner de código de barras */}
+          <BarcodeScanner
+            visible={isScannerVisible}
+            onClose={() => setIsScannerVisible(false)}
+            onBarcodeScanned={handleBarcodeScanned}
+          />
 
-  return (
-    <TouchableWithoutFeedback
-      onPress={() => {
-        Keyboard.dismiss();
-        handleInputBlur();
-      }}
-    >
-      <View style={{ flex: 1 }}>
-        <FeedbackModal
-          visible={modalVisible}
-          message={modalMessage}
-          isSuccess={modalIsSuccess}
-          onClose={() => setModalVisible(false)}
-        />
-
-        {/* Scanner de código de barras */}
-        <BarcodeScanner
-          visible={isScannerVisible}
-          onClose={() => setIsScannerVisible(false)}
-          onBarcodeScanned={handleBarcodeScanned}
-        />
-
-        {/* Modal para selecionar quantidade */}
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={isQuantityModalVisible}
-          onRequestClose={() => {
-            setIsQuantityModalVisible(false);
-            setShowSuggestions(false); // Garante que está fechado ao sair
-          }}
-        >
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            style={ModalStyle.modalOverlay}
+          {/* Modal para selecionar quantidade */}
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={isQuantityModalVisible}
+            onRequestClose={() => {
+              setIsQuantityModalVisible(false);
+              setShowSuggestions(false); // Garante que está fechado ao sair
+            }}
           >
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-              <View style={ModalStyle.modalContainer}>
-                <View style={ModalStyle.modalContent}>
-                  <Text style={ModalStyle.modalTitle}>
-                    {selectedProduct?.productName}
-                  </Text>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              style={ModalStyle.modalOverlay}
+            >
+              <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <View style={ModalStyle.modalContainer}>
+                  <View style={ModalStyle.modalContent}>
+                    <Text style={ModalStyle.modalTitle}>
+                      {selectedProduct?.productName}
+                    </Text>
 
-                  <View style={ModalStyle.modalInfoContainer}>
-                    <Text style={ModalStyle.modalInfoText}>
-                      Código: {selectedProduct?.barcode}
-                    </Text>
-                    <Text style={ModalStyle.modalInfoText}>
-                      Preço Unitário: R${" "}
-                      {selectedProduct?.unitPrice?.toFixed(2)}
-                    </Text>
-                    <Text style={ModalStyle.modalInfoText}>
-                      Estoque: {selectedProduct?.quantity}
-                    </Text>
-                    {selectedProduct?.expirationDate && (
+                    <View style={ModalStyle.modalInfoContainer}>
                       <Text style={ModalStyle.modalInfoText}>
-                        Validade:{" "}
-                        {new Date(
-                          selectedProduct.expirationDate
-                        ).toLocaleDateString()}
+                        Código: {selectedProduct?.barcode}
                       </Text>
-                    )}
-                  </View>
+                      <Text style={ModalStyle.modalInfoText}>
+                        Preço Unitário: R${" "}
+                        {selectedProduct?.unitPrice?.toFixed(2)}
+                      </Text>
+                      <Text style={ModalStyle.modalInfoText}>
+                        Estoque: {selectedProduct?.quantity}
+                      </Text>
+                      {selectedProduct?.expirationDate && (
+                        <Text style={ModalStyle.modalInfoText}>
+                          Validade:{" "}
+                          {new Date(
+                            selectedProduct.expirationDate
+                          ).toLocaleDateString()}
+                        </Text>
+                      )}
+                    </View>
 
-                  <TextInput
-                    style={ModalStyle.quantityInput}
-                    keyboardType="numeric"
-                    value={quantity}
-                    onChangeText={setQuantity}
-                    placeholder="Quantidade"
-                    autoFocus={true}
-                  />
+                    <TextInput
+                      style={ModalStyle.quantityInput}
+                      keyboardType="numeric"
+                      value={quantity}
+                      onChangeText={setQuantity}
+                      placeholder="Quantidade"
+                      autoFocus={true}
+                    />
 
-                  <View style={ModalStyle.modalButtons}>
-                    <TouchableOpacity
-                      style={[ModalStyle.modalButton, ModalStyle.cancelButton]}
-                      onPress={() => setIsQuantityModalVisible(false)}
-                    >
-                      <Text style={ModalStyle.buttonText}>Voltar</Text>
-                    </TouchableOpacity>
+                    <View style={ModalStyle.modalButtons}>
+                      <TouchableOpacity
+                        style={[ModalStyle.modalButton, ModalStyle.cancelButton]}
+                        onPress={() => setIsQuantityModalVisible(false)}
+                      >
+                        <Text style={ModalStyle.buttonText}>Voltar</Text>
+                      </TouchableOpacity>
 
-                    <TouchableOpacity
-                      style={[ModalStyle.modalButton, ModalStyle.addButton]}
-                      onPress={() => {
-                        addProductWithQuantity();
-                      }}
-                    >
-                      <Text style={ModalStyle.buttonText}>Adicionar</Text>
-                    </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[ModalStyle.modalButton, ModalStyle.addButton]}
+                        onPress={() => {
+                          addProductWithQuantity();
+                        }}
+                      >
+                        <Text style={ModalStyle.buttonText}>Adicionar</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
-              </View>
-            </TouchableWithoutFeedback>
-          </KeyboardAvoidingView>
-        </Modal>
+              </TouchableWithoutFeedback>
+            </KeyboardAvoidingView>
+          </Modal>
 
-        <Header title="Nova Compra" />
+          <Header title="Nova Compra" />
 
-        {/* Campo de busca */}
-        <View style={{ position: "relative", zIndex: 10, marginTop: 10 }}>
-          <View style={styles.searchBox}>
-            <FontAwesome
-              name="search"
-              size={20}
-              color={Colors.gray.dark}
-              style={styles.searchIcon}
-            />
-            <TextInput
-              ref={searchInputRef}
-              style={styles.searchInput}
-              placeholder="Pesquisar produto..."
-              placeholderTextColor={Colors.gray.dark}
-              value={searchQuery}
-              onChangeText={handleSearchChange}
-              onFocus={handleInputFocus}
-              onBlur={handleInputBlur}
-              returnKeyType="search"
-            />
-            <TouchableOpacity
-              style={styles.scanIcon}
-              onPress={() => setIsScannerVisible(true)}
-            >
-              <MaterialIcons
-                name="qr-code-scanner"
-                size={24}
-                color={Colors.blue.logo}
+          {/* Campo de busca */}
+          <View style={{ position: "relative", zIndex: 10, marginTop: 10 }}>
+            <View style={styles.searchBox}>
+              <FontAwesome
+                name="search"
+                size={20}
+                color={Colors.gray.dark}
+                style={styles.searchIcon}
               />
-
+              <TextInput
+                ref={searchInputRef}
+                style={styles.searchInput}
+                placeholder="Pesquisar produto..."
+                placeholderTextColor={Colors.gray.dark}
+                value={searchQuery}
+                onChangeText={handleSearchChange}
+                onFocus={handleInputFocus}
+                onBlur={handleInputBlur}
+                returnKeyType="search"
+              />
               <TouchableOpacity
-                style={styles.clearIcon}
-                onPress={() => {
-                  setSearchQuery("");
-                  setFilteredProducts(filterProducts("")); // Mostra os produtos mais relevantes
-                  searchInputRef.current?.focus();
-                }}
+                style={styles.scanIcon}
+                onPress={() => setIsScannerVisible(true)}
               >
                 <MaterialIcons
-                  name="close"
-                  size={20}
-                  color={Colors.gray.dark}
+                  name="qr-code-scanner"
+                  size={24}
+                  color={Colors.blue.logo}
                 />
-              </TouchableOpacity>
-            </TouchableOpacity>
-          </View>
 
-          {/* Sugestões de busca */}
-          {shouldShowSuggestions && (
-            <View style={styles.suggestionsContainer}>
-              <ScrollView
-                nestedScrollEnabled
-                style={{ maxHeight: 300 }}
-                keyboardShouldPersistTaps="always"
-              >
-                {/* Mensagem quando não encontra resultados */}
-                {searchQuery.length > 0 && filteredProducts.length === 0 && (
-                  <View style={styles.suggestionItem}>
-                    <Text style={styles.suggestionText}>
-                      Nenhum produto encontrado para "{searchQuery}"
-                    </Text>
-                  </View>
-                )}
-
-                {filteredProducts.map((product) => (
-                  <TouchableOpacity
-                    key={product.id}
-                    style={styles.suggestionItem}
-                    onPress={() => {
-                      openQuantityModal(product);
-                      searchInputRef.current?.focus(); // Mantém o foco no input
-                    }}
-                  >
-                    <Text style={styles.suggestionText} numberOfLines={1}>
-                      {product.productName}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          )}
-        </View>
-
-        {/* Lista de produtos selecionados */}
-        <ScrollView
-          style={productListStyles.listContainer}
-          contentContainerStyle={{ paddingBottom: 100 }}
-        >
-          {selectedProducts.map((product) => (
-            <View key={product.id} style={productListStyles.listItem}>
-              <View style={{ flex: 1 }}>
-                <Text style={productListStyles.productName}>
-                  {product.productName}
-                </Text>
-                <Text style={productListStyles.productDetails}>
-                  {product.quantity} x R$ {product.unitPrice?.toFixed(2)}
-                </Text>
-                {product.expirationDate && (
-                  <Text style={productListStyles.productExpiration}>
-                    Validade:{" "}
-                    {new Date(product.expirationDate).toLocaleDateString()}
-                  </Text>
-                )}
-              </View>
-
-              <View style={{ alignItems: "flex-end" }}>
-                <Text style={productListStyles.productPrice}>
-                  R$ {(product.unitPrice * product.quantity).toFixed(2)}
-                </Text>
-                <Text style={productListStyles.productStock}>
-                  Cód: {product.barcode}
-                </Text>
                 <TouchableOpacity
-                  onPress={() => removeProduct(product.id)}
-                  style={productListStyles.removeButton}
+                  style={styles.clearIcon}
+                  onPress={() => {
+                    setSearchQuery("");
+                    setFilteredProducts(filterProducts("")); // Mostra os produtos mais relevantes
+                    searchInputRef.current?.focus();
+                  }}
                 >
                   <MaterialIcons
-                    name="delete"
+                    name="close"
                     size={20}
-                    color={Colors.red.accent}
+                    color={Colors.gray.dark}
                   />
                 </TouchableOpacity>
-              </View>
+              </TouchableOpacity>
             </View>
-          ))}
-        </ScrollView>
 
-        {/* Botão de finalização */}
-        <TouchableOpacity
-          style={productListStyles.paymentButton}
-          onPress={() => {
-            if (selectedProducts.length === 0) return;
+            {/* Sugestões de busca */}
+            {shouldShowSuggestions && (
+              <View style={styles.suggestionsContainer}>
+                <ScrollView
+                  nestedScrollEnabled
+                  style={{ maxHeight: 300 }}
+                  keyboardShouldPersistTaps="always"
+                >
+                  {/* Mensagem quando não encontra resultados */}
+                  {searchQuery.length > 0 && filteredProducts.length === 0 && (
+                    <View style={styles.suggestionItem}>
+                      <Text style={styles.suggestionText}>
+                        Nenhum produto encontrado para "{searchQuery}"
+                      </Text>
+                    </View>
+                  )}
 
-            router.push({
-              pathname: "/Functions/paymentProducts",
-              params: {
-                totalAmount: calculateTotal().toFixed(2),
-                saleItems: JSON.stringify(selectedProducts),
-                totalItems: selectedProducts.length.toString(),
-              },
-            });
-          }}
-          disabled={selectedProducts.length === 0}
-        >
-          <Text style={productListStyles.paymentButtonText}>
-            Finalizar Compra (R$ {calculateTotal().toFixed(2)})
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </TouchableWithoutFeedback>
-  );
-}
+                  {filteredProducts.map((product) => (
+                    <TouchableOpacity
+                      key={product.id}
+                      style={styles.suggestionItem}
+                      onPress={() => {
+                        openQuantityModal(product);
+                        searchInputRef.current?.focus(); // Mantém o foco no input
+                      }}
+                    >
+                      <Text style={styles.suggestionText} numberOfLines={1}>
+                        {product.productName}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+          </View>
+
+          {/* Lista de produtos selecionados */}
+          <ScrollView
+            style={productListStyles.listContainer}
+            contentContainerStyle={{ paddingBottom: 100 }}
+          >
+            {selectedProducts.map((product) => (
+              <View key={product.id} style={productListStyles.listItem}>
+                <View style={{ flex: 1 }}>
+                  <Text style={productListStyles.productName}>
+                    {product.productName}
+                  </Text>
+                  <Text style={productListStyles.productDetails}>
+                    {product.quantity} x R$ {product.unitPrice?.toFixed(2)}
+                  </Text>
+                  {product.expirationDate && (
+                    <Text style={productListStyles.productExpiration}>
+                      Validade:{" "}
+                      {new Date(product.expirationDate).toLocaleDateString()}
+                    </Text>
+                  )}
+                </View>
+
+                <View style={{ alignItems: "flex-end" }}>
+                  <Text style={productListStyles.productPrice}>
+                    R$ {(product.unitPrice * product.quantity).toFixed(2)}
+                  </Text>
+                  <Text style={productListStyles.productStock}>
+                    Cód: {product.barcode}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => removeProduct(product.id)}
+                    style={productListStyles.removeButton}
+                  >
+                    <MaterialIcons
+                      name="delete"
+                      size={20}
+                      color={Colors.red.accent}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+
+          {/* Botão de finalização */}
+          <TouchableOpacity
+            style={productListStyles.paymentButton}
+            onPress={() => {
+              if (selectedProducts.length === 0) return;
+
+              router.push({
+                pathname: "/Functions/paymentProducts",
+                params: {
+                  totalAmount: calculateTotal().toFixed(2),
+                  saleItems: JSON.stringify(selectedProducts),
+                  totalItems: selectedProducts.length.toString(),
+                },
+              });
+            }}
+            disabled={selectedProducts.length === 0}
+          >
+            <Text style={productListStyles.paymentButtonText}>
+              Finalizar Compra (R$ {calculateTotal().toFixed(2)})
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableWithoutFeedback>
+    );
+  }

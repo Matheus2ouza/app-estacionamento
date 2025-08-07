@@ -13,6 +13,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import CashAlertModal from "@/src/components/CashAlertModal"; // Add this import
+import { useCash } from "@/src/context/CashContext"; // Add this import
 
 export default function ScanExit() {
   const [facing, setFacing] = useState<"front" | "back">("back");
@@ -27,12 +29,27 @@ export default function ScanExit() {
     loading,
     success,
     vehicle,
-    error,
     entryTime,
   } = useFetchVehicle();
+  
+  // Add cash context
+  const { cashStatus, getStatusCash } = useCash();
+  const [showCashAlert, setShowCashAlert] = useState(false);
 
   // Animação de pulsação
   const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  // Check cash status on mount
+  useEffect(() => {
+    getStatusCash();
+  }, []);
+
+  // Show cash alert if cash is not open
+  useEffect(() => {
+    if (cashStatus !== "OPEN") {
+      setShowCashAlert(true);
+    }
+  }, [cashStatus]);
 
   useEffect(() => {
     Animated.loop(
@@ -75,13 +92,12 @@ export default function ScanExit() {
 
   // Função para lidar com QR Code escaneado
   const handleBarCodeScanned = async ({ data }: { data: string }) => {
-    if (!isScanning || isProcessing) return;
+    if (!isScanning || isProcessing || cashStatus !== "OPEN") return;
 
     setIsScanning(false);
     setIsProcessing(true);
 
     try {
-
       let payload = data;
 
       // Verifica se é base64 e decodifica
@@ -135,6 +151,10 @@ export default function ScanExit() {
 
   // Consulta manual
   const handleManualConsult = () => {
+    if (cashStatus !== "OPEN") {
+      setShowCashAlert(true);
+      return;
+    }
     router.push("/Functions/exitRegister");
   };
 
@@ -165,114 +185,128 @@ export default function ScanExit() {
 
   return (
     <View style={styles.container}>
-      <CameraView
-        style={styles.camera}
-        facing={facing}
-        onBarcodeScanned={isScanning ? handleBarCodeScanned : undefined}
-        barcodeScannerSettings={{
-          barcodeTypes: ["qr"],
+      {/* Add CashAlertModal */}
+      <CashAlertModal
+        visible={showCashAlert}
+        type="block"
+        onClose={() => {
+          setShowCashAlert(false);
+          router.back(); // Or navigate to another screen if needed
         }}
-      >
-        {/* Overlay de visualização */}
-        <View style={styles.overlay}>
-          <View style={styles.unfocusedArea} />
+      />
+      
+      {cashStatus === "OPEN" && (
+        <>
+          <CameraView
+            style={styles.camera}
+            facing={facing}
+            onBarcodeScanned={isScanning ? handleBarCodeScanned : undefined}
+            barcodeScannerSettings={{
+              barcodeTypes: ["qr"],
+            }}
+          >
+            {/* Overlay de visualização */}
+            <View style={styles.overlay}>
+              <View style={styles.unfocusedArea} />
 
-          <View style={styles.middleRow}>
-            <View style={styles.unfocusedArea} />
+              <View style={styles.middleRow}>
+                <View style={styles.unfocusedArea} />
 
-            {/* Área focal com efeito de pulsação */}
-            <Animated.View
-              style={[
-                styles.focusedArea,
-                { transform: [{ scale: pulseAnim }] },
-              ]}
+                {/* Área focal com efeito de pulsação */}
+                <Animated.View
+                  style={[
+                    styles.focusedArea,
+                    { transform: [{ scale: pulseAnim }] },
+                  ]}
+                >
+                  {/* Cantos pulsantes */}
+                  <Animated.View
+                    style={[
+                      styles.corner,
+                      styles.topLeft,
+                      {
+                        opacity: pulseAnim.interpolate({
+                          inputRange: [1, 1.1],
+                          outputRange: [0.7, 1],
+                        }),
+                      },
+                    ]}
+                  />
+
+                  <Animated.View
+                    style={[
+                      styles.corner,
+                      styles.topRight,
+                      {
+                        opacity: pulseAnim.interpolate({
+                          inputRange: [1, 1.1],
+                          outputRange: [0.7, 1],
+                        }),
+                      },
+                    ]}
+                  />
+
+                  <Animated.View
+                    style={[
+                      styles.corner,
+                      styles.bottomLeft,
+                      {
+                        opacity: pulseAnim.interpolate({
+                          inputRange: [1, 1.1],
+                          outputRange: [0.7, 1],
+                        }),
+                      },
+                    ]}
+                  />
+
+                  <Animated.View
+                    style={[
+                      styles.corner,
+                      styles.bottomRight,
+                      {
+                        opacity: pulseAnim.interpolate({
+                          inputRange: [1, 1.1],
+                          outputRange: [0.7, 1],
+                        }),
+                      },
+                    ]}
+                  />
+                </Animated.View>
+
+                <View style={styles.unfocusedArea} />
+              </View>
+
+              <View style={styles.unfocusedArea} />
+            </View>
+          </CameraView>
+
+          {/* Indicador de processamento */}
+          {isProcessing && (
+            <View style={styles.processingContainer}>
+              <ActivityIndicator size="large" color="#FFFFFF" />
+              <Text style={styles.processingText}>Processando QR Code...</Text>
+            </View>
+          )}
+
+          {/* Botões de ação */}
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.flipButton}
+              onPress={toggleCameraFacing}
             >
-              {/* Cantos pulsantes */}
-              <Animated.View
-                style={[
-                  styles.corner,
-                  styles.topLeft,
-                  {
-                    opacity: pulseAnim.interpolate({
-                      inputRange: [1, 1.1],
-                      outputRange: [0.7, 1],
-                    }),
-                  },
-                ]}
-              />
+              <Text style={styles.flipButtonText}>Alternar Câmera</Text>
+            </TouchableOpacity>
 
-              <Animated.View
-                style={[
-                  styles.corner,
-                  styles.topRight,
-                  {
-                    opacity: pulseAnim.interpolate({
-                      inputRange: [1, 1.1],
-                      outputRange: [0.7, 1],
-                    }),
-                  },
-                ]}
-              />
-
-              <Animated.View
-                style={[
-                  styles.corner,
-                  styles.bottomLeft,
-                  {
-                    opacity: pulseAnim.interpolate({
-                      inputRange: [1, 1.1],
-                      outputRange: [0.7, 1],
-                    }),
-                  },
-                ]}
-              />
-
-              <Animated.View
-                style={[
-                  styles.corner,
-                  styles.bottomRight,
-                  {
-                    opacity: pulseAnim.interpolate({
-                      inputRange: [1, 1.1],
-                      outputRange: [0.7, 1],
-                    }),
-                  },
-                ]}
-              />
-            </Animated.View>
-
-            <View style={styles.unfocusedArea} />
+            <TouchableOpacity
+              style={styles.manualButton}
+              onPress={handleManualConsult}
+              disabled={isProcessing}
+            >
+              <Text style={styles.manualButtonText}>Consultar manualmente</Text>
+            </TouchableOpacity>
           </View>
-
-          <View style={styles.unfocusedArea} />
-        </View>
-      </CameraView>
-
-      {/* Indicador de processamento */}
-      {isProcessing && (
-        <View style={styles.processingContainer}>
-          <ActivityIndicator size="large" color="#FFFFFF" />
-          <Text style={styles.processingText}>Processando QR Code...</Text>
-        </View>
+        </>
       )}
-
-      {/* Botões de ação */}
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.flipButton}
-          onPress={toggleCameraFacing}
-        >
-          <Text style={styles.flipButtonText}>Alternar Câmera</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.manualButton}
-          onPress={handleManualConsult}
-          disabled={isProcessing}
-        >
-          <Text style={styles.manualButtonText}>Consultar manualmente</Text>
-        </TouchableOpacity>
-      </View>
 
       <FeedbackModal
         visible={modalVisible}

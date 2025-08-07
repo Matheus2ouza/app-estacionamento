@@ -1,6 +1,6 @@
 export enum VehicleCategory {
-  CARRO = "CARRO",
-  MOTO = "MOTO"
+  CARRO = "carro",
+  MOTO = "moto"
 }
 
 export interface BillingMethod {

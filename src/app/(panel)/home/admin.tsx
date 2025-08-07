@@ -18,7 +18,8 @@ import useCashDetails from "@/src/hooks/cash/useCashDetails";
 type CashData = {
   "Valor Inicial": number;
   Dinheiro: number;
-  Cartão: number;
+  Crédito: number;
+  Débito: number;
   Pix: number;
   Saída: number;
   Total: number;
@@ -68,7 +69,8 @@ export default function AdminHome() {
   const [cashData, setCashData] = useState<CashData>({
     "Valor Inicial": 0,
     Dinheiro: 0,
-    Cartão: 0,
+    Crédito: 0,
+    Débito: 0,
     Pix: 0,
     Saída: 0,
     Total: 0,
@@ -97,11 +99,13 @@ export default function AdminHome() {
 
     try {
       const data = await dataToHome(openCashId);
+      console.log(data)
       if (data) {
         setCashData({
           "Valor Inicial": data.initialValue,
           Dinheiro: data.totalCash,
-          Cartão: data.totalCredit + data.totalDebit,
+          Crédito: data.totalCredit,
+          Débito: data.totalDebit,
           Pix: data.totalPix,
           Saída: data.outgoingExpenseTotal,
           Total: data.finalValue,

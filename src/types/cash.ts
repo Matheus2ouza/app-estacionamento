@@ -85,7 +85,7 @@ export interface CashDetails {
   closingDate?: string;
   status: string;
   operator: string;
-  initialValue: number;
+  initial_value: number;
   final_value: number;
   totalValue: number;
   vehicle_entry_total: number;
@@ -95,6 +95,7 @@ export interface CashDetails {
 
 export type CashStatus = {
   success: boolean;
+  status: number;
   cash?: CashDetails | null;
   message?: string;
 };
