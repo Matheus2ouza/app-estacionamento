@@ -21,7 +21,7 @@ type CashData = {
   Crédito: number;
   Débito: number;
   Pix: number;
-  Saída: number;
+  Despesas: number;
   Total: number;
 };
 
@@ -72,7 +72,7 @@ export default function AdminHome() {
     Crédito: 0,
     Débito: 0,
     Pix: 0,
-    Saída: 0,
+    Despesas: 0,
     Total: 0,
   });
 
@@ -107,7 +107,7 @@ export default function AdminHome() {
           Crédito: data.totalCredit,
           Débito: data.totalDebit,
           Pix: data.totalPix,
-          Saída: data.outgoingExpenseTotal,
+          Despesas: data.outgoingExpenseTotal,
           Total: data.finalValue,
         });
       }
@@ -136,6 +136,9 @@ export default function AdminHome() {
       setModals(prev => ({ ...prev, cashStatusChecked: false }));
       await getStatusCash();
 
+      console.log("STATUS DO CAIXA")
+      console.log(cashStatus)
+      console.log(openCashId)
       if (cashStatus === "CLOSED") {
         setModals(prev => ({ ...prev, closedCashModal: true, cashStatusChecked: true }));
       } else if (!openCashId) {
@@ -158,6 +161,7 @@ export default function AdminHome() {
 
   // Abrir caixa
   const handleOpenCash = async (initialValue: string) => {
+    console.log("CHAMANDO O OPEN CASH")
     const parsedValue = parseFloat(initialValue);
 
     if (isNaN(parsedValue)) {
@@ -179,37 +183,25 @@ export default function AdminHome() {
   };
 
   // Fechar caixa
-  const handleCloseCash = async (finalValue: number) => {
-    if (!openCashId) return;
+  const handleReopenCash = async (openCashId: string) => {
+    console.log("CHAMANDO O REOPEN CASH")
 
-    try {
-      const { success, message } = await closeCash(openCashId, finalValue);
-      showFeedback(message, success);
-
-      if (success) {
-        setModals(prev => ({ ...prev, closedCashModal: false }));
-      }
-    } catch (err) {
-      console.error(err);
-      showFeedback("Erro ao fechar o caixa", false);
+    if (!openCashId) {
+      showFeedback("ID do caixa não encontrado", false);
+      return;
     }
-  };
-
-  // Reabrir caixa
-  const handleReopenCash = async () => {
-    if (!openCashId) return;
 
     try {
       const { success, message } = await reopenCash(openCashId);
       showFeedback(message, success);
 
       if (success) {
-        setModals(prev => ({ ...prev, closedCashModal: false }));
+        setModals(prev => ({ ...prev, openCashModal: false }));
         await checkCashStatus();
       }
     } catch (err) {
       console.error(err);
-      showFeedback("Erro ao reabrir o caixa", false);
+      showFeedback("Erro ao abrir o caixa", false);
     }
   };
 
@@ -293,16 +285,32 @@ export default function AdminHome() {
         <>
           <CashStatusModal
             visible={modals.closedCashModal}
-            onClose={() => setModals((prev) => ({ ...prev, closedCashModal: false }))}
-            onConfirm={() =>
-              setModals((prev) => ({ ...prev, closedCashModal: false, openCashModal: true }))
+            mode={cashStatus === "CLOSED" ? "CLOSED" : "NOT_CREATED"}
+            onClose={() =>
+              setModals((prev) => ({ ...prev, closedCashModal: false }))
             }
+            onConfirm={() => {
+              if (cashStatus === "CLOSED") {
+                openCashId
+                  ? handleReopenCash(openCashId)
+                  : showFeedback("ID do caixa não encontrado", false);
+              } else {
+                // NOT_CREATED - Fecha o status modal e abre o register modal
+                setModals((prev) => ({
+                  ...prev,
+                  closedCashModal: false,
+                  openCashModal: true,
+                }));
+              }
+            }}
           />
 
           <CashRegisterModal
             visible={modals.openCashModal}
             mode="open"
-            onClose={() => setModals((prev) => ({ ...prev, openCashModal: false }))}
+            onClose={() =>
+              setModals((prev) => ({ ...prev, openCashModal: false }))
+            }
             onSubmitCashRegister={handleOpenCash}
           />
         </>
@@ -321,7 +329,10 @@ export default function AdminHome() {
       />
 
       {/* Header */}
-      <LinearGradient colors={[Colors.gray.zinc, Colors.blue.light]} style={styles.header}>
+      <LinearGradient
+        colors={[Colors.gray.zinc, Colors.blue.light]}
+        style={styles.header}
+      >
         <View style={styles.brandContainer}>
           <Text style={styles.brandMain}>LEÃO</Text>
           <Text style={styles.brandSub}>Estacionamento</Text>
@@ -347,7 +358,9 @@ export default function AdminHome() {
           </View>
           <Separator style={{ width: "90%" }} />
           <View style={styles.cashContent}>
-            {Object.entries(cashData).map(([label, value]) => renderCashRow(label, value))}
+            {Object.entries(cashData).map(([label, value]) =>
+              renderCashRow(label, value)
+            )}
           </View>
         </View>
 
@@ -377,7 +390,11 @@ export default function AdminHome() {
             <Separator style={{ width: "90%", alignSelf: "center" }} />
             <View style={styles.detailsParking}>
               {renderParkingIcon(
-                <MaterialCommunityIcons name="car-hatchback" size={22} color="black" />,
+                <MaterialCommunityIcons
+                  name="car-hatchback"
+                  size={22}
+                  color="black"
+                />,
                 parkingStatus.details[0]
               )}
               <View style={styles.dividerVertical} />
@@ -390,7 +407,10 @@ export default function AdminHome() {
         </View>
 
         {/* Rodapé */}
-        <LinearGradient colors={[Colors.gray.zinc, Colors.blue.light]} style={styles.bottomBar}>
+        <LinearGradient
+          colors={[Colors.gray.zinc, Colors.blue.light]}
+          style={styles.bottomBar}
+        >
           <Pressable onPress={() => router.push("/Functions/entreyRegister")}>
             <View style={styles.buttonEntry}>
               <Entypo name="login" size={40} color={Colors.white} />
@@ -411,7 +431,11 @@ export default function AdminHome() {
 
           <Pressable onPress={() => router.push("/Functions/ListSaleScreen")}>
             <View style={styles.buttonDashboard}>
-              <MaterialCommunityIcons name="food-fork-drink" size={40} color={Colors.white} />
+              <MaterialCommunityIcons
+                name="food-fork-drink"
+                size={40}
+                color={Colors.white}
+              />
             </View>
           </Pressable>
         </LinearGradient>

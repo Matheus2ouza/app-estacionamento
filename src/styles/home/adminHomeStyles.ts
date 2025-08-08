@@ -52,7 +52,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
   },
   cashBox: {
-    height: "35%",
+    height: "42%",
     width: "80%",
     alignItems: "center",
     backgroundColor: Colors.white,
@@ -97,6 +97,7 @@ export const styles = StyleSheet.create({
     marginHorizontal: 6,
     flex: 1,
     justifyContent: "space-around",
+    marginBottom: 5,
   },
   cashRow: {
     flexDirection: "row",
@@ -122,7 +123,7 @@ export const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   parkingStatus: {
-    height: "35%",
+    height: "32%",
     width: "80%",
     alignItems: "center",
     backgroundColor: Colors.white,

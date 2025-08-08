@@ -16,7 +16,7 @@ type CashContextType = {
     finalValue: number
   ) => Promise<{ success: boolean; message: string }>;
   reopenCash: (
-    cashId: string
+    cashId: string,
   ) => Promise<{ success: boolean; message: string }>;
   loading: boolean;
   error: string | null;
@@ -39,6 +39,7 @@ export const CashProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const response = await cashApi.statusCash();
 
+      console.log("[CashContext] Status do caixa:", response);
       // Caixa encontrado - fazemos type guard para garantir que o status é válido
       if (response.success && response.cash) {
         setOpenCashId(response.cash.id);
@@ -133,7 +134,6 @@ export const CashProvider: React.FC<{ children: React.ReactNode }> = ({
 
       if (response.success) {
         setCashStatus("CLOSED");
-        setOpenCashId(null);
         return {
           success: true,
           message: response.message || "Caixa fechado com sucesso",
@@ -161,6 +161,8 @@ export const CashProvider: React.FC<{ children: React.ReactNode }> = ({
   ): Promise<{ success: boolean; message: string }> => {
     setLoading(true);
     try {
+      console.log("CHAMANDO O REOPEN CASH")
+
       const response = await cashApi.reopenCash(cashId);
 
       if (response.success && response.cash) {

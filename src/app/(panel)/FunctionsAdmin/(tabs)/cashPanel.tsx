@@ -34,13 +34,17 @@ export default function CashPanel() {
     loading: cashLoading,
     error: cashError,
   } = useCash();
-  
-  const { generalCashierData, loading: detailsLoading, error: detailsError } = useCashDetails();
+
+  const {
+    generalCashierData,
+    loading: detailsLoading,
+    error: detailsError,
+  } = useCashDetails();
 
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isReopenModalVisible, setIsReopenModalVisible] = useState(false);
   const [isCloseModalVisible, setIsCloseModalVisible] = useState(false);
-  const [isCashClosedModalVisible, setIsCashClosedModalVisible] = useState(false);
+  const [isCashClosedModalVisible, setIsCashClosedModalVisible] =
+    useState(false);
 
   const [feedbackModal, setFeedbackModal] = useState({
     visible: false,
@@ -60,14 +64,24 @@ export default function CashPanel() {
   });
 
   const formatCurrency = (value: number | null | undefined) => {
-    if (value === null || value === undefined || typeof value !== "number" || isNaN(value)) {
+    if (
+      value === null ||
+      value === undefined ||
+      typeof value !== "number" ||
+      isNaN(value)
+    ) {
       return "R$ 0,00";
     }
     return `R$ ${value.toFixed(2).replace(".", ",")}`;
   };
 
   const formatCurrencyNegative = (value: number | null | undefined) => {
-    if (value === null || value === undefined || typeof value !== "number" || isNaN(value)) {
+    if (
+      value === null ||
+      value === undefined ||
+      typeof value !== "number" ||
+      isNaN(value)
+    ) {
       return "R$ 0,00";
     }
     return `R$ -${value.toFixed(2).replace(".", ",")}`;
@@ -82,23 +96,29 @@ export default function CashPanel() {
   useEffect(() => {
     if (cashStatus === "CLOSED") {
       setIsCashClosedModalVisible(true);
-    } else if (!openCashId) {
+      setIsModalVisible(false);
+      setIsCloseModalVisible(false);
+    } else if (cashStatus === "NOT_CREATED" || !openCashId) {
       setIsModalVisible(true);
-    } else {
+      setIsCashClosedModalVisible(false);
+      setIsCloseModalVisible(false);
+    } else if (cashStatus === "OPEN") {
       setIsModalVisible(false);
       setIsCashClosedModalVisible(false);
+      setIsCloseModalVisible(false);
     }
-  }, [openCashId, cashStatus]);
+  }, [cashStatus, openCashId]);
 
   useEffect(() => {
     const fetchCashDetails = async () => {
+      console.log("[CashPanel] Fetching cash details", openCashId);
       if (openCashId) {
         const data = await generalCashierData(openCashId);
-        console.log(data)
         if (data) {
           const safeParse = (value: any): number => {
             if (value === null || value === undefined) return 0;
-            const num = typeof value === "string" ? parseFloat(value) : Number(value);
+            const num =
+              typeof value === "string" ? parseFloat(value) : Number(value);
             return isNaN(num) ? 0 : num;
           };
 
@@ -112,6 +132,16 @@ export default function CashPanel() {
             valuesExit: safeParse(data.outgoing_expense_total),
             veicles: safeParse(data.vehicle_entry_total),
             products: safeParse(data.general_sale_total),
+          });
+        } else {
+          setTransactionValues({
+            initialValue: 0,
+            finalValue: 0,
+            totalValue: 0,
+            valuesEntry: 0,
+            valuesExit: 0,
+            veicles: 0,
+            products: 0,
           });
         }
       }
@@ -216,6 +246,7 @@ export default function CashPanel() {
   };
 
   const handleReopenCash = async () => {
+    console.log(openCashId);
     try {
       if (!openCashId) {
         setFeedbackModal({
@@ -238,7 +269,6 @@ export default function CashPanel() {
 
       if (success) {
         setIsCashClosedModalVisible(false);
-        setIsReopenModalVisible(false);
       }
     } catch (err) {
       setFeedbackModal({
@@ -269,11 +299,11 @@ export default function CashPanel() {
       {/* Modal para caixa fechado */}
       <CashStatusModal
         visible={isCashClosedModalVisible}
+        mode={cashStatus === "CLOSED" ? "CLOSED" : "NOT_CREATED"}
         onClose={() => setIsCashClosedModalVisible(false)}
         onConfirm={handleReopenCash}
       />
 
-      {/* Modal para abrir caixa (quando não existe caixa aberto) */}
       <CashRegisterModal
         visible={isModalVisible}
         mode="open"
@@ -454,14 +484,27 @@ export default function CashPanel() {
 
           <View style={styles.buttonContainer}>
             <PrimaryButton
-              title={openCashId ? "Fechar Caixa" : "Abrir Caixa"}
-              onPress={() =>
-                openCashId
-                  ? setIsCloseModalVisible(true)
-                  : setIsModalVisible(true)
+              title={
+                cashStatus === "OPEN"
+                  ? "Fechar Caixa"
+                  : cashStatus === "CLOSED"
+                  ? "Reabrir Caixa"
+                  : "Abrir Caixa"
               }
+              onPress={() => {
+                if (cashStatus === "OPEN") {
+                  // Se caixa está aberto, mostra modal de fechamento
+                  setIsCloseModalVisible(true);
+                } else if (cashStatus === "CLOSED") {
+                  // Se caixa está fechado, tenta reabrir diretamente
+                  handleReopenCash();
+                } else {
+                  // Se caixa não existe/não criado, mostra modal de abertura
+                  setIsModalVisible(true);
+                }
+              }}
               style={styles.button}
-              disabled={cashStatus === "CLOSED" && !!openCashId}
+              disabled={cashLoading || detailsLoading}
             />
           </View>
         </ScrollView>

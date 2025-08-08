@@ -5,15 +5,27 @@ import { PrimaryButton } from "@/src/components/PrimaryButton";
 
 interface CashStatusModalProps {
   visible: boolean;
+  mode: "CLOSED" | "NOT_CREATED";
   onClose: () => void;
   onConfirm: () => void;
 }
 
 const CashStatusModal: React.FC<CashStatusModalProps> = ({
   visible,
+  mode,
   onClose,
   onConfirm,
 }) => {
+  // Definindo textos com base no modo
+  const modalContent = {
+    title: mode === "CLOSED" ? "Caixa Fechado" : "Caixa Não Criado",
+    message:
+      mode === "CLOSED"
+        ? "O caixa já foi fechado. Para continuar operando, é necessário reabrir o caixa."
+        : "Nenhum caixa foi criado hoje. Para começar as operações, é necessário abrir um novo caixa.",
+    confirmButtonText: mode === "CLOSED" ? "Reabrir Caixa" : "Abrir Caixa",
+  };
+
   return (
     <Modal
       animationType="fade"
@@ -23,16 +35,11 @@ const CashStatusModal: React.FC<CashStatusModalProps> = ({
     >
       {/* Overlay que cobre toda a tela, exceto o header */}
       <View style={styles.overlay}>
-        
         {/* Conteúdo do modal */}
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.title}>Caixa Fechado</Text>
-            <Text style={styles.message}>
-              O caixa ainda não foi criado ou já foi fehcado. 
-              Pode ser que alguns recursos não funcionem como esperado.
-              Deseja reabrir o caixa?
-            </Text>
+            <Text style={styles.title}>{modalContent.title}</Text>
+            <Text style={styles.message}>{modalContent.message}</Text>
             
             <View style={styles.buttonGroup}>
               <PrimaryButton
@@ -42,7 +49,7 @@ const CashStatusModal: React.FC<CashStatusModalProps> = ({
                 textStyle={styles.cancelButtonText}
               />
               <PrimaryButton
-                title="Sim"
+                title={modalContent.confirmButtonText}
                 onPress={onConfirm}
                 style={styles.confirmButton}
               />
@@ -56,15 +63,15 @@ const CashStatusModal: React.FC<CashStatusModalProps> = ({
 
 const styles = StyleSheet.create({
   overlay: {
-  position: "absolute",
-  top: 0,
-  bottom: 0,
-  left: 0,
-  right: 0,
-  backgroundColor: "rgba(0,0,0,0.3)",
-  justifyContent: "center",
-  alignItems: "center",
-},
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
