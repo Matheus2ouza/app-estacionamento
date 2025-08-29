@@ -3,7 +3,7 @@ import FeedbackModal from "@/src/components/FeedbackModal";
 import Separator from "@/src/components/Separator";
 import Colors from "@/src/constants/Colors";
 import { useAuth } from "@/src/context/AuthContext"; // Adicionado
-import useCashService from "@/src/hooks/cash/useCashStatus"; // Adicionado
+import { useCashContext } from "@/src/context/CashContext";
 import { styles } from "@/src/styles/home/normalHomeStyles";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Entypo from "@expo/vector-icons/Entypo";
@@ -22,7 +22,7 @@ const parkingNumbers = {
 
 export default function NormalHome() {
   const { role } = useAuth(); // Obtém o role do usuário
-  const { getStatusCash, loading, isOpen, error } = useCashService(); // Hook para verificar o caixa
+  const { loading, error, cashStatus, fetchStatus } = useCashContext();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [cashStatusLoaded, setCashStatusLoaded] = useState(false);
   const [feedbackModal, setFeedbackModal] = useState({
@@ -38,15 +38,15 @@ export default function NormalHome() {
 
   // Controla a exibição do modal
   useEffect(() => {
-    if (cashStatusLoaded && isOpen === false) {
+    if (cashStatusLoaded && cashStatus === 'closed') {
       setIsModalVisible(true);
     } else {
       setIsModalVisible(false);
     }
-  }, [isOpen, cashStatusLoaded]);
+  }, [cashStatus, cashStatusLoaded]);
 
   const fetchCashStatus = async () => {
-    await getStatusCash();
+    await fetchStatus();
     setCashStatusLoaded(true);
   };
 
@@ -164,8 +164,8 @@ export default function NormalHome() {
           <Pressable
             onPress={() => {
               // Bloqueia acesso se o caixa não estiver aberto
-              if (isOpen) {
-                router.push("/Functions/entreyRegister");
+              if (cashStatus === 'open') {
+                router.push("/functions/entreyRegister");
               } else {
                 Alert.alert(
                   "Caixa fechado",
@@ -182,8 +182,8 @@ export default function NormalHome() {
           <Pressable
             onPress={() => {
               // Bloqueia acesso se o caixa não estiver aberto
-              if (isOpen) {
-                router.push("/Functions/exitRegister");
+              if (cashStatus === 'open') {
+                router.push("/functions/exitRegister");
               } else {
                 Alert.alert(
                   "Caixa fechado",
@@ -197,7 +197,7 @@ export default function NormalHome() {
             </View>
           </Pressable>
 
-          <Pressable onPress={() => router.push("/Functions/parking")}>
+          <Pressable onPress={() => router.push("/functions/parking")}>
             <View style={styles.buttonPatio}>
               <FontAwesome name="product-hunt" size={40} color={Colors.white} />
             </View>

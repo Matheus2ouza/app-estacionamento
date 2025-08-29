@@ -20,7 +20,7 @@ export const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 14,
-    backgroundColor: Colors.zinc,
+    backgroundColor: 'transparent',
     height: 120,
     justifyContent: 'flex-start',
     borderBottomRightRadius: 70,
@@ -33,13 +33,13 @@ export const styles = StyleSheet.create({
   brandMain: {
     fontSize: 40,
     fontWeight: 'bold',
-    color: Colors.lightGray,
+    color: Colors.gray[100],
     textTransform: 'uppercase',
     marginRight: 5,
   },
   brandSub: {
     fontSize: 26,
-    color: Colors.lightGray,
+    color: Colors.gray[100],
     marginBottom: 5,
   },
   formContainer: {
@@ -76,7 +76,7 @@ export const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: Colors.zinc,
+    borderColor: Colors.gray.zinc,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 8,
@@ -85,28 +85,27 @@ export const styles = StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: Colors.zinc,
+    backgroundColor: Colors.gray.zinc,
   },
   radioLabel: {
     fontSize: 13,
-    color: '#333',
+    color: Colors.text.primary,
   },
-
   pressedLabel: {
-    color: '#222',
+    color: Colors.text.primary,
     textDecorationLine: 'underline',
   },
   button: {
     width: '60%',
     height: 50,
-    backgroundColor: Colors.zinc,
+    backgroundColor: Colors.gray.zinc,
     borderRadius: 50,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 10,
   },
   buttonText: {
-    color: '#fff',
+    color: Colors.text.inverse,
     fontWeight: 'bold',
     fontSize: 16,
   },

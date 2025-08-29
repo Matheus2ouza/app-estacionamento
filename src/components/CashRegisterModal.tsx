@@ -1,22 +1,62 @@
 import { useLogout } from '@/src/hooks/auth/useLogout'; // Importe o hook de logout
 import React, { useState } from 'react';
 import { Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import Colors from '../constants/Colors';
 
 type Props = {
   visible: boolean;
   role: String | null;
+  mode?: 'open' | 'reopen'; // Novo: modo do modal
   onClose: () => void;
   onOpenCashRegister: (initialValue: string) => void;
+  onReopenCash?: () => void; // Novo: função para reabrir caixa
 };
 
-const CashRegisterModal = ({ visible, role, onClose, onOpenCashRegister }: Props) => {
+const CashRegisterModal = ({ 
+  visible, 
+  role, 
+  mode = 'open',
+  onClose, 
+  onOpenCashRegister,
+  onReopenCash 
+}: Props) => {
   const [initialValue, setInitialValue] = useState('');
   const { handleLogout } = useLogout(); // Obtenha a função de logout
 
   const handleOpenCash = () => {
-    if (initialValue.trim()) {
+    if (mode === 'reopen' && onReopenCash) {
+      onReopenCash();
+    } else if (initialValue.trim()) {
       onOpenCashRegister(initialValue);
     }
+  };
+
+  const getTitle = () => {
+    if (mode === 'reopen') {
+      return 'Reabrir Caixa';
+    }
+    return 'Abrir Caixa';
+  };
+
+  const getMessage = () => {
+    if (mode === 'reopen') {
+      return 'Deseja reabrir o caixa?';
+    }
+    return 'Para abrir o caixa digite o valor em caixa';
+  };
+
+  const getButtonText = () => {
+    if (mode === 'reopen') {
+      return 'Reabrir caixa';
+    }
+    return 'Abrir caixa';
+  };
+
+  const getCancelButtonText = () => {
+    if (mode === 'reopen') {
+      return 'Cancelar';
+    }
+    return 'Não abrir';
   };
 
   return (
@@ -30,32 +70,34 @@ const CashRegisterModal = ({ visible, role, onClose, onOpenCashRegister }: Props
         <View style={styles.container}>
           {role === 'ADMIN' ? (
             <>
-              <Text style={styles.title}>Caixa não aberto</Text>
-              <Text style={styles.message}>Deseja abrir o caixa?</Text>
+              <Text style={styles.title}>{getTitle()}</Text>
+              <Text style={styles.message}>{getMessage()}</Text>
               
-              <TextInput
-                style={styles.input}
-                placeholder="Valor inicial do caixa"
-                placeholderTextColor="#999"
-                keyboardType="numeric"
-                value={initialValue}
-                onChangeText={setInitialValue}
-              />
+              {mode === 'open' && (
+                <TextInput
+                  style={styles.input}
+                  placeholder="Valor inicial do caixa"
+                  placeholderTextColor="#999"
+                  keyboardType="numeric"
+                  value={initialValue}
+                  onChangeText={setInitialValue}
+                />
+              )}
               
               <View style={styles.buttonContainer}>
                 <TouchableOpacity 
                   style={[styles.button, styles.cancelButton]} 
                   onPress={onClose}
                 >
-                  <Text style={styles.buttonText}>Não abrir</Text>
+                  <Text style={styles.buttonText}>{getCancelButtonText()}</Text>
                 </TouchableOpacity>
                 
                 <TouchableOpacity 
                   style={[styles.button, styles.confirmButton]} 
                   onPress={handleOpenCash}
-                  disabled={!initialValue.trim()}
+                  disabled={mode === 'open' && !initialValue.trim()}
                 >
-                  <Text style={styles.buttonText}>Abrir caixa</Text>
+                  <Text style={styles.buttonText}>{getButtonText()}</Text>
                 </TouchableOpacity>
               </View>
             </>
@@ -84,7 +126,7 @@ const CashRegisterModal = ({ visible, role, onClose, onOpenCashRegister }: Props
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.1)',
+    backgroundColor: Colors.overlay.medium,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 16,

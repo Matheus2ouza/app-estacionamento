@@ -52,7 +52,7 @@ export default function Login() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.white }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.background.primary }}>
       <Image
         source={require("@/src/assets/images/splash-icon-blue.png")}
         style={styles.heroImage}
@@ -65,7 +65,7 @@ export default function Login() {
       >
         <View style={styles.container}>
           <LinearGradient
-            colors={[Colors.zinc, Colors.blueLight]}
+            colors={[Colors.gray.zinc, Colors.blue.light]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.header}
@@ -107,7 +107,7 @@ export default function Login() {
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color={Colors.text.inverse} />
               ) : (
                 <Text style={styles.buttonText}>Entrar</Text>
               )}

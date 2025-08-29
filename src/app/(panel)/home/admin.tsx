@@ -1,125 +1,245 @@
+import CashBox from "@/src/components/CashBox";
+import CashClosedModal from "@/src/components/CashClosedModal";
 import CashRegisterModal from "@/src/components/CashRegisterModal";
 import FeedbackModal from "@/src/components/FeedbackModal";
-import Separator from "@/src/components/Separator";
+import MessageModal from "@/src/components/MessageModal";
+import ParkingBox from "@/src/components/ParkingBox";
 import Colors from "@/src/constants/Colors";
 import { useAuth } from "@/src/context/AuthContext";
-import useCashService from "@/src/hooks/cash/useCashStatus";
+import { useCashContext } from "@/src/context/CashContext";
+import { useCash } from "@/src/hooks/cash/useCash";
 import { styles } from "@/src/styles/home/adminHomeStyles";
-import AntDesign from "@expo/vector-icons/AntDesign";
+import { CashData } from "@/src/types/cash";
+import { Feather } from "@expo/vector-icons";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { LinearGradient } from "expo-linear-gradient";
-import { router, useFocusEffect } from "expo-router";
-import * as SystemUI from "expo-system-ui";
-import { useCallback, useEffect, useState } from "react";
+import { router } from "expo-router";
+import { useEffect, useState } from "react";
 import { Pressable, Text, TouchableOpacity, View } from "react-native";
-
-const cashData = {
-  "Valor Inicial": 999.99,
-  Dinheiro: 123.45,
-  Cartão: 321.0,
-  Pix: 150.0,
-  Saída: 50.0,
-  Total: 1544.44,
-};
-
-const parkingNumbers = {
-  free: 42,
-  used: 99,
-  details: [99, 99, 99], // carro, moto, carro grande (na mesma ordem dos ícones)
-};
+import Spinner from "react-native-loading-spinner-overlay";
 
 export default function AdminHome() {
+  const [message, setMessage] = useState(false)
+  const [showCashRegister, setShowCashRegister] = useState(false)
+  const [cashRegisterMode, setCashRegisterMode] = useState<'open' | 'reopen'>('open')
+  const [showCashClosed, setShowCashClosed] = useState(false)
+  const [showLoader, setShowLoader] = useState(false)
+  const [showFeedback, setShowFeedback] = useState(false)
+  const [feedbackMessage, setFeedbackMessage] = useState('')
+  const [feedbackSuccess, setFeedbackSuccess] = useState(false)
+  const [timeCloseFeedback, setTimeCloseFeedback] = useState(5000)
+  const [cashDetails, setCashDetails] = useState<CashData | null>(null)
   const { role, userId } = useAuth();
-  const { getStatusCash, postOpenCash, loading, isOpen, error } =
-    useCashService();
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [cashStatusLoaded, setCashStatusLoaded] = useState(false);
-  const [feedbackModal, setFeedbackModal] = useState({
-    visible: false,
-    message: "",
-    isSuccess: false,
-  });
+  const { 
+    loading: cashLoading, 
+    error, 
+    cashStatus, 
+    cashData, 
+    fetchStatus, 
+    openCash,
+    reOpenCash,
+    closeCash,
+  } = useCashContext();
 
-  useEffect(() => {
-    // Usa uma cor sólida do gradiente (última cor) como base
-    SystemUI.setBackgroundColorAsync(Colors.blueLight);
-  }, []);
+  const { detailsCash } = useCash();
 
-  const fetchCashStatus = async () => {
-    await getStatusCash();
-    setCashStatusLoaded(true);
+  // Função para buscar detalhes do caixa
+  const fetchCashDetails = async () => {
+    if (cashData?.id && !cashDetails) {
+      const details = await detailsCash(cashData.id);
+      console.log("o details logo abaixo")
+      console.log(details)
+      if (details) {
+        setCashDetails(details);
+      }
+    }
   };
 
-  // Verifica o status do caixa toda vez que a tela entra em foco
-  useFocusEffect(
-    useCallback(() => {
-      fetchCashStatus();
-    }, [])
-  );
+  // Função para atualizar dados do caixa (usada no refresh)
+  const updateCashDetails = async () => {
+    // Primeiro verifica o status do caixa
+    const status = await fetchStatus();
+    
+    // Depois busca os detalhes se o caixa existir
+    if (cashData?.id && (status === 'open' || status === 'closed')) {
+      const details = await detailsCash(cashData.id);
+      console.log("o details logo abaixo")
+      console.log(details)
+      if (details) {
+        setCashDetails(details);
+      }
+    }
+  };
 
+  // Buscar status do caixa quando a tela for montada
   useEffect(() => {
-    console.log("cashStatusLoaded:", cashStatusLoaded);
-    console.log("isOpen:", isOpen);
+    checkCashStatus();
+  }, []);
 
-    if (cashStatusLoaded && isOpen === false) {
-      console.log("-> Abrindo modal");
-      setIsModalVisible(true);
-    } else {
-      console.log("-> Fechando modal");
-      setIsModalVisible(false);
+  // Monitorar mudanças no status do caixa
+  useEffect(() => {
+    if (cashStatus === 'open') {
+      setMessage(false);
+      setShowCashClosed(false);
+      // Buscar detalhes do caixa quando estiver aberto
+      fetchCashDetails();
     }
-  }, [isOpen, cashStatusLoaded]);
+    
+    if (cashStatus === 'closed') {
+      setMessage(false);
+      setShowCashClosed(true);
+      // Manter detalhes do caixa mesmo quando fechado
+      if (!cashDetails && cashData?.id) {
+        fetchCashDetails();
+      }
+    }
+    
+    if (cashStatus === 'not_created') {
+      setMessage(true);
+      setShowCashClosed(false);
+      setCashDetails(null); // Limpar detalhes apenas quando não há caixa
+    }
+  }, [cashStatus, cashData?.id]);
 
-  const handleOpenCash = async (initialValue: string) => {
+  const checkCashStatus = async () => {
+    setShowLoader(true);
+    const startTime = Date.now();
+    
     try {
-      const parsedValue = parseFloat(initialValue);
-
-      if (isNaN(parsedValue)) {
-        setFeedbackModal({
-          visible: true,
-          message: "Valor inválido.",
-          isSuccess: false,
-        });
-        return;
+      const status = await fetchStatus();
+      
+      if(status === 'not_created') {
+        setMessage(true);
+        setShowCashClosed(false);
+        setCashDetails(null);
       }
-
-      await postOpenCash(parsedValue);
-
-      if (isOpen) {
-        setFeedbackModal({
-          visible: true,
-          message: `Caixa aberto com valor inicial: R$ ${parsedValue.toFixed(
-            2
-          )}`,
-          isSuccess: true,
-        });
-        setIsModalVisible(false);
-      } else {
-        setFeedbackModal({
-          visible: true,
-          message: "Já existe um caixa aberto para hoje.",
-          isSuccess: false,
-        });
+      
+      if(status === 'closed') {
+        setMessage(false);
+        setShowCashClosed(true);
+        // Buscar detalhes se não tiver ainda
+        if (!cashDetails && cashData?.id) {
+          await fetchCashDetails();
+        }
       }
-    } catch (err) {
-      setFeedbackModal({
-        visible: true,
-        message: "Não foi possível abrir o caixa.",
-        isSuccess: false,
-      });
-      console.error(err);
+      
+      if(status === 'open') {
+        setMessage(false);
+        setShowCashClosed(false);
+        // Buscar detalhes se não tiver ainda
+        if (!cashDetails && cashData?.id) {
+          await fetchCashDetails();
+        }
+      }
     } finally {
-      // Atualiza o status do caixa depois da tentativa
-      await getStatusCash();
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, 2000 - elapsedTime);
+      
+      setTimeout(() => {
+        setShowLoader(false);
+      }, remainingTime);
     }
+  };
+
+  const handleOpenCash = () => {
+    setMessage(false);
+    setShowCashClosed(false);
+    setCashRegisterMode('open');
+    setShowCashRegister(true);
+  };
+
+  const handleReopenCash = () => {
+    setCashRegisterMode('reopen');
+    setShowCashRegister(true);
+  };
+
+  const handleOpenCashRegister = async (initialValue: string) => {
+    setShowLoader(true);
+    const startTime = Date.now();
+    
+    try {
+      const numericValue = parseFloat(initialValue);
+      const [success, message] = await openCash(numericValue);
+      
+      if (success) {
+        setShowCashRegister(false);
+        setFeedbackMessage(message);
+        setFeedbackSuccess(true);
+        setShowFeedback(true);
+        setTimeCloseFeedback(3000)
+      } else {
+        setFeedbackMessage(message);
+        setFeedbackSuccess(false);
+        setShowFeedback(true);
+        setTimeCloseFeedback(3000)
+      }
+    } finally {
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, 2000 - elapsedTime);
+      
+      setTimeout(() => {
+        setShowLoader(false);
+      }, remainingTime);
+    }
+  };
+
+  const handleReopenCashRegister = async () => {
+    if (!cashData?.id) {
+      console.error('ID do caixa não encontrado');
+      setFeedbackMessage('Erro: Caixa não encontrado');
+      setFeedbackSuccess(false);
+      setShowFeedback(true);
+      return;
+    }
+
+    setShowLoader(true);
+    const startTime = Date.now();
+    
+    try {
+      const [success, message] = await reOpenCash(cashData.id);
+      
+      if (success) {
+        setShowCashRegister(false);
+        setFeedbackMessage(message);
+        setFeedbackSuccess(true);
+        setShowFeedback(true);
+        setTimeCloseFeedback(3000)
+      } else {
+        setFeedbackMessage(message);
+        setFeedbackSuccess(false);
+        setShowFeedback(true);
+        setTimeCloseFeedback(3000)
+      }
+    } finally {
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, 2000 - elapsedTime);
+      
+      setTimeout(() => {
+        setShowLoader(false);
+      }, remainingTime);
+    }
+  };
+
+  const handleCloseCashRegister = () => {
+    setShowCashRegister(false);
+  };
+
+  const handleCloseCashClosedModal = () => {
+    setShowCashClosed(false);
+  };
+
+  const handleOpenCashFromModal = () => {
+    setShowCashClosed(false);
+    setCashRegisterMode('reopen');
+    setShowCashRegister(true);
   };
 
   return (
     <View style={{ flex: 1 }}>
       <LinearGradient
-        colors={[Colors.zinc, Colors.blueLight]}
+        colors={[Colors.gray.zinc, Colors.blue.light]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.header}
@@ -135,153 +255,125 @@ export default function AdminHome() {
           }}
         >
           <View style={styles.iconCircle}>
-            <AntDesign name="user" size={30} color="#fff" />
+          <Feather name="settings" size={30} color={Colors.text.inverse} />
           </View>
         </TouchableOpacity>
       </LinearGradient>
 
-      {/* Modal para controle de abertura de caixa */}
-      <CashRegisterModal
-        visible={isModalVisible}
-        role={role}
-        onClose={() => setIsModalVisible(false)}
-        onOpenCashRegister={handleOpenCash}
+      <MessageModal 
+        visible={message}
+        onClose={() => setMessage(false)}
+        message="Nenhum caixa foi criado ainda. Deseja criar um novo caixa? Caso escolha não abrir o caixa pode ser que algumas funções do sistema não funcionem corretamente ou não estejam disponíveis."
+        title="Caixa não encontrado"
+        buttons={[
+          {
+            text: "Sim, Abrir o caixa",
+            onPress: handleOpenCash
+          }
+        ]}
+        closeButtonText="Fechar"
       />
 
-      {/* Feedback Modal */}
+      <CashClosedModal
+        visible={showCashClosed}
+        onClose={handleCloseCashClosedModal}
+        onOpenCash={handleOpenCashFromModal}
+      />
+
+      <CashRegisterModal
+        visible={showCashRegister}
+        role={role}
+        mode={cashRegisterMode}
+        onClose={handleCloseCashRegister}
+        onOpenCashRegister={handleOpenCashRegister}
+        onReopenCash={handleReopenCashRegister}
+      />
+
       <FeedbackModal
-        visible={feedbackModal.visible}
-        message={feedbackModal.message}
-        isSuccess={feedbackModal.isSuccess}
-        onClose={() => setFeedbackModal({ ...feedbackModal, visible: false })}
+        visible={showFeedback}
+        message={feedbackMessage}
+        isSuccess={feedbackSuccess}
+        onClose={() => setShowFeedback(false)}
+        dismissible={true}
+        timeClose={timeCloseFeedback}
+      />
+
+      <Spinner
+        visible={showLoader}
+        textContent="Carregando..."
+        textStyle={{
+          color: Colors.text.primary,
+          fontSize: 16,
+          fontWeight: '500'
+        }}
+        color={Colors.blue.logo}
+        overlayColor={Colors.overlay.medium}
+        size="large"
+        animation="fade"
       />
 
       <View style={styles.body}>
-        <View style={styles.cashBox}>
-          <View style={styles.BoxHeader}>
-            <Text style={styles.title}>Caixa</Text>
-            <Pressable onPress={fetchCashStatus}>
-              <View style={styles.refreshIcon}>
-                <FontAwesome name="refresh" size={24} color={Colors.white} />
-              </View>
-            </Pressable>
-          </View>
+        <CashBox 
+          cashStatus={cashStatus}
+          onRefresh={updateCashDetails}
+          cashData={cashDetails ? {
+            "Valor Inicial": cashDetails.initialValue,
+            Dinheiro: cashDetails.totalCash,
+            Credito: cashDetails.totalCredit,
+            Debito: cashDetails.totalDebit,
+            Pix: cashDetails.totalPix,
+            Saída: cashDetails.outgoingExpenseTotal,
+            Total: cashDetails.finalValue
+          } : undefined}
+        />
 
-          <Separator style={{ width: "90%" }} />
-
-          <View style={styles.cashContent}>
-            {Object.entries(cashData).map(([label, value]) => (
-              <View key={label} style={styles.cashRow}>
-                <Text style={styles.cashLabel}>{label}</Text>
-                <View style={styles.dottedLine} />
-                <Text style={styles.cashValue}>R$ {value.toFixed(2)}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.parkingStatus}>
-          <View style={styles.BoxHeader}>
-            <Text style={styles.title}>Vagas</Text>
-            <Pressable>
-              <View style={styles.refreshIcon}>
-                <FontAwesome name="refresh" size={24} color={Colors.white} />
-              </View>
-            </Pressable>
-          </View>
-
-          <Separator style={{ width: "90%" }} />
-
-          <View style={styles.parkingContent}>
-            <View style={styles.statusParking}>
-              <View style={styles.freeParking}>
-                <Text style={styles.numberFree}>{parkingNumbers.free}</Text>
-                <Text style={styles.labelFree}>Livres</Text>
-              </View>
-
-              <View style={styles.dividerVertical} />
-
-              <View style={styles.usedParking}>
-                <Text style={styles.numberUsed}>{parkingNumbers.used}</Text>
-                <Text style={styles.labelUsed}>Em uso</Text>
-              </View>
-            </View>
-
-            <Separator style={{ width: "90%", alignSelf: "center" }} />
-
-            <View style={styles.detailsParking}>
-              <View style={styles.iconDescriptionRow}>
-                <MaterialCommunityIcons
-                  name="car-hatchback"
-                  size={22}
-                  color="black"
-                />
-                <Text style={styles.iconText}>{parkingNumbers.details[0]}</Text>
-              </View>
-
-              <View style={styles.dividerVertical} />
-
-              <View style={styles.iconDescriptionRow}>
-                <FontAwesome name="motorcycle" size={18} color="black" />
-                <Text style={styles.iconText}>{parkingNumbers.details[1]}</Text>
-              </View>
-
-              <View style={styles.dividerVertical} />
-
-              <View style={styles.iconDescriptionRow}>
-                <MaterialCommunityIcons
-                  name="car-estate"
-                  size={22}
-                  color="black"
-                />
-                <Text style={styles.iconText}>{parkingNumbers.details[2]}</Text>
-              </View>
-            </View>
-          </View>
-        </View>
+        <ParkingBox 
+          cashStatus={cashStatus}
+          onRefresh={checkCashStatus}
+        />
 
         <LinearGradient
-          colors={[Colors.zinc, Colors.blueLight]}
+          colors={[Colors.gray.zinc, Colors.blue.light]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.bottomBar}
         >
           <Pressable
             onPress={() => {
-              router.push("/Functions/entreyRegister");
+              router.push("/functions/entreyRegister");
             }}
           >
             <View style={styles.buttonEntry}>
-              <Entypo name="login" size={40} color={Colors.white} />
+              <Entypo name="login" size={40} color={Colors.text.inverse} />
             </View>
           </Pressable>
 
           <Pressable
             onPress={() => {
-              router.push("/Functions/scanExit");
+              router.push("/functions/scanExit");
             }}
           >
             <View style={styles.buttonExit}>
-              <Entypo name="log-out" size={40} color={Colors.white} />
+              <Entypo name="log-out" size={40} color={Colors.text.inverse} />
             </View>
           </Pressable>
 
           <Pressable
             onPress={() => {
-              router.push("/Functions/parking");
+              router.push("/functions/parking");
             }}
           >
             <View style={styles.buttonPatio}>
-              <FontAwesome name="product-hunt" size={40} color={Colors.white} />
+              <FontAwesome name="product-hunt" size={40} color={Colors.text.inverse} />
             </View>
           </Pressable>
           <Pressable
             onPress={() => {
-              router.push("/Functions/inventory");
+              router.push("/functions/inventory");
             }}
           >
             <View style={styles.buttonDashboard}>
-              <MaterialCommunityIcons name="food-fork-drink" size={40} color={Colors.white} />
+              <MaterialCommunityIcons name="food-fork-drink" size={40} color={Colors.text.inverse} />
             </View>
           </Pressable>
         </LinearGradient>

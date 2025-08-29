@@ -24,8 +24,6 @@
     "axios": "^1.10.0",
     "date-fns": "^4.1.0",
     "dotenv": "^16.6.1",
-    "expo": "53.0.18",
-    "expo-barcode-scanner": "^13.0.1",
     "expo-blur": "~14.1.5",
     "expo-camera": "~16.1.10",
     "expo-constants": "~17.1.7",
@@ -55,6 +53,7 @@
     "react-native-gesture-handler": "~2.24.0",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-keyboard-controller": "^1.17.5",
+    "react-native-loading-spinner-overlay": "^3.0.1",
     "react-native-modal-dropdown": "^1.0.2",
     "react-native-paper": "^5.14.5",
     "react-native-paper-dropdown": "^1.0.7",
@@ -65,13 +64,16 @@
     "react-native-svg": "^15.11.2",
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "~0.20.0",
-    "react-native-webview": "13.13.5"
+    "react-native-webview": "13.13.5",
+    "expo-dev-client": "~5.2.4",
+    "expo-updates": "~0.28.17"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~19.0.10",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~9.2.0",
+    "expo": "^53.0.20",
     "react-native-svg-transformer": "^1.5.1",
     "typescript": "~5.8.3"
   },

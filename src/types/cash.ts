@@ -1,10 +1,30 @@
+export type cash = {
+  id: string,
+  operator: string;
+  status: string;
+  opening_date: string;
+}
+
+export type cashResponse = {
+  success: boolean;
+  message?: string;
+  cash?: cash;
+}
+
+export type detailsResponse = {
+  success: boolean;
+  message?: string;
+  data?: CashData;
+}
+
 export interface CashData {
-  initialAmount: number;
-  cash: number;
-  card: number;
-  pix: number;
-  expenses: number;
-  total: number;
+  initialValue: number;
+  totalCash: number;
+  totalCredit: number;
+  totalDebit: number;
+  totalPix: number;
+  outgoingExpenseTotal: number;
+  finalValue: number;
 }
 
 export interface VehicleValues {

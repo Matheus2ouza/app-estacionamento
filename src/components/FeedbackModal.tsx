@@ -15,6 +15,12 @@ interface FeedbackModalProps {
   isSuccess?: boolean;
   onClose: () => void;
   dismissible?: boolean;
+  // Props para navegação automática
+  onBackPress?: () => void;
+  autoNavigateOnSuccess?: boolean;
+  autoNavigateOnError?: boolean;
+  navigateDelay?: number;
+  timeClose?: number;
 }
 
 const FeedbackModal = ({ 
@@ -22,17 +28,38 @@ const FeedbackModal = ({
   message, 
   isSuccess = false, 
   onClose, 
-  dismissible = true // Valor padrão true (comportamento original)
+  dismissible = true,
+  onBackPress,
+  autoNavigateOnSuccess = false,
+  autoNavigateOnError = false,
+  navigateDelay = 2000,
+  timeClose = 5000
 }: FeedbackModalProps) => {
   useEffect(() => {
     if (visible) {
       const timer = setTimeout(() => {
         onClose();
-      }, 5000);
+      }, timeClose);
 
       return () => clearTimeout(timer);
     }
   }, [visible]);
+
+  // Efeito para navegação automática
+  useEffect(() => {
+    if (visible && onBackPress) {
+      const shouldNavigate = (isSuccess && autoNavigateOnSuccess) || (!isSuccess && autoNavigateOnError);
+      
+      if (shouldNavigate) {
+        const timer = setTimeout(() => {
+          onBackPress();
+          onClose();
+        }, navigateDelay);
+
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [visible, isSuccess, autoNavigateOnSuccess, autoNavigateOnError, onBackPress, navigateDelay, onClose]);
 
   return (
     <Modal
@@ -102,10 +129,10 @@ const styles = StyleSheet.create({
     width: '80%',
   },
   successBackground: {
-    backgroundColor: Colors.success,
+    backgroundColor: Colors.status.success,
   },
   errorBackground: {
-    backgroundColor: Colors.error,
+    backgroundColor: Colors.status.error,
   },
   modalText: {
     marginVertical: 15,

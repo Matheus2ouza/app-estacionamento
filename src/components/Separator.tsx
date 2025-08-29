@@ -28,6 +28,6 @@ export default function Separator({
 const styles = StyleSheet.create({
   separator: {
     height: 2,
-    backgroundColor: Colors.mediumGray,
+    backgroundColor: Colors.gray.medium,
   },
 });
