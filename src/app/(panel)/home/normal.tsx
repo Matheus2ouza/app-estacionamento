@@ -62,7 +62,7 @@ export default function NormalHome() {
   return (
     <View style={{ flex: 1 }}>
       <LinearGradient
-        colors={[Colors.zinc, Colors.blueLight]}
+        colors={[Colors.gray.zinc, Colors.blue.light]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.header}
@@ -156,7 +156,7 @@ export default function NormalHome() {
         </View>
 
         <LinearGradient
-          colors={[Colors.zinc, Colors.blueLight]}
+          colors={[Colors.gray.zinc, Colors.blue.light]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.bottomBar}
