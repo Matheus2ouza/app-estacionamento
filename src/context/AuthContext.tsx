@@ -12,7 +12,7 @@ const EXPIRATION_MINUTES = 60;
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
-  const [role, setRole] = useState<"ADMIN" | "NORMAL" | null>(null);
+  const [role, setRole] = useState<"ADMIN" | "NORMAL" | "MANAGER" | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

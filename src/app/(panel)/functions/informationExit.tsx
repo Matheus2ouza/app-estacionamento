@@ -112,7 +112,7 @@ export default function InformationExit() {
           title="Gerar pagamento"
           onPress={() => {
             router.push({
-              pathname: "/Functions/registerPayment",
+              pathname: "/functions/registerPayment",
               params: {
                 id: exitData.id,
                 plate,

@@ -42,7 +42,7 @@ export default function Login() {
       if (role === "ADMIN") {
         console.log("Redirecionando para admin...");
         router.replace("/home/admin");
-      } else {
+      } else if (role === "MANAGER" || role === "NORMAL") {
         console.log("Redirecionando para employee...");
         router.replace("/home/normal");
       }

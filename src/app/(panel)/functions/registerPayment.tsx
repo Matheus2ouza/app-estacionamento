@@ -11,7 +11,6 @@ import {
   View,
 } from "react-native";
 import { Provider as PaperProvider, TextInput } from "react-native-paper";
-import DropDown from "react-native-paper-dropdown";
 
 const PAYMENT_OPTIONS = [
   { label: "Dinheiro", value: "Dinheiro" },
@@ -91,28 +90,6 @@ export default function RegisterPayment() {
 
                   <View style={styles.dataItem}>
                     <Text style={styles.informationTitle}>Tipo de Pagamento</Text>
-                    <DropDown
-                      label={"Selecione o tipo"}
-                      mode={"outlined"}
-                      visible={showDropDown}
-                      showDropDown={() => setShowDropDown(true)}
-                      onDismiss={() => setShowDropDown(false)}
-                      value={paymentType}
-                      setValue={setPaymentType}
-                      list={PAYMENT_OPTIONS}
-                      inputProps={{
-                        style: styles.input,
-                        outlineColor: "#E0E0E0",
-                        activeOutlineColor: "#3F51B5",
-                      }}
-                      dropDownStyle={styles.dropDown}
-                      dropDownItemStyle={styles.dropDownItem}
-                      dropDownItemTextStyle={styles.dropDownItemText}
-                      dropDownItemSelectedTextStyle={
-                        styles.dropDownItemSelectedText
-                      }
-                      dropDownItemSelectedStyle={styles.dropDownItemSelected}
-                    />
                   </View>
                 </View>
               </View>

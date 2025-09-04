@@ -251,7 +251,7 @@ export default function AdminHome() {
 
         <TouchableOpacity
           onPress={() => {
-            router.push("/Config/config");
+            router.push("/config/admin");
           }}
         >
           <View style={styles.iconCircle}>
@@ -292,7 +292,7 @@ export default function AdminHome() {
       <FeedbackModal
         visible={showFeedback}
         message={feedbackMessage}
-        isSuccess={feedbackSuccess}
+        type={feedbackSuccess ? 'success' : 'error'}
         onClose={() => setShowFeedback(false)}
         dismissible={true}
         timeClose={timeCloseFeedback}

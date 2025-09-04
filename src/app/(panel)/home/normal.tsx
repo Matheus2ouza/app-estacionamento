@@ -72,7 +72,7 @@ export default function NormalHome() {
           <Text style={styles.brandSub}>Estacionamento</Text>
         </View>
 
-        <TouchableOpacity onPress={() => router.push("/(panel)/Config/config")}>
+        <TouchableOpacity onPress={() => router.push("/config/normal")}>
           <View style={styles.iconCircle}>
             <AntDesign name="user" size={30} color="#fff" />
           </View>
@@ -90,7 +90,7 @@ export default function NormalHome() {
       <FeedbackModal
         visible={feedbackModal.visible}
         message={feedbackModal.message}
-        isSuccess={feedbackModal.isSuccess}
+        type={feedbackModal.isSuccess ? 'success' : 'error'}
         onClose={() => setFeedbackModal({ ...feedbackModal, visible: false })}
       />
 

@@ -1,3 +1,5 @@
+
+
 export type cash = {
   id: string,
   operator: string;

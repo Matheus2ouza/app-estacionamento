@@ -1,11 +1,11 @@
 import { AuthApi } from "@/src/api/userService";
-import { useAuth } from "@/src/context/AuthContext"; // ou onde estiver o seu contexto
 import { useState } from "react";
 
 interface CreateUserData {
   username: string;
   password: string;
-  role: "ADMIN" | "NORMAL";
+  role: "ADMIN" | "NORMAL" | "MANAGER";
+  adminPassword?: string;
 }
 
 export function useCreateUser() {
@@ -13,29 +13,31 @@ export function useCreateUser() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
 
-  const { role: currentUserRole } = useAuth(); // role do usuário logado
-
   const createUser = async (data: CreateUserData) => {
     setLoading(true);
     setError(null);
     setSuccess(false);
 
     try {
-      // Verificação local de permissão
-      if (data.role === "ADMIN" && currentUserRole !== "ADMIN") {
-        setError("Apenas administradores podem criar outros administradores.");
-        return;
+      const response = await AuthApi.registerUser(data)
+      
+      if(response.success) {
+        setSuccess(true);
+        setLoading(false);
+        return {
+          success: true,
+          message: response.message,
+        }
+      } else {
+        setError(response.message);
+        setLoading(false);
+        return {
+          success: false,
+          error: response.message,
+        }
       }
-
-      await AuthApi.userRegister(data);
-      setSuccess(true);
-    } catch (err: any) {
-      setLoading(false);
-      const message = err.response?.data?.message || "Erro desconhecido";
-      setError(message);
-      throw new Error(message);
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      
     }
   };
 

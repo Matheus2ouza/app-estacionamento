@@ -6,13 +6,9 @@ export function usePatioConfig() {
   const [spots, setSpots] = useState<Spots>({
     car: "",
     motorcycle: "",
-    largeCar: "",
   });
 
   const [loading, setLoading] = useState(true)
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalMessage, setModalMessage] = useState("");
-  const [modalIsSuccess, setModalIsSuccess] = useState(false);
 
   useEffect(() => {
     async function loadSpots() {
@@ -21,9 +17,7 @@ export function usePatioConfig() {
         const response = await ParkingApi.getConfigParking();
 
         if (!response.success) {
-          setModalMessage(response.message || "Erro ao carregar configuração.");
-          setModalIsSuccess(false);
-          setModalVisible(true);
+          console.error("Erro ao carregar configuração:", response.message);
           return;
         }
 
@@ -32,15 +26,11 @@ export function usePatioConfig() {
         setSpots({
           car: String(config.maxCars),
           motorcycle: String(config.maxMotorcycles),
-          largeCar: String(config.maxLargeVehicles),
         });
       } catch (error: any) {
         const message =
           error?.response?.data?.message || "Não foi possível carregar as configurações.";
-        console.error("Erro ao buscar configuração do pátio:", error);
-        setModalMessage(message);
-        setModalIsSuccess(false);
-        setModalVisible(true);
+        console.error("Erro ao buscar configuração do pátio:", message);
       } finally {
         setLoading(false)
       }
@@ -56,29 +46,26 @@ export function usePatioConfig() {
     }));
   };
 
-  const handleSave = async () => {
-    const { car, motorcycle, largeCar } = spots;
+  const handleSave = async (): Promise<{ success: boolean; message: string }> => {
+    const { car, motorcycle } = spots;
 
     const carNum = Number(car);
     const motoNum = Number(motorcycle);
-    const largeCarNum = Number(largeCar);
 
     if (
       isNaN(carNum) || carNum < 0 ||
-      isNaN(motoNum) || motoNum < 0 ||
-      isNaN(largeCarNum) || largeCarNum < 0
+      isNaN(motoNum) || motoNum < 0
     ) {
-      setModalMessage("Por favor, insira apenas números válidos e positivos.");
-      setModalIsSuccess(false);
-      setModalVisible(true);
-      return;
+      return {
+        success: false,
+        message: "Por favor, insira apenas números válidos e positivos."
+      };
     }
 
     try {
       const response = await ParkingApi.configParking({
         maxCars: carNum,
         maxMotorcycles: motoNum,
-        maxLargeVehicles: largeCarNum,
       });
 
       const success = response.success;
@@ -86,16 +73,12 @@ export function usePatioConfig() {
         ? "Configuração atualizada com sucesso!"
         : "Erro ao salvar configuração.");
 
-      setModalMessage(message);
-      setModalIsSuccess(success);
-      setModalVisible(true);
+      return { success, message };
     } catch (error: any) {
       const message =
         error?.response?.data?.message || "Não foi possível salvar a configuração.";
-      console.error("Erro ao salvar configuração do pátio:", error);
-      setModalMessage(message);
-      setModalIsSuccess(false);
-      setModalVisible(true);
+      console.error("Erro ao salvar configuração do pátio:", message);
+      return { success: false, message };
     }
   };
 
@@ -104,9 +87,5 @@ export function usePatioConfig() {
     loading,
     handleChange,
     handleSave,
-    modalVisible,
-    modalMessage,
-    modalIsSuccess,
-    closeModal: () => setModalVisible(false),
   };
 }

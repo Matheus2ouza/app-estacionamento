@@ -2,91 +2,220 @@ import FeedbackModal from "@/src/components/FeedbackModal";
 import Header from "@/src/components/Header";
 import { PrimaryButton } from "@/src/components/PrimaryButton";
 import Separator from "@/src/components/Separator";
+import Colors from "@/src/constants/Colors";
 import { usePatioConfig } from "@/src/hooks/parking/usePatioConfig";
 import { styles } from "@/src/styles/functions/patioConfigStyle";
-import { ActivityIndicator, Keyboard, Text, TouchableWithoutFeedback, View } from "react-native";
-import { TextInput } from "react-native-paper";
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useState } from "react";
+import { ActivityIndicator, ScrollView, Text, TextInput, View } from "react-native";
 
 export default function PatioConfig() {
   const {
     spots,
-    loading,
+    loading: initialLoading,
     handleChange,
     handleSave,
-    modalVisible,
-    modalMessage,
-    modalIsSuccess,
-    closeModal,
   } = usePatioConfig();
 
-    if (loading) {
-      return (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" />
-        </View>
-      );
+  const [showFeedback, setShowFeedback] = useState<boolean>(false);
+  const [feedbackMessage, setFeedbackMessage] = useState<string>("");
+  const [feedbackType, setFeedbackType] = useState<'success' | 'error' | 'warning' | 'info'>('info');
+  const [saving, setSaving] = useState<boolean>(false);
+  const [focusedInput, setFocusedInput] = useState<string | null>(null);
+
+  const handleSaveWithFeedback = async () => {
+    // Validação dos inputs
+    if (!spots.car || !spots.motorcycle) {
+      setFeedbackMessage("Por favor, preencha todos os campos de configuração");
+      setFeedbackType('warning');
+      setShowFeedback(true);
+      return;
     }
 
+    const carSpots = parseInt(spots.car, 10);
+    const motorcycleSpots = parseInt(spots.motorcycle, 10);
+
+    if (carSpots < 0 || motorcycleSpots < 0) {
+      setFeedbackMessage("As quantidades de vagas não podem ser negativas");
+      setFeedbackType('warning');
+      setShowFeedback(true);
+      return;
+    }
+
+    if (carSpots === 0 && motorcycleSpots === 0) {
+      setFeedbackMessage("Pelo menos um tipo de vaga deve ter quantidade maior que zero");
+      setFeedbackType('warning');
+      setShowFeedback(true);
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const result = await handleSave();
+      if (result.success) {
+        setFeedbackMessage(result.message || "Configurações salvas com sucesso!");
+        setFeedbackType('success');
+      } else {
+        setFeedbackMessage(result.message || "Erro ao salvar configurações");
+        setFeedbackType('error');
+      }
+      
+      setShowFeedback(true);
+    } catch (error) {
+      setFeedbackMessage("Erro inesperado ao salvar configurações");
+      setFeedbackType('error');
+      setShowFeedback(true);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleFeedbackClose = () => {
+    setShowFeedback(false);
+  };
+
+  const handleInputFocus = (inputName: string) => {
+    setFocusedInput(inputName);
+  };
+
+  const handleInputBlur = () => {
+    setFocusedInput(null);
+  };
+
+  const handleInputChange = (key: keyof typeof spots, value: string) => {
+    // Remove caracteres não numéricos
+    const cleanValue = value.replace(/[^0-9]/g, '');
+    
+    // Converte para número e valida
+    const numericValue = cleanValue === '' ? '' : parseInt(cleanValue, 10).toString();
+    
+    // Limita a 3 dígitos
+    if (numericValue.length <= 3) {
+      handleChange(key, numericValue);
+    }
+  };
+
+  if (initialLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color={Colors.blue.primary} />
+      </View>
+    );
+  }
+
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View style={{ flex: 1 }}>
-        <Header title="Configurações do Pátio" titleStyle={styles.header} />
+    <View style={{ flex: 1 }}>
+      <Header title="Configurações do Pátio" titleStyle={styles.header} />
 
-        <View style={styles.container}>
-          <Text style={styles.title}>Quantidade de vagas</Text>
-          <Separator />
+      <ScrollView 
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        bounces={false}
+      >
+        
+        {/* Seção Informativa */}
+        <View style={styles.infoContainer}>
+          <View style={styles.infoHeader}>
+            <View style={styles.infoIconContainer}>
+              <MaterialIcons name="info" size={24} color="white" />
+            </View>
+            <Text style={styles.infoTitle}>
+              Configuração de Vagas
+            </Text>
+          </View>
+          <Text style={styles.infoDescription}>
+            Configure a quantidade máxima de vagas disponíveis para cada tipo de veículo no estacionamento. 
+            Estas configurações não afetam o controle de entrada de veículos. Ela servirá somente para controle de capacidade e para relatórios futuros.
+          </Text>
+        </View>
 
-          <View style={styles.inputRow}>
-            <Text style={styles.label}>Vagas Carros</Text>
-            <TextInput
-              keyboardType="numeric"
-              value={spots.car}
-              onChangeText={(text) => handleChange("car", text)}
-              placeholder="0"
-              style={styles.numericInput}
-            />
+        {/* Seção de Configurações */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Quantidade de Vagas</Text>
+          </View>
+          
+          {/* Vagas para Carros */}
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Vagas para Carros</Text>
+            <View style={styles.inputRow}>
+              <Text style={styles.label}>Quantidade máxima:</Text>
+              <TextInput
+                keyboardType="numeric"
+                value={spots.car}
+                onChangeText={(text) => handleInputChange("car", text)}
+                onFocus={() => handleInputFocus("car")}
+                onBlur={handleInputBlur}
+                placeholder="0"
+                style={[styles.numericInput, focusedInput === "car" && styles.inputFocused]}
+                placeholderTextColor={Colors.text.secondary}
+                maxLength={3}
+                selectionColor={Colors.blue.primary}
+                returnKeyType="next"
+                blurOnSubmit={false}
+              />
+              <View style={styles.unitContainer}>
+                <Text style={styles.unitText}>Vagas</Text>
+              </View>
+            </View>
+            <Text style={styles.optionalText}>
+              Define o número máximo de carros que podem estacionar simultaneamente
+            </Text>
           </View>
 
-          <View style={styles.inputRow}>
-            <Text style={styles.label}>Vagas Motos</Text>
-            <TextInput
-              keyboardType="numeric"
-              value={spots.motorcycle}
-              onChangeText={(text) => handleChange("motorcycle", text)}
-              placeholder="0"
-              style={styles.numericInput}
-            />
-          </View>
+          {/* Separador */}
+          <Separator style={styles.separator}/>
 
-          <View style={styles.inputRow}>
-            <Text style={styles.label}>Vagas Carros Grandes</Text>
-            <TextInput
-              keyboardType="numeric"
-              value={spots.largeCar}
-              onChangeText={(text) => handleChange("largeCar", text)}
-              placeholder="0"
-              style={styles.numericInput}
-            />
+          {/* Vagas para Motos */}
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Vagas para Motos</Text>
+            <View style={styles.inputRow}>
+              <Text style={styles.label}>Quantidade máxima:</Text>
+              <TextInput
+                keyboardType="numeric"
+                value={spots.motorcycle}
+                onChangeText={(text) => handleInputChange("motorcycle", text)}
+                onFocus={() => handleInputFocus("motorcycle")}
+                onBlur={handleInputBlur}
+                placeholder="0"
+                style={[styles.numericInput, focusedInput === "motorcycle" && styles.inputFocused]}
+                placeholderTextColor={Colors.text.secondary}
+                maxLength={3}
+                selectionColor={Colors.blue.primary}
+                returnKeyType="done"
+              />
+              <View style={styles.unitContainer}>
+                <Text style={styles.unitText}>Vagas</Text>
+              </View>
+            </View>
+            <Text style={styles.optionalText}>
+              Define o número máximo de motos que podem estacionar simultaneamente
+            </Text>
           </View>
         </View>
 
-        <View style={styles.button}>
-          <PrimaryButton
-            title={loading ? "Atualizando.." : "Salvar"}
-            style={styles.primaryButton}
-            onPress={handleSave}
-            disabled={loading}
-          />
-        </View>
-
-        <FeedbackModal
-          visible={modalVisible}
-          message={modalMessage}
-          isSuccess={modalIsSuccess}
-          onClose={closeModal}
+      <View style={styles.button}>
+        <PrimaryButton
+          title={saving ? "Salvando..." : "Salvar Configurações"}
+          style={styles.primaryButton}
+          onPress={handleSaveWithFeedback}
+          disabled={saving}
         />
       </View>
-    </TouchableWithoutFeedback>
+      </ScrollView>
+
+      <FeedbackModal
+        visible={showFeedback}
+        message={feedbackMessage}
+        type={feedbackType}
+        onClose={handleFeedbackClose}
+        dismissible={true}
+        autoNavigateOnSuccess={false}
+        navigateDelay={2000}
+      />
+    </View>
   );
 }
 

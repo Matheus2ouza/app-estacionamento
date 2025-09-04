@@ -118,7 +118,7 @@ export default function ScanExit() {
     const result = await fetchVehicle(id, plate)
 
     router.push({
-      pathname: "/Functions/informationExit",
+      pathname: "/functions/informationExit",
       params: {
         id: id,
         plate: plate,
@@ -136,7 +136,7 @@ export default function ScanExit() {
 
   // Consulta manual
   const handleManualConsult = () => {
-    router.push("/Functions/exitRegister");
+            router.push("/functions/exitRegister");
   };
 
   if (!permission) {

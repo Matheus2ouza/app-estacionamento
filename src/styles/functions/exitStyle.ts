@@ -30,19 +30,19 @@ export const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: "#444",
+    borderColor: Colors.gray.dark,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 6,
   },
   radioOuterSelected: {
-    borderColor: Colors.blueLogo,
+    borderColor: Colors.blue.logo,
   },
   radioInner: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: Colors.blueLogo,
+    backgroundColor: Colors.blue.logo,
   },
   radioLabel: {
     fontSize: 16,
@@ -56,7 +56,7 @@ export const styles = StyleSheet.create({
   separator: {
     width: "100%",
     height: 2,
-    backgroundColor: Colors.zincLight,
+    backgroundColor: Colors.gray.light,
     marginTop: 5,
     marginBottom: 10,
   },
@@ -75,7 +75,7 @@ export const styles = StyleSheet.create({
     marginBottom: 10,
   },
   listItem: {
-    backgroundColor: Colors.zincLight,
+    backgroundColor: Colors.gray.light,
     borderRadius: 10,
     padding: 15,
     width: '100%',
@@ -85,7 +85,7 @@ export const styles = StyleSheet.create({
     fontSize: 24,
     marginLeft: 5,
     marginBottom: 8,
-    color: Colors.darkGray,
+    color: Colors.gray.dark,
   },
   information: {
     flexDirection: 'row',
@@ -103,14 +103,14 @@ export const styles = StyleSheet.create({
   informationTitle: {
     fontWeight: '700',
     fontSize: 15,
-    color: Colors.darkGray,
+    color: Colors.gray.dark,
   },
   informationValue: {
     fontSize: 13,
-    color: Colors.darkGray,
+    color: Colors.gray.dark,
   },
   refreshButton: {
-    backgroundColor: Colors.blueLogo,
+    backgroundColor: Colors.blue.logo,
     padding: 8,
     borderRadius: 8,
     marginLeft: 'auto',

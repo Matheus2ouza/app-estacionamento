@@ -126,7 +126,7 @@ export default function ExitRegister() {
                 key={`${car.plate}-${index}`}
                 onPress={() => {
                   router.push({
-                    pathname: "/Functions/informationExit",
+                    pathname: "/functions/informationExit",
                     params: {
                       id: car.id,
                       plate: car.plate,

@@ -18,12 +18,12 @@ export const styles = StyleSheet.create({
   percentage: {
     fontSize: 60,
     fontFamily: "Montserrat_700Bold",
-    color: Colors.red,
+    color: Colors.red[500],
   },
   separator: {
     width: "90%",
     height: 2,
-    backgroundColor: Colors.zincLight,
+    backgroundColor: Colors.gray.light,
   },
   body: {
     height: "78%",
@@ -59,26 +59,26 @@ export const styles = StyleSheet.create({
     height: 16,
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: Colors.zinc,
+    borderColor: Colors.gray.zinc,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 4,
   },
   radioOuterSelected: {
-    borderColor: Colors.blueLogo,
+    borderColor: Colors.blue.logo,
   },
   radioInner: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: Colors.blueLogo,
+    backgroundColor: Colors.blue.logo,
   },
   radioLabel: {
     fontSize: 14,
-    color: Colors.zinc,
+    color: Colors.gray.zinc,
   },
   refreshButton: {
-    backgroundColor: Colors.blueLogo,
+    backgroundColor: Colors.blue.logo,
     padding: 8,
     borderRadius: 8,
     marginLeft: 10,
@@ -93,7 +93,7 @@ export const styles = StyleSheet.create({
   listItem: {
     flexDirection: "row",
     alignItems: "flex-start",
-    backgroundColor: Colors.zincLight,
+    backgroundColor: Colors.gray.light,
     borderRadius: 10,
     padding: 15,
     marginBottom: 10,
@@ -103,7 +103,7 @@ export const styles = StyleSheet.create({
   itemNumber: {
     fontSize: 28,
     fontWeight: "bold",
-    color: Colors.blueLogo,
+    color: Colors.blue.logo,
     marginRight: 15,
     minWidth: 30,
     textAlign: "center",
@@ -114,7 +114,7 @@ export const styles = StyleSheet.create({
   itemPlate: {
     fontSize: 24,
     fontWeight: "bold",
-    color: Colors.darkGray,
+    color: Colors.gray.dark,
     marginBottom: 5,
   },
   itemDetails: {
@@ -124,6 +124,6 @@ export const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 13,
-    color: Colors.darkGray,
+    color: Colors.gray.dark,
   },
 });

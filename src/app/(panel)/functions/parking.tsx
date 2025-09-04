@@ -26,9 +26,9 @@ export default function Parking() {
   ];
 
   const getPercentageColor = (percentage: number) => {
-    if (percentage < 50) return Colors.green;
-    if (percentage <= 75) return Colors.yellow;
-    return Colors.red;
+    if (percentage < 50) return Colors.green[500];  
+    if (percentage <= 75) return Colors.yellow[500];
+    return Colors.red[500];
   };
 
   const filteredCars = cars.filter((car) => {
@@ -125,7 +125,7 @@ export default function Parking() {
                 key={`${car.plate}-${index}`}
                 onPress={() => {
                   router.push({
-                    pathname: "/Functions/editRegister",
+                    pathname: "/functions/editRegister",
                     params: {
                       id: car.id,
                       plate: car.plate,

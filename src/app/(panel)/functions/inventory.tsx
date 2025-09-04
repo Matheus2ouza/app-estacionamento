@@ -67,7 +67,7 @@ const renderProductItem = ({ item }: { item: any }) => (
     if (loading) {
       return (
         <View style={styles.emptyContainer}>
-          <ActivityIndicator size="large" color={Colors.blueLight} />
+          <ActivityIndicator size="large" color={Colors.blue.light} />
         </View>
       );
     }
@@ -77,7 +77,7 @@ const renderProductItem = ({ item }: { item: any }) => (
         <Text style={styles.emptyText}>
           Nenhum produto registrado. Deseja registrar?
         </Text>
-        <Pressable onPress={() => router.push("/Functions/addProduct")}>
+        <Pressable onPress={() => router.push("/functions/addProduct")}>
           <Text style={styles.emptyLink}>Registrar</Text>
         </Pressable>
       </View>
@@ -93,13 +93,13 @@ const renderProductItem = ({ item }: { item: any }) => (
         <FontAwesome
           name="search"
           size={20}
-          color={Colors.gray}
+          color={Colors.gray.light}
           style={styles.searchIcon}
         />
         <TextInput
           style={styles.searchInput}
           placeholder="Pesquisar produto..."
-          placeholderTextColor={Colors.gray}
+          placeholderTextColor={Colors.gray.light}
           value={searchQuery}
           onChangeText={handleSearch}
         />
@@ -127,7 +127,7 @@ const renderProductItem = ({ item }: { item: any }) => (
       {/* Floating Action Button */}
       <Pressable
         style={styles.addButton}
-        onPress={() => router.push("/Functions/addProduct")}
+                  onPress={() => router.push("/functions/addProduct")}
       >
         <Feather name="plus" size={40} color={Colors.white} />
       </Pressable>
