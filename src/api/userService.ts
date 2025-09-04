@@ -1,4 +1,3 @@
-// src/services/AuthApi.ts
 import { API_URL } from '@/src/config/api';
 import axios from 'axios';
 import type { DataUser, ListUsers, LoginData, UserData } from '../types/auth';
@@ -11,7 +10,7 @@ interface LoginResponse {
 export const AuthApi = {
   loginUser: async (data: LoginData): Promise<LoginResponse> => {
     const response = await axios.post<LoginResponse>(
-      `${API_URL}/auth/login`,
+      `${API_URL}/users/`,
       data,
       {
         headers: {
@@ -22,23 +21,25 @@ export const AuthApi = {
     return response.data;
   },
 
-  userList: async(): Promise<ListUsers> => {
-    const response = await axiosInstance.get<ListUsers>('/auth/listUsers');
+  listUsers: async(): Promise<ListUsers> => {
+    const response = await axiosInstance.get<ListUsers>('/users/');
     return response.data
   },
 
-  userRegister: async(data: DataUser) => {
-    const response = await axiosInstance.post('/auth/register', data);
+  registerUser: async(data: DataUser) => {
+    const response = await axiosInstance.post('/users/create', data);
     return response.data
   },
 
   editUser: async(data: UserData) => {
-    const response = await axiosInstance.post('/auth/edit', data);
+    const response = await axiosInstance.put('/users/update', data);
     return response.data
   },
 
-  deleteUser: async(id: { id:string } ) => {
-    const response = await axiosInstance.post('/auth/deleteUser', id);
+  deleteUser: async(id: string, password: string) => {
+    const response = await axiosInstance.delete(`/users/delete/${id}`, {
+      data: { password }
+    });
     return response.data
-  }
+  },
 };
