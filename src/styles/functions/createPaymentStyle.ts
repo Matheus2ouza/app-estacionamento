@@ -4,7 +4,7 @@ import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   header: {
-    ...TypographyThemes.inter.title, // Inter para títulos - moderna e legível
+    ...TypographyThemes.inter.title,
     fontSize: 25,
   },
   container: {
@@ -43,12 +43,12 @@ export const styles = StyleSheet.create({
     elevation: 5,
   },
   dropdownItemText: {
-    ...TypographyThemes.openSans.body, // Open Sans para dropdown - clássica e legível
+    ...TypographyThemes.openSans.body,
     color: Colors.text.primary,
   },
   dropdownSelectedText: {
     ...TypographyThemes.openSans.body,
-    fontFamily: Fonts.OpenSansSemiBold, // SemiBold para item selecionado
+    fontFamily: Fonts.OpenSansSemiBold, 
     color: Colors.text.primary,
   },
   descriptionContainer: {

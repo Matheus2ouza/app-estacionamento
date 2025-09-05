@@ -1,129 +1,159 @@
 import Colors from "@/src/constants/Colors";
+import { Fonts, TypographyThemes } from "@/src/constants/Fonts";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
   },
-  header: {
-    height: "22%",
-    width: "100%",
+  contentWrapper: {
+    margin: 10,
+    flexGrow: 1,
+    paddingBottom: 20,
   },
-  statusPatio: {
-    width: "100%",
-    padding: 10,
-    alignItems: "center",
+  unifiedSection: {
+    backgroundColor: Colors.whiteSemiTransparent,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: Colors.shadow.light,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 3,
+    flex: 1,
   },
-  percentage: {
-    fontSize: 60,
-    fontFamily: "Montserrat_700Bold",
-    color: Colors.red[500],
+  statusContainer: {
+    paddingBottom: 15,
   },
-  separator: {
-    width: "90%",
-    height: 2,
-    backgroundColor: Colors.gray.light,
-  },
-  body: {
-    height: "78%",
-    width: "100%",
-    paddingHorizontal: 10,
-  },
-  searchContainer: {
-    flexDirection: "column",
-    gap: 10,
-  },
-  searchInput: {
-    width: "100%",
-  },
-  filterRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  statusTitle: {
+    ...TypographyThemes.poppins.subtitle,
+    color: Colors.text.primary,
+    textAlign: "center",
     marginBottom: 10,
   },
-  filterGroup: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: 12,
-    marginLeft: 5,
-  },
-  radioItem: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  radioOuter: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: Colors.gray.zinc,
+  percentageContainer: {
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 4,
   },
-  radioOuterSelected: {
-    borderColor: Colors.blue.logo,
+  percentage: {
+    fontSize: 64,
+    fontFamily: Fonts.MontserratBold,
+    fontWeight: "700",
+    marginTop: -10,
   },
-  radioInner: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.blue.logo,
+  statusLabel: {
+    ...TypographyThemes.nunito.body,
+    color: Colors.text.secondary,
+    fontSize: 16,
   },
-  radioLabel: {
-    fontSize: 14,
-    color: Colors.gray.zinc,
+  separator: {
+    width: "100%",
+    height: 2,
+    backgroundColor: Colors.gray.light,
+    marginVertical: 20,
   },
-  refreshButton: {
-    backgroundColor: Colors.blue.logo,
-    padding: 8,
-    borderRadius: 8,
-    marginLeft: 10,
+  listContainer: {
+    flex: 1,
   },
   list: {
-    marginTop: 5,
+    flex: 1,
     backgroundColor: "transparent",
+    minHeight: 200,
   },
   listContent: {
     paddingBottom: 20,
+    flexGrow: 1,
   },
   listItem: {
     flexDirection: "row",
     alignItems: "flex-start",
-    backgroundColor: Colors.gray.light,
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 10,
+    backgroundColor: Colors.whiteSemiTransparent,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: Colors.shadow.light,
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
     elevation: 2,
-    position: "relative",
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.blue.primary,
   },
   itemNumber: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: Colors.blue.logo,
-    marginRight: 15,
-    minWidth: 30,
+    fontSize: 24,
+    fontFamily: Fonts.MontserratBold,
+    fontWeight: "700",
+    color: Colors.blue.primary,
+    marginRight: 16,
+    minWidth: 32,
     textAlign: "center",
+    backgroundColor: Colors.blue.light,
+    borderRadius: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
   },
   itemData: {
     flex: 1,
   },
   itemPlate: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: Colors.gray.dark,
-    marginBottom: 5,
+    fontSize: 20,
+    fontFamily: Fonts.PoppinsSemiBold,
+    fontWeight: "600",
+    color: Colors.text.primary,
+    marginBottom: 8,
   },
   itemDetails: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between",
+    gap: 12,
   },
-  detailText: {
-    fontSize: 13,
-    color: Colors.gray.dark,
+  detailItem: {
+    backgroundColor: Colors.whiteSemiTransparent,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: Colors.shadow.light,
+  },
+  detailLabel: {
+    ...TypographyThemes.nunito.caption,
+    color: Colors.text.secondary,
+    fontSize: 11,
+    marginBottom: 2,
+  },
+  detailValue: {
+    ...TypographyThemes.openSans.bodySmall,
+    color: Colors.text.primary,
+    fontSize: 12,
+    fontWeight: "500",
+  },
+  emptyState: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+  },
+  emptyStateText: {
+    ...TypographyThemes.nunito.body,
+    color: Colors.text.secondary,
+    textAlign: "center",
+    marginTop: 12,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+  },
+  loadingText: {
+    ...TypographyThemes.nunito.body,
+    color: Colors.text.secondary,
+    marginTop: 12,
   },
 });

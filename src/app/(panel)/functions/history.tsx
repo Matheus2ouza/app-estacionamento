@@ -1,4 +1,3 @@
-import FilterByField, { FilterOption } from "@/src/components/FilterByField";
 import Header from "@/src/components/Header";
 import SearchInput from "@/src/components/SearchInput";
 import Separator from "@/src/components/Separator";

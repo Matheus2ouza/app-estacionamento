@@ -50,7 +50,7 @@ export const styles = StyleSheet.create({
     flexShrink: 1,
   },
   buttonArea: {
-    backgroundColor: Colors.blueLogo,
+    backgroundColor: Colors.blue.logo,
     borderRadius: 10,
     minWidth: 60,
     minHeight: 60,

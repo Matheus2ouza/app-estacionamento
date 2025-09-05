@@ -110,7 +110,7 @@ export default function SearchInput({
               >
                 <Ionicons
                   name={option.icon as any}
-                  size={16}
+                  size={14}
                   color={
                     isOptionSelected(option.key)
                       ? Colors.white
@@ -160,13 +160,14 @@ const styles = StyleSheet.create({
   },
   sortContainer: {
     paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingTop: 5,
+    paddingBottom: 10,
   },
   sortLabel: {
     fontSize: 14,
     fontWeight: "500",
     color: Colors.text.secondary,
-    marginBottom: 12,
+    marginBottom: 5,
   },
   sortOptionsContainer: {
     gap: 10,
@@ -180,7 +181,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderWidth: 2,
     borderColor: Colors.blue.dark,
-    gap: 8
+    gap: 4
   },
   sortOptionSelected: {
     backgroundColor: Colors.blue.primary,
@@ -191,7 +192,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   sortOptionText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "500",
     color: Colors.text.secondary,
   },
