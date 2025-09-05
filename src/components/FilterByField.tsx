@@ -1,6 +1,7 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Colors from "../constants/Colors";
+import { TypographyThemes } from "../constants/Fonts";
 
 export type FilterOption = string;
 
@@ -60,47 +61,49 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     flexWrap: "wrap",
-    marginTop: 5,
-    gap: 5,
+    flex: 1,
+    gap: 8,
   },
   groupTitle: {
-    fontSize: 15,
-    fontWeight: "600",
-    marginBottom: 8,
-    marginLeft: 5,
+    ...TypographyThemes.nunito.bodySmall, // Nunito para título - amigável
+    color: Colors.text.primary,
+    marginRight: 8,
   },
   radioGroup: {
     flexDirection: "row",
     alignItems: "center",
     flexWrap: "wrap",
-    marginLeft: 5,
-    gap: 10,
+    gap: 12,
   },
   radioItem: {
     flexDirection: "row",
     alignItems: "center",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
   },
   radioOuter: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
     borderWidth: 2,
-    borderColor: "#444",
+    borderColor: Colors.gray.medium,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 6,
   },
   radioOuterSelected: {
-    borderColor: Colors.blueLogo,
+    borderColor: Colors.blue.primary,
+    backgroundColor: Colors.blue.light,
   },
   radioInner: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: Colors.blueLogo,
+    backgroundColor: Colors.blue.primary,
   },
   radioLabel: {
-    fontSize: 15,
-    fontFamily: "Roboto_400Regular",
+    ...TypographyThemes.nunito.bodySmall, // Nunito para labels - amigável
+    color: Colors.text.primary,
+    fontSize: 14,
   },
 });
