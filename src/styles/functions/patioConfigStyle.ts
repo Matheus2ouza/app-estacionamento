@@ -133,8 +133,8 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.text.primary,
     textDecorationLine: 'none',
-    borderBottomWidth: 1.5,
-    letterSpacing: 1,
+    borderBottomWidth: 2,
+    letterSpacing: 2,
   },
   inputWithText: {
     borderColor: Colors.blue.primary,
@@ -194,7 +194,7 @@ export const styles = StyleSheet.create({
     lineHeight: 16,
   },
   button: {
-    marginTop: 10,
+    marginVertical: 15,
   },
   primaryButton: {
     width: "100%",
@@ -203,5 +203,60 @@ export const styles = StyleSheet.create({
     height: 1,
     backgroundColor: Colors.blue.primary,
     marginVertical: 20,
+  },
+
+  // Estilos da tela de erro
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    backgroundColor: Colors.white,
+  },
+  errorIconContainer: {
+    marginBottom: 24,
+    padding: 20,
+    backgroundColor: Colors.red[100],
+    borderRadius: 50,
+  },
+  errorTitle: {
+    ...TypographyThemes.poppins.title,
+    color: Colors.text.primary,
+    marginBottom: 16,
+    textAlign: 'center',
+    fontWeight: '700',
+  },
+  errorMessage: {
+    ...TypographyThemes.inter.body,
+    color: Colors.text.secondary,
+    textAlign: 'center',
+    marginBottom: 16,
+    lineHeight: 24,
+  },
+  errorSubtitle: {
+    ...TypographyThemes.nunito.bodySmall,
+    color: Colors.text.secondary,
+    textAlign: 'center',
+    marginBottom: 32,
+    lineHeight: 20,
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.blue.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderRadius: 12,
+    shadowColor: Colors.blue.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  retryButtonText: {
+    ...TypographyThemes.inter.button,
+    color: Colors.white,
+    marginLeft: 8,
+    fontWeight: '600',
   },
 });

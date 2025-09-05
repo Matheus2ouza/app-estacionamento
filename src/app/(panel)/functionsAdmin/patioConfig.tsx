@@ -7,14 +7,17 @@ import { usePatioConfig } from "@/src/hooks/parking/usePatioConfig";
 import { styles } from "@/src/styles/functions/patioConfigStyle";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useState } from "react";
-import { ActivityIndicator, ScrollView, Text, TextInput, View } from "react-native";
+import { RefreshControl, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import Spinner from "react-native-loading-spinner-overlay";
 
 export default function PatioConfig() {
   const {
     spots,
     loading: initialLoading,
+    error,
     handleChange,
     handleSave,
+    refreshData,
   } = usePatioConfig();
 
   const [showFeedback, setShowFeedback] = useState<boolean>(false);
@@ -22,6 +25,7 @@ export default function PatioConfig() {
   const [feedbackType, setFeedbackType] = useState<'success' | 'error' | 'warning' | 'info'>('info');
   const [saving, setSaving] = useState<boolean>(false);
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
 
   const handleSaveWithFeedback = async () => {
     // Validação dos inputs
@@ -82,6 +86,21 @@ export default function PatioConfig() {
     setFocusedInput(null);
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refreshData();
+    } catch (error) {
+      console.error('Erro ao recarregar dados:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const handleRetry = async () => {
+    await refreshData();
+  };
+
   const handleInputChange = (key: keyof typeof spots, value: string) => {
     // Remove caracteres não numéricos
     const cleanValue = value.replace(/[^0-9]/g, '');
@@ -95,10 +114,36 @@ export default function PatioConfig() {
     }
   };
 
-  if (initialLoading) {
+  // Tela de erro
+  if (error && !initialLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color={Colors.blue.primary} />
+      <View style={{ flex: 1, backgroundColor: 'transparent' }}>
+        <Header title="Configurações do Pátio" titleStyle={styles.header} />
+        
+        <View style={styles.errorContainer}>
+          <View style={styles.errorIconContainer}>
+            <MaterialIcons name="error-outline" size={64} color={Colors.red.error} />
+          </View>
+          
+          <Text style={styles.errorTitle}>Erro ao Carregar Dados</Text>
+          
+          <Text style={styles.errorMessage}>
+            {error}
+          </Text>
+          
+          <Text style={styles.errorSubtitle}>
+            Verifique sua conexão com a internet e tente novamente.
+          </Text>
+          
+          <TouchableOpacity 
+            style={styles.retryButton}
+            onPress={handleRetry}
+            disabled={initialLoading}
+          >
+            <MaterialIcons name="refresh" size={24} color={Colors.white} />
+            <Text style={styles.retryButtonText}>Tentar Novamente</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
@@ -113,6 +158,16 @@ export default function PatioConfig() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         bounces={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[Colors.blue.primary]}
+            tintColor={Colors.blue.primary}
+            title="Atualizando..."
+            titleColor={Colors.text.primary}
+          />
+        }
       >
         
         {/* Seção Informativa */}
@@ -214,6 +269,20 @@ export default function PatioConfig() {
         dismissible={true}
         autoNavigateOnSuccess={false}
         navigateDelay={2000}
+      />
+
+      <Spinner
+        visible={initialLoading}
+        textContent="Carregando..."
+        textStyle={{
+          color: Colors.text.primary,
+          fontSize: 16,
+          fontWeight: '500'
+        }}
+        color={Colors.blue.primary}
+        overlayColor={Colors.overlay.medium}
+        size="large"
+        animation="fade"
       />
     </View>
   );

@@ -3,10 +3,10 @@ export type Spots = {
   motorcycle: string;
 };
 
-export interface configurationsSetupVacancies {
+export interface ConfigurationsSetupVacancies {
   success: boolean;
   message: string;
-  config: {
+  data: {
     maxCars: number;
     maxMotorcycles: number;
   }

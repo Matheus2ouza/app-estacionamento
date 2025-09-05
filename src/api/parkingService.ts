@@ -1,13 +1,13 @@
-import { configurationsSetupVacancies, dataParking } from "../types/parking";
+import { ConfigurationsSetupVacancies, dataParking } from "../types/parking";
 import axiosInstance from "./axiosInstance";
 
 export const ParkingApi = {
-  configParking: async (data: dataParking) => {
-    const response = await axiosInstance.post('/vehicles/configParking', data);
+  configParking: async (data: dataParking): Promise<ConfigurationsSetupVacancies> => {
+    const response = await axiosInstance.post('/parking/config', data);
     return response.data
   },
-  getConfigParking: async (): Promise<configurationsSetupVacancies> => {
-    const response = await axiosInstance.get('/vehicles/configParking')
+  getConfigParking: async (): Promise<ConfigurationsSetupVacancies> => {
+    const response = await axiosInstance.get('/parking/config')
     return response.data
   }
 }
