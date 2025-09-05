@@ -3,6 +3,7 @@ const Colors = {
   white: "#ffffff",
   black: "#000000",
   transparent: "transparent",
+  whiteSemiTransparent: "rgba(255, 255, 255, 0.85)",
 
   // ===== PALETA PRINCIPAL - AZUL =====
   blue: {
