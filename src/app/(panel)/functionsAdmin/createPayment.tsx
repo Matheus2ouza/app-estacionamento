@@ -28,7 +28,7 @@ export default function CreatePayment() {
   } | undefined>(undefined);
   const [showFeedback, setShowFeedback] = useState<boolean>(false);
   const [feedbackMessage, setFeedbackMessage] = useState<string>("");
-  const [feedbackSuccess, setFeedbackSuccess] = useState<boolean>(false);
+  const [feedbackType, setFeedbackType] = useState<'success' | 'error' | 'warning' | 'info'>('info');
   const [showTimePicker, setShowTimePicker] = useState<boolean>(false);
   const [selectedTime, setSelectedTime] = useState<Date>(new Date(2024, 0, 1, 0, 0, 0));
 
@@ -44,7 +44,7 @@ export default function CreatePayment() {
   const handleDisabledFieldPress = () => {
     if (isFixedValue) {
       setFeedbackMessage("Campo desabilitado para valor fixo");
-      setFeedbackSuccess(false);
+      setFeedbackType('info');
       setShowFeedback(true);
     }
   };
@@ -85,23 +85,18 @@ export default function CreatePayment() {
   };
 
   const handleSave = async () => {
-    if (!selectedOption) {
-      setFeedbackMessage("Selecione um método de cobrança");
-      setFeedbackSuccess(false);
-      setShowFeedback(true);
-      return;
-    }
-
-    if (!title.trim()) {
-      setFeedbackMessage("Digite um título");
-      setFeedbackSuccess(false);
-      setShowFeedback(true);
-      return;
-    }
-
-    if (!carPrice || !motoPrice) {
-      setFeedbackMessage("Digite os preços para carro e moto");
-      setFeedbackSuccess(false);
+    if (!selectedOption || !title.trim() || !carPrice || !motoPrice) {
+      const messages = {
+        noOption: "Selecione um método de cobrança",
+        noTitle: "Digite um título",
+        noPrices: "Digite os preços para carro e moto"
+      };
+      
+      setFeedbackMessage(
+        !selectedOption ? messages.noOption :
+        !title.trim() ? messages.noTitle : messages.noPrices
+      );
+      setFeedbackType('error');
       setShowFeedback(true);
       return;
     }
@@ -183,15 +178,15 @@ export default function CreatePayment() {
       motoPrice
     });
 
-    // Feedback visual baseado na resposta da API
-    if (result.success) {
-      setFeedbackMessage(result.message);
-      setFeedbackSuccess(true);
-      setShowFeedback(true);
-    } else {
-      setFeedbackMessage(result.message);
-      setFeedbackSuccess(false);
-      setShowFeedback(true);
+    setFeedbackMessage(result.message);
+    setFeedbackType(result.success ? 'success' : 'error');
+    setShowFeedback(true);
+  };
+
+  const handleFeedbackClose = () => {
+    setShowFeedback(false);
+    if (feedbackType === 'success') {
+      router.back();
     }
   };
 
@@ -383,12 +378,11 @@ export default function CreatePayment() {
       <FeedbackModal
         visible={showFeedback}
         message={feedbackMessage}
-        isSuccess={feedbackSuccess}
-        onClose={() => setShowFeedback(false)}
+        type={feedbackType}
+        onClose={handleFeedbackClose}
         dismissible={true}
-        timeClose={3000}
         onBackPress={() => router.back()}
-        autoNavigateOnSuccess={true}
+        autoNavigateOnSuccess={false}
         navigateDelay={2000}
       />
 
