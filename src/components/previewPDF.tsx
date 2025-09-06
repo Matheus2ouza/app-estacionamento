@@ -7,7 +7,7 @@ interface PreviewPDFProps {
   visible: boolean;
   onClose: () => void;
   onDownload: () => void;  // Funções para controle externo
-  onPrint: () => void;
+  onPrint?: () => void;
 }
 
 const PreviewPDF: React.FC<PreviewPDFProps> = ({

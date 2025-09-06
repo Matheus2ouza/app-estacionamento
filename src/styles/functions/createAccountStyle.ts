@@ -1,4 +1,3 @@
-// src/styles/functions/createAccountStyle.ts
 import Colors from "@/src/constants/Colors";
 import { TypographyThemes } from "@/src/constants/Fonts";
 import { StyleSheet } from "react-native";
@@ -18,7 +17,6 @@ export const styles = StyleSheet.create({
   scrollContainer: {
     gap: 20,
   },
-  // Seção informativa
   infoContainer: {
     marginTop: 5,
     padding: 20,

@@ -62,13 +62,15 @@ export default function ConfirmationModal({
       },
       {
         label: "Tolerância",
-        value: `${data.tolerance || 0} minutos`,
-        warning: specialCase?.errors?.includes("tolerance")
+        value: data.category === 'VALOR_FIXO' ? "Não aplicável" : `${data.tolerance || 0} minutos`,
+        warning: specialCase?.errors?.includes("tolerance"),
+        isNotApplicable: data.category === 'VALOR_FIXO'
       },
       {
         label: "Tempo de Cobrança",
         value: data.time ? `${data.time} ${getTimeUnit(data.category)}` : "Não aplicável",
-        warning: specialCase?.errors?.includes("time")
+        warning: specialCase?.errors?.includes("time"),
+        isNotApplicable: !data.time || data.category === 'VALOR_FIXO'
       },
       {
         label: "Preço Carro",
@@ -165,6 +167,7 @@ export default function ConfirmationModal({
                           styles.detailValue,
                           detail.highlight && styles.detailValueHighlight,
                           detail.warning && styles.detailValueWarning,
+                          detail.isNotApplicable && styles.detailValueNotApplicable,
                         ]}
                       >
                         {detail.value}
@@ -312,6 +315,11 @@ const styles = StyleSheet.create({
   detailValueWarning: {
     color: Colors.red[500],
     fontWeight: '600',
+  },
+  detailValueNotApplicable: {
+    color: Colors.orange[500],
+    fontStyle: 'italic',
+    fontWeight: '500',
   },
   footer: {
     flexDirection: 'row',

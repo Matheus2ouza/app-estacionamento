@@ -1,11 +1,38 @@
-import { deleteVehicleResponse, EditData, EntryData, ParkedVehiclesResponse, RegisterVehicleResponse, SecondticketResponse, VehicleResponse } from '../types/vehicleFlow';
+import { deleteVehicleResponse, EditData, ParkedVehiclesResponse, SecondticketResponse, VehicleResponse } from '../types/vehicleFlow';
+import { RegisterVehicleData, RegisterVehicleResponse } from '../types/vehicleTypes/vehicles';
 import axiosInstance from './axiosInstance';
 
 
 export const VehicleApi = {
-  registerEntry: async (data: EntryData): Promise<RegisterVehicleResponse> => {
+  registerEntry: async (data: RegisterVehicleData, photo: string): Promise<RegisterVehicleResponse> => {
+    const formData = new FormData();
+    
+    // Adicionar os dados do veículo
+    formData.append('plate', data.plate);
+    formData.append('category', data.category);
+    
+    if (data.observation) {
+      formData.append('observation', data.observation);
+    }
+    
+    if (data.billingMethod) {
+      formData.append('billingMethod', data.billingMethod);
+    }
+    
+    if (photo) {
+      formData.append('photo', {
+        uri: photo,
+        type: 'image/jpeg',
+        name: 'photo.jpg',
+      } as any);
+    }
+    
     const response = await axiosInstance.post<RegisterVehicleResponse>(
-      '/vehicles/entries', data);
+      '/vehicles/entries', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
     return response.data;
   },
 

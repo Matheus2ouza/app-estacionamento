@@ -24,6 +24,8 @@ export default function EditPayment() {
     motoPrice: string;
   }>();
 
+  console.log('params', params);
+
   const [change, setChange] = useState<string>("");
   const [title, setTitle] = useState<string>("");
   const [tolerance, setTolerance] = useState<string>("");

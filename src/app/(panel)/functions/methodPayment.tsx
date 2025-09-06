@@ -12,6 +12,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import Snackbar from "react-native-snackbar";
 
 export default function MethodPayment() {
   const { role, userId } = useAuth();
@@ -43,20 +44,12 @@ export default function MethodPayment() {
 
   // Efeito para mostrar feedback baseado no estado do hook
   useEffect(() => {
-    if (success && message && !loading) {
-      // Se foi uma desativação ou ativação bem-sucedida, recarrega a lista
-      if (message.includes('desativado') || message.includes('ativado')) {
-        // Adiciona um pequeno delay para evitar conflitos de estado
-        setTimeout(() => {
-          loadMethods();
-        }, 100);
-      }
-    } else if (error && !loading) {
+    if (error && !loading) {
       setFeedbackMessage(error || "Erro desconhecido");
       setFeedbackType('error');
       setShowFeedback(true);
     }
-  }, [success, error, message, loading]);
+  }, [error, loading]);
 
   const loadMethods = async () => {
     try {
@@ -107,23 +100,49 @@ export default function MethodPayment() {
         title: method.title,
         category: method.category,
         tolerance: method.tolerance.toString(),
-        time: method.time !== undefined && method.time !== null ? method.time.toString() : "",
+        time: method.timeMinutes !== undefined && method.timeMinutes !== null ? method.timeMinutes.toString() : "",
         carPrice: method.carroValue.toString(),
         motoPrice: method.motoValue.toString()
       }
     });
   };
 
-  const handleActivateMethod = async (method: BillingMethodList) => {
+  const handleEditDisabledMethod = () => {
+    Snackbar.show({
+      text: "Não é possível editar um método desativado. Reative o método primeiro.",
+      duration: Snackbar.LENGTH_LONG,
+      backgroundColor: Colors.orange[600],
+      textColor: Colors.white,
+      action: {
+        text: "OK",
+        textColor: Colors.white,
+      },
+    });
+  };
+
+  const handleActivateMethod = (method: BillingMethodList) => {
     if (!checkAdminPermission("ativar métodos de cobrança")) {
       return;
     }
 
+    setMethodToActivate(method);
+    setShowActivateModal(true);
+  };
+
+  const confirmActivate = async () => {
+    if (!methodToActivate) return;
+
     try {
       // Chama a API para ativar
-      const result = await activateMethodFromHook(method.id);
+      const result = await activateMethodFromHook(methodToActivate.id);
       
       if (result.success) {
+        setShowActivateModal(false);
+        setMethodToActivate(null);
+        
+        // Recarrega a lista de métodos para atualizar o estado
+        await loadMethods();
+        
         // Mostra feedback de sucesso
         setFeedbackMessage("Método reativado com sucesso!");
         setFeedbackType('success');
@@ -142,8 +161,16 @@ export default function MethodPayment() {
     }
   };
 
+  const cancelActivate = () => {
+    setShowActivateModal(false);
+    setMethodToActivate(null);
+  };
+
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [methodToDelete, setMethodToDelete] = useState<BillingMethodList | null>(null);
+  
+  const [showActivateModal, setShowActivateModal] = useState(false);
+  const [methodToActivate, setMethodToActivate] = useState<BillingMethodList | null>(null);
 
   const handleDeleteMethod = (method: BillingMethodList) => {
     if (!checkAdminPermission("desativar métodos de cobrança")) {
@@ -164,6 +191,14 @@ export default function MethodPayment() {
       if (result.success) {
         setShowDeleteModal(false);
         setMethodToDelete(null);
+        
+        // Recarrega a lista de métodos para atualizar o estado
+        await loadMethods();
+        
+        // Mostra feedback de sucesso
+        setFeedbackMessage("Método desativado com sucesso!");
+        setFeedbackType('success');
+        setShowFeedback(true);
       } else {
         console.error("[MethodPayment] Erro ao desativar método:", result.message);
         setFeedbackMessage("Erro ao desativar método: " + result.message);
@@ -233,16 +268,13 @@ export default function MethodPayment() {
       return null;
     }
 
-    // Se o método estiver desativado, mostra todos os dados com avisos
+    // Se o método estiver desativado, mostra apenas o card de desativado
     if (!method.isActive) {
       return (
-        <View key={`method-${index}`} style={styles.methodCard}>
-          <View style={styles.methodHeader}>
-            <View style={styles.methodTitleContainer}>
-              <Text style={styles.methodTitle}>{method.title}</Text>
-              <View style={styles.categoryBadge}>
-                <Text style={styles.categoryText}>{getCategoryLabel(method.category)}</Text>
-              </View>
+        <View key={`method-${index}`} style={disabledMethodStyles.methodCard}>
+          <View style={disabledMethodStyles.methodHeader}>
+            <View style={disabledMethodStyles.methodTitleContainer}>
+              <Text style={disabledMethodStyles.methodTitle}>{method.title}</Text>
               <View style={disabledMethodStyles.statusBadge}>
                 <Ionicons 
                   name="pause-circle" 
@@ -256,12 +288,12 @@ export default function MethodPayment() {
               </View>
             </View>
             
-            <View style={styles.actionButtons}>
+            <View style={disabledMethodStyles.actionButtons}>
               <TouchableOpacity
-                style={styles.editButton}
-                onPress={() => handleEditMethod(method)}
+                style={[disabledMethodStyles.editButton, { opacity: 0.8 }]}
+                onPress={handleEditDisabledMethod}
               >
-                <Ionicons name="pencil" size={20} color={Colors.gray.light} />
+                <Ionicons name="pencil" size={20} color={Colors.gray[700]} />
               </TouchableOpacity>
               
               <TouchableOpacity
@@ -273,85 +305,18 @@ export default function MethodPayment() {
             </View>
           </View>
 
-          <View style={styles.methodDetails}>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Tolerância:</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={[styles.detailValue, { color: Colors.gray[500] }]}>
-                  {method.tolerance || 0} minutos
-                </Text>
-                {method.category === 'VALOR_FIXO' && (
-                  <View style={disabledMethodStyles.disabledInfoIcon}>
-                    <Ionicons name="information-circle" size={16} color={Colors.blue[500]} />
-                  </View>
-                )}
-              </View>
+          {/* Apenas o aviso de método desativado */}
+          <View style={[disabledMethodStyles.disabledInfoContainer, { marginTop: 0 }]}>
+            <View style={disabledMethodStyles.disabledInfoIcon}>
+              <Ionicons name="alert-circle" size={20} color={Colors.orange[600]} />
             </View>
-
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Tempo de Cobrança:</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={[styles.detailValue, { color: Colors.gray[500] }]}>
-                  {method.time ? formatTime(method.time) : "Não aplicável"}
-                </Text>
-                {method.category === 'VALOR_FIXO' && (
-                  <View style={disabledMethodStyles.disabledInfoIcon}>
-                    <Ionicons name="information-circle" size={16} color={Colors.blue[500]} />
-                  </View>
-                )}
-              </View>
-            </View>
-
-            <View style={styles.pricingSection}>
-              <Text style={styles.pricingTitle}>Preços</Text>
-              
-              <View style={styles.priceRow}>
-                <View style={styles.vehicleIcon}>
-                  <Ionicons name="car" size={16} color={Colors.blue.primary} />
-                </View>
-                <Text style={activeMethodStyles.vehicleLabel}>Carro:</Text>
-                <Text style={styles.priceValue}>{formatCurrency(method.carroValue || 0)}</Text>
-              </View>
-
-              <View style={styles.priceRow}>
-                <View style={styles.vehicleIcon}>
-                  <Ionicons name="bicycle" size={16} color={Colors.blue.primary} />
-                </View>
-                <Text style={activeMethodStyles.vehicleLabel}>Moto:</Text>
-                <Text style={styles.priceValue}>{formatCurrency(method.motoValue || 0)}</Text>
-              </View>
-            </View>
-
-            {/* Aviso sobre campos não aplicáveis para valor fixo */}
-            {method.category === 'VALOR_FIXO' && (
-              <View style={[disabledMethodStyles.disabledInfoContainer, { marginTop: 16 }]}>
-                <View style={[disabledMethodStyles.disabledInfoIcon, { backgroundColor: Colors.blue[100] }]}>
-                  <Ionicons name="information-circle" size={20} color={Colors.blue[600]} />
-                </View>
-                <View style={disabledMethodStyles.disabledInfoContent}>
-                  <Text style={[disabledMethodStyles.disabledInfoTitle, { color: Colors.blue[800] }]}>
-                    Método de Valor Fixo
-                  </Text>
-                  <Text style={[disabledMethodStyles.disabledInfoMessage, { color: Colors.blue[700] }]}>
-                    Para métodos de valor fixo, tolerância e tempo de cobrança não se aplicam, pois o valor é cobrado independentemente do tempo de permanência.
-                  </Text>
-                </View>
-              </View>
-            )}
-
-            {/* Aviso de método desativado */}
-            <View style={[disabledMethodStyles.disabledInfoContainer, { marginTop: 12 }]}>
-              <View style={disabledMethodStyles.disabledInfoIcon}>
-                <Ionicons name="alert-circle" size={20} color={Colors.orange[600]} />
-              </View>
-              <View style={disabledMethodStyles.disabledInfoContent}>
-                <Text style={disabledMethodStyles.disabledInfoTitle}>
-                  Método Desativado
-                </Text>
-                <Text style={disabledMethodStyles.disabledInfoMessage}>
-                  Este método não está disponível para uso. Clique no botão verde (✓) para reativá-lo.
-                </Text>
-              </View>
+            <View style={disabledMethodStyles.disabledInfoContent}>
+              <Text style={disabledMethodStyles.disabledInfoTitle}>
+                Método Desativado
+              </Text>
+              <Text style={disabledMethodStyles.disabledInfoMessage}>
+                Este método não está disponível para uso. Clique no botão verde (✓) para reativá-lo.
+              </Text>
             </View>
           </View>
         </View>
@@ -425,11 +390,11 @@ export default function MethodPayment() {
                 <Text style={styles.detailValue}>{method.tolerance || 0} minutos</Text>
               </View>
 
-              {method.time && (
+              {method.timeMinutes && (
                 <View style={styles.detailRow}>
                   <Text style={styles.detailLabel}>Tempo de Cobrança:</Text>
                   <Text style={styles.detailValue}>
-                    {formatTime(method.time)}
+                    {formatTime(method.timeMinutes)}
                   </Text>
                 </View>
               )}
@@ -562,6 +527,18 @@ export default function MethodPayment() {
         currentRole={role || undefined}
         onClose={() => setShowPermissionDenied(false)}
         message="Você precisa ter permissão de administrador para editar métodos de cobrança."
+      />
+
+      <GenericConfirmationModal
+        visible={showActivateModal}
+        title="Confirmar Reativação"
+        message={`Deseja realmente reativar o método "${methodToActivate?.title || 'selecionado'}"?`}
+        details={`Você está reativando um método de cobrança. Após a reativação, o método ficará disponível para uso novamente e poderá ser editado normalmente.`}
+        onConfirm={confirmActivate}
+        onCancel={cancelActivate}
+        confirmText="Reativar"
+        cancelText="Cancelar"
+        confirmButtonStyle="success"
       />
     </View>
   );

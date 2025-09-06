@@ -85,6 +85,8 @@ export default function CreatePayment() {
   };
 
   const handleSave = async () => {
+    console.log('Debug - handleSave called, change:', change);
+    
     if (!selectedOption || !title.trim() || !carPrice || !motoPrice) {
       const messages = {
         noOption: "Selecione um método de cobrança",
@@ -161,6 +163,51 @@ export default function CreatePayment() {
       });
       setShowConfirmation(true);
       return;
+    }
+
+    // Verificar se o tempo é válido apenas para POR_MINUTO
+    if (change === 'POR_MINUTO') {
+      console.log('Debug - Entrou na validação POR_MINUTO, time:', time);
+      
+      // Verificar se o tempo não foi selecionado
+      if (time === "00:00:00") {
+        const errorCase = {
+          title: "Erro: Tempo não selecionado",
+          message: "Por favor, selecione um tempo válido para este método de cobrança.",
+          errors: ["time"] as ("tolerance" | "time" | "carPrice" | "motoPrice")[]
+        };
+        console.log('Debug - Setting specialCase:', errorCase);
+        setSpecialCase(errorCase);
+        setShowConfirmation(true);
+        return;
+      }
+      
+      // Verificar se os minutos são válidos (0-59)
+      const timeParts = time.split(':');
+      const hours = parseInt(timeParts[0]);
+      const minutes = parseInt(timeParts[1]);
+      
+      // Para POR_MINUTO, só considerar os minutos (0-59)
+      if (minutes < 1 || minutes > 59) {
+        setSpecialCase({
+          title: "Erro: Tempo Inválido",
+          message: "Para cobrança por minuto, o tempo deve ser entre 1 e 59 minutos. Por favor, ajuste o tempo selecionado.",
+          errors: ["time"]
+        });
+        setShowConfirmation(true);
+        return;
+      }
+      
+      // Verificar se há horas (não permitido para POR_MINUTO)
+      if (hours > 0) {
+        setSpecialCase({
+          title: "Erro: Tempo Inválido",
+          message: "Para cobrança por minuto, não é permitido usar horas. Selecione apenas minutos.",
+          errors: ["time"]
+        });
+        setShowConfirmation(true);
+        return;
+      }
     }
     
     // Se não há erros, mostra confirmação normal

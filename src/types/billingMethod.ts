@@ -34,6 +34,7 @@ export type BillingMethodList = {
   isActive: boolean;
   tolerance: number;
   time?: string;
+  timeMinutes?: number;
   carroValue: number;
   motoValue: number;
 }

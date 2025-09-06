@@ -2,8 +2,58 @@ import Colors from "@/src/constants/Colors";
 import { TypographyThemes } from "@/src/constants/Fonts";
 import { StyleSheet } from "react-native";
 
-// Estilos para métodos desativados
 export const disabledMethodStyles = StyleSheet.create({
+  methodCard: {
+    backgroundColor: Colors.gray[50],
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 1,
+    borderWidth: 1,
+    borderColor: Colors.gray[200],
+    opacity: 0.8,
+  },
+  methodHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  methodTitleContainer: {
+    flex: 1,
+    marginRight: 12,
+  },
+  methodTitle: {
+    ...TypographyThemes.poppins.title,
+    fontSize: 18,
+    color: Colors.gray[600],
+    marginBottom: 8,
+  },
+  categoryBadge: {
+    backgroundColor: Colors.gray[300],
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+  },
+  categoryText: {
+    ...TypographyThemes.inter.caption,
+    color: Colors.gray[600],
+    fontSize: 12,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  editButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: Colors.gray[400],
+  },
   statusBadge: {
     backgroundColor: Colors.red[100],
     paddingHorizontal: 10,
@@ -32,6 +82,57 @@ export const disabledMethodStyles = StyleSheet.create({
   },
   activateIcon: {
     color: Colors.green[500]
+  },
+  methodDetails: {
+    gap: 12,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  detailLabel: {
+    ...TypographyThemes.inter.subtitle,
+    color: Colors.gray[500],
+    flex: 1,
+  },
+  detailValue: {
+    ...TypographyThemes.openSans.body,
+    color: Colors.gray[500],
+    fontWeight: '500',
+  },
+  pricingSection: {
+    marginTop: 8,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: Colors.gray[200],
+  },
+  pricingTitle: {
+    ...TypographyThemes.inter.subtitle,
+    color: Colors.gray[600],
+    marginBottom: 8,
+    fontWeight: '600',
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  vehicleIcon: {
+    width: 20,
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  vehicleLabel: {
+    ...TypographyThemes.inter.subtitle,
+    color: Colors.gray[500],
+    marginLeft: 8
+  },
+  priceValue: {
+    ...TypographyThemes.poppins.body,
+    color: Colors.gray[500],
+    fontWeight: '600',
+    marginLeft: 'auto',
   },
   disabledInfoContainer: {
     flexDirection: 'row',
@@ -66,7 +167,6 @@ export const disabledMethodStyles = StyleSheet.create({
   }
 });
 
-// Estilos para métodos ativos
 export const activeMethodStyles = StyleSheet.create({
   vehicleLabel: {
     ...TypographyThemes.inter.subtitle,
@@ -75,14 +175,12 @@ export const activeMethodStyles = StyleSheet.create({
   }
 });
 
-// Estilos para o container principal
 export const containerStyles = StyleSheet.create({
   mainContainer: {
     flex: 1
   }
 });
 
-// Estilos principais
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -90,11 +188,11 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   header: {
-    ...TypographyThemes.inter.title, // Inter para header - moderna e legível
+    ...TypographyThemes.inter.title,
     fontSize: 25,
   },
   title: {
-    ...TypographyThemes.poppins.title, // Poppins para título principal - elegante
+    ...TypographyThemes.poppins.title,
     marginBottom: 10,
     color: Colors.blue.logo,
   },
@@ -120,12 +218,12 @@ export const styles = StyleSheet.create({
     shadowRadius: 3.84,
   },
   methodLabel: {
-    ...TypographyThemes.inter.subtitle, // Inter para labels - moderna e clara
+    ...TypographyThemes.inter.subtitle,
     marginTop: 10,
     color: "#333",
   },
   methodDetail: {
-    ...TypographyThemes.openSans.body, // Open Sans para detalhes - legível
+    ...TypographyThemes.openSans.body,
     color: "#555",
     marginTop: 4,
   },
@@ -136,18 +234,18 @@ export const styles = StyleSheet.create({
     borderBottomColor: Colors.gray[500],
   },
   vehicleLabel: {
-    ...TypographyThemes.inter.subtitle, // Inter para labels de veículos - moderna
+    ...TypographyThemes.inter.subtitle,
     marginBottom: 6,
     color: Colors.blue.light,
   },
   inputDetail: {
-    ...TypographyThemes.nunito.bodySmall, // Nunito para detalhes - amigável
+    ...TypographyThemes.nunito.bodySmall,
     color: "#444",
     marginLeft: 8,
     marginBottom: 2,
   },
   noConfigText: {
-    ...TypographyThemes.nunito.body, // Nunito para texto de estado vazio - amigável
+    ...TypographyThemes.nunito.body,
     marginTop: 20,
     color: "#999",
     textAlign: "center",
@@ -176,7 +274,7 @@ export const styles = StyleSheet.create({
     marginRight: 12,
   },
   methodTitle: {
-    ...TypographyThemes.poppins.title, // Poppins para título do método - elegante
+    ...TypographyThemes.poppins.title,
     fontSize: 18,
     color: Colors.text.primary,
     marginBottom: 8,
@@ -189,7 +287,7 @@ export const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   categoryText: {
-    ...TypographyThemes.inter.caption, // Inter para badge de categoria - moderna
+    ...TypographyThemes.inter.caption,
     color: Colors.gray[100],
     fontSize: 12,
   },
@@ -216,12 +314,12 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   detailLabel: {
-    ...TypographyThemes.inter.subtitle, // Inter para labels de detalhes - moderna
+    ...TypographyThemes.inter.subtitle,
     color: Colors.text.secondary,
     flex: 1,
   },
   detailValue: {
-    ...TypographyThemes.openSans.body, // Open Sans para valores - legível
+    ...TypographyThemes.openSans.body,
     color: Colors.text.primary,
     fontWeight: '500',
   },
@@ -232,7 +330,7 @@ export const styles = StyleSheet.create({
     borderTopColor: Colors.gray.light,
   },
   pricingTitle: {
-    ...TypographyThemes.inter.subtitle, // Inter para título da seção de preços - moderna
+    ...TypographyThemes.inter.subtitle,
     color: Colors.text.primary,
     marginBottom: 8,
     fontWeight: '600',
@@ -248,13 +346,11 @@ export const styles = StyleSheet.create({
     marginRight: 8,
   },
   priceValue: {
-    ...TypographyThemes.poppins.body, // Poppins para valores de preço - elegante
+    ...TypographyThemes.poppins.body,
     color: Colors.green[600],
     fontWeight: '600',
     marginLeft: 'auto',
   },
-
-  // Estados de loading, erro e vazio
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -262,7 +358,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   loadingText: {
-    ...TypographyThemes.nunito.body, // Nunito para texto de loading - amigável
+    ...TypographyThemes.nunito.body,
     color: Colors.text.secondary,
     marginTop: 16,
   },
@@ -274,13 +370,13 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   errorTitle: {
-    ...TypographyThemes.poppins.title, // Poppins para título de erro - elegante
+    ...TypographyThemes.poppins.title,
     color: Colors.red[600],
     marginTop: 16,
     marginBottom: 8,
   },
   errorMessage: {
-    ...TypographyThemes.nunito.body, // Nunito para mensagem de erro - amigável
+    ...TypographyThemes.nunito.body,
     color: Colors.text.secondary,
     textAlign: 'center',
     marginBottom: 24,
@@ -292,7 +388,7 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
   },
   retryButtonText: {
-    ...TypographyThemes.poppins.button, // Poppins para botão de retry - elegante
+    ...TypographyThemes.poppins.button,
     color: Colors.white,
   },
   emptyContainer: {
@@ -303,13 +399,14 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   emptyTitle: {
-    ...TypographyThemes.poppins.title, // Poppins para título de estado vazio - elegante
+    ...TypographyThemes.poppins.title,
     color: Colors.text.secondary,
     marginTop: 16,
     marginBottom: 8,
+    textAlign: 'center',
   },
   emptyMessage: {
-    ...TypographyThemes.nunito.body, // Nunito para mensagem de estado vazio - amigável
+    ...TypographyThemes.nunito.body,
     color: Colors.text.secondary,
     textAlign: 'center',
     lineHeight: 22,

@@ -1,0 +1,381 @@
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import { CameraView, useCameraPermissions } from "expo-camera";
+import { useEffect, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Easing,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
+interface CameraComponentProps {
+  mode: 'default';
+  onBarcodeScanned?: (data: { data: string }) => void;
+  onManualAction?: () => void;
+  onPhotoCaptured?: (photoUri: string) => void;
+  manualButtonText?: string;
+  isProcessing?: boolean;
+  isScanning?: boolean;
+}
+
+export default function CameraComponent({
+  mode,
+  onBarcodeScanned,
+  onManualAction,
+  onPhotoCaptured,
+  manualButtonText = "Consultar manualmente",
+  isProcessing = false,
+  isScanning = true,
+}: CameraComponentProps) {
+  const [facing, setFacing] = useState<"front" | "back">("back");
+  const [permission, requestPermission] = useCameraPermissions();
+  // URI da foto capturada - salva o caminho do arquivo temporário no dispositivo
+  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const cameraRef = useRef<CameraView>(null);
+
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.1,
+          duration: 1000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, [pulseAnim]);
+
+  useEffect(() => {
+    if (!permission) return;
+
+    if (!permission.granted) {
+      if (permission.canAskAgain) {
+        requestPermission();
+      } else {
+        Alert.alert(
+          "Permissão necessária",
+          "A câmera é necessária para ler QR Codes. Por favor, habilite nas configurações do dispositivo.",
+          [{ text: "OK" }]
+        );
+      }
+    }
+  }, [permission]);
+
+  const toggleCameraFacing = () => {
+    setFacing((current) => (current === "back" ? "front" : "back"));
+  };
+
+  // CAPTURA E ARMAZENAMENTO DA FOTO
+  // Salva a foto como arquivo temporário no dispositivo e retorna o URI
+  const takePicture = async () => {
+    if (cameraRef.current) {
+      try {
+        const photo = await cameraRef.current.takePictureAsync({
+          quality: 0.5, // 50% de qualidade para otimizar tamanho
+          base64: false, // Retorna URI do arquivo, não base64
+        });
+        
+        if (photo?.uri) {
+          // URI contém o caminho do arquivo temporário: file:///path/to/image.jpg
+          setCapturedPhoto(photo.uri);
+          setShowPreview(true);
+          // Envia o URI para a tela principal para uso posterior
+          onPhotoCaptured?.(photo.uri);
+        }
+      } catch (error) {
+        console.error('Erro ao capturar foto:', error);
+        Alert.alert('Erro', 'Não foi possível capturar a foto');
+      }
+    }
+  };
+
+  const acceptPhoto = () => {
+    setShowPreview(false);
+    onManualAction?.();
+  };
+
+  const retakePhoto = () => {
+    setCapturedPhoto(null);
+    setShowPreview(false);
+  };
+
+  const renderCameraContent = () => {
+    switch (mode) {
+      case 'default':
+        return renderDefaultCamera();
+      default:
+        return renderDefaultCamera();
+    }
+  };
+
+  const renderDefaultCamera = () => {
+    if (!permission) {
+      return (
+        <View style={styles.container}>
+          <ActivityIndicator size="large" color="#FFFFFF" />
+          <Text style={styles.permissionText}>Solicitando permissão...</Text>
+        </View>
+      );
+    }
+
+    if (!permission.granted) {
+      return (
+        <View style={styles.container}>
+          <Text style={styles.permissionText}>
+            Precisamos da sua permissão para acessar a câmera
+          </Text>
+          <TouchableOpacity
+            style={styles.permissionButton}
+            onPress={requestPermission}
+          >
+            <Text style={styles.permissionButtonText}>Conceder Permissão</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.container}>
+        <CameraView
+          ref={cameraRef}
+          style={styles.camera}
+          facing={facing}
+        />
+
+        {isProcessing && (
+          <View style={styles.processingContainer}>
+            <ActivityIndicator size="large" color="#FFFFFF" />
+            <Text style={styles.processingText}>Processando foto...</Text>
+          </View>
+        )}
+
+        <View style={styles.photoButtonContainer}>
+          <TouchableOpacity
+            style={styles.flipButton}
+            onPress={toggleCameraFacing}
+          >
+            <FontAwesome6 name="camera-rotate" size={30} color="white" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.captureButton}
+            onPress={takePicture}
+            disabled={isProcessing}
+          >
+            <View style={styles.captureButtonInner} />
+          </TouchableOpacity>
+
+          {onManualAction && (
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={onManualAction}
+              disabled={isProcessing}
+            >
+              <Text style={styles.closeButtonText}>✕</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+    );
+  };
+
+  // PREVIEW DA FOTO CAPTURADA
+  // Mostra a imagem salva e permite aceitar ou rejeitar
+  const renderPhotoPreview = () => {
+    if (!capturedPhoto) return null;
+
+    return (
+      <View style={styles.container}>
+        <Image source={{ uri: capturedPhoto }} style={styles.previewImage} />
+        
+        <View style={styles.previewButtonContainer}>
+          <TouchableOpacity
+            style={styles.retakeButton}
+            onPress={retakePhoto}
+          >
+            <FontAwesome6 name="arrow-rotate-left" size={20} color="white" />
+            <Text style={styles.retakeButtonText}>Tirar Novamente</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.acceptButton}
+            onPress={acceptPhoto}
+          >
+            <FontAwesome6 name="check" size={20} color="white" />
+            <Text style={styles.acceptButtonText}>Usar Foto</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  // CONTROLE DE RENDERIZAÇÃO
+  // Mostra preview se foto foi capturada, senão mostra câmera
+  if (showPreview && capturedPhoto) {
+    return renderPhotoPreview();
+  }
+
+  return renderCameraContent();
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  camera: {
+    flex: 1,
+    width: '100%',
+  },
+  processingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  processingText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    marginTop: 10,
+    fontWeight: 'bold',
+  },
+  photoButtonContainer: {
+    position: 'absolute',
+    bottom: 50,
+    left: 20,
+    right: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  flipButton: {
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  captureButton: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 4,
+    borderColor: '#FFFFFF',
+  },
+  captureButtonInner: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FFFFFF',
+  },
+  closeButton: {
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  permissionText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  permissionButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  permissionButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  previewImage: {
+    flex: 1,
+    width: '100%',
+    resizeMode: 'contain',
+  },
+  previewButtonContainer: {
+    position: 'absolute',
+    bottom: 50,
+    left: 20,
+    right: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  retakeButton: {
+    backgroundColor: 'rgba(220, 38, 38, 0.9)',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 12,
+    flex: 0.45,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  retakeButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  acceptButton: {
+    backgroundColor: 'rgba(34, 197, 94, 0.9)',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 12,
+    flex: 0.45,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  acceptButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+});

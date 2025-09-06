@@ -10,7 +10,6 @@ export function useUserActions() {
   const [success, setSuccess] = useState(false);
 
   const handleError = (err: any, fallbackMessage: string) => {
-    console.error('[useUserActions] Erro:', err);
 
     if (err.response?.data?.details && Array.isArray(err.response.data.details)) {
       const messages = err.response.data.details.map((e: any) => e.msg).join('\n');

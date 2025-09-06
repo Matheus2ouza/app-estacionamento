@@ -42,6 +42,10 @@ export function useBillingMethod() {
         return isNaN(result) ? 0 : result;
       };
 
+      if (formData.category === 'VALOR_FIXO') {
+        formData.time = undefined;
+      }
+
       // Estruturar os dados conforme o tipo BillingMethod
       const billingMethodData: BillingMethod = {
         title: formData.title,
@@ -54,12 +58,6 @@ export function useBillingMethod() {
       
       const response: BillingMethodResponse = await cashApi.billingSave(billingMethodData);
 
-      // Verifica se a resposta é válida
-      if (!response || typeof response !== 'object') {
-        throw new Error('Resposta inválida da API');
-      }
-
-      // Se chegou aqui, é sucesso (o interceptor já tratou os erros)
       setSuccess(true);
       setMessage(response.message || 'Método salvo com sucesso');
       return { 
@@ -71,7 +69,6 @@ export function useBillingMethod() {
     } catch (error: any) {
       console.error('Erro capturado:', error);
       
-      // O interceptor já formatou a mensagem de erro
       const errorMessage = error.message || 'Erro ao salvar método de cobrança';
       setSuccess(false);
       setError(errorMessage);
@@ -89,11 +86,6 @@ export function useBillingMethod() {
 
     try {
       const response: BillingMethodListResponse = await cashApi.billingGetMethods();
-
-      // Verifica se a resposta é válida
-      if (!response || typeof response !== 'object') {
-        throw new Error('Resposta inválida da API');
-      }
 
       setSuccess(true);
       setMessage(response.message || 'Métodos carregados com sucesso');
@@ -122,12 +114,6 @@ export function useBillingMethod() {
     try {
       const response: BillingMethodResponse = await cashApi.billingDelete(id);
 
-      // Verifica se a resposta é válida
-      if (!response || typeof response !== 'object') {
-        throw new Error('Resposta inválida da API');
-      }
-
-      // Se chegou aqui, é sucesso (o interceptor já tratou os erros)
       setSuccess(true);
       setMessage(response.message || 'Método desativado com sucesso');
       return { 
@@ -157,11 +143,6 @@ export function useBillingMethod() {
     
     try {
       const response: BillingMethodResponse = await cashApi.billingActivate(id);
-      
-      // Verifica se a resposta é válida
-      if (!response || typeof response !== 'object') {
-        throw new Error('Resposta inválida da API');
-      }
       
       setSuccess(true);
       setMessage(response.message || 'Método ativado com sucesso');

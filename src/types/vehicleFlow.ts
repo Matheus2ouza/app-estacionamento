@@ -1,9 +1,3 @@
-export interface EntryData {
-  plate: string;
-  category: string,
-  operatorId: string | null;
-}
-
 export interface EditData {
   id?: string;
   plate?: string;
@@ -16,15 +10,6 @@ export interface Car {
   entryTime?: string;
   operator?: string;
   category?: string
-}
-
-export interface RegisterVehicleResponse {
-  success?: boolean;
-  message: string;
-  ticket?: string,
-  vehicleId?: string;
-  entryTime?: string;
-  error?: string;
 }
 
 export interface deleteVehicleResponse {
