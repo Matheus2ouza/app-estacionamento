@@ -28,7 +28,15 @@ const CashRegisterModal = ({
       onReopenCash();
     } else if (initialValue.trim()) {
       onOpenCashRegister(initialValue);
+      // Limpar o campo após enviar o valor
+      setInitialValue('');
     }
+  };
+
+  const handleClose = () => {
+    // Limpar o campo quando fechar o modal
+    setInitialValue('');
+    onClose();
   };
 
   const getTitle = () => {
@@ -64,7 +72,7 @@ const CashRegisterModal = ({
       visible={visible}
       animationType="fade"
       transparent={true}
-      onRequestClose={role === 'ADMIN' ? onClose : () => {}}
+      onRequestClose={role === 'ADMIN' ? handleClose : () => {}}
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
@@ -76,7 +84,7 @@ const CashRegisterModal = ({
               {mode === 'open' && (
                 <TextInput
                   style={styles.input}
-                  placeholder="Valor inicial do caixa"
+                  placeholder="Ex: 17,50 ou 17.50"
                   placeholderTextColor="#999"
                   keyboardType="numeric"
                   value={initialValue}
@@ -87,7 +95,7 @@ const CashRegisterModal = ({
               <View style={styles.buttonContainer}>
                 <TouchableOpacity 
                   style={[styles.button, styles.cancelButton]} 
-                  onPress={onClose}
+                  onPress={handleClose}
                 >
                   <Text style={styles.buttonText}>{getCancelButtonText()}</Text>
                 </TouchableOpacity>
