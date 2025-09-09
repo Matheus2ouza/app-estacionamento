@@ -15,7 +15,7 @@ import { ActivityIndicator, RefreshControl, ScrollView, Text, TouchableOpacity, 
 import Snackbar from "react-native-snackbar";
 
 export default function MethodPayment() {
-  const { role, userId } = useAuth();
+  const { role, userId, hasAdminPermission } = useAuth();
   const { loading, error, success, message, handleGetMethods, handleDeleteMethod: deleteMethodFromHook, handleActivateMethod: activateMethodFromHook } = useBillingMethod();
   const [methods, setMethods] = useState<BillingMethodList[]>([]);
   
@@ -488,14 +488,17 @@ export default function MethodPayment() {
 
         {renderContent()}
 
-        <TouchableOpacity
-          style={styles.floatingButton}
-          onPress={() => {
-            router.push("/functionsAdmin/createPayment");
-          }}
-        >
-          <Ionicons name="add-outline" size={50} color={Colors.white} />
-        </TouchableOpacity>
+        {/* Botão de criar nova forma de pagamento - Apenas para ADMIN */}
+        {hasAdminPermission() && (
+          <TouchableOpacity
+            style={styles.floatingButton}
+            onPress={() => {
+              router.push("/functionsAdmin/createPayment");
+            }}
+          >
+            <Ionicons name="add-outline" size={50} color={Colors.white} />
+          </TouchableOpacity>
+        )}
       </View>
 
       <FeedbackModal
@@ -526,7 +529,7 @@ export default function MethodPayment() {
         action={permissionAction}
         currentRole={role || undefined}
         onClose={() => setShowPermissionDenied(false)}
-        message="Você precisa ter permissão de administrador para editar métodos de cobrança."
+        message="Você precisa não term a permissão mínima para ter acesso a esta função."
       />
 
       <GenericConfirmationModal

@@ -1,10 +1,9 @@
-import { deleteVehicleResponse, EditData, ParkedVehiclesResponse, SecondticketResponse, VehicleResponse } from '../types/vehicleFlow';
-import { RegisterVehicleData, RegisterVehicleResponse } from '../types/vehicleTypes/vehicles';
+import { DeleteVehicleResponse, RegisterVehicleData, VehiclePhotoResponse, VehicleResponse } from '../types/vehicleTypes/vehicles';
 import axiosInstance from './axiosInstance';
 
 
 export const VehicleApi = {
-  registerEntry: async (data: RegisterVehicleData, photo: string): Promise<RegisterVehicleResponse> => {
+  registerEntry: async (data: RegisterVehicleData, photo: string): Promise<VehicleResponse> => {
     const formData = new FormData();
     
     // Adicionar os dados do veículo
@@ -27,7 +26,7 @@ export const VehicleApi = {
       } as any);
     }
     
-    const response = await axiosInstance.post<RegisterVehicleResponse>(
+    const response = await axiosInstance.post<VehicleResponse>(
       '/vehicles/entries', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -36,30 +35,62 @@ export const VehicleApi = {
     return response.data;
   },
 
-  editdataVehicle: async (data: EditData): Promise<RegisterVehicleResponse> => {
-    const response = await axiosInstance.post<RegisterVehicleResponse>(
-      '/vehicles/editVehicle', data);
+  vehiclePhoto: async (vehicleId: string): Promise<VehiclePhotoResponse> => {
+    try {
+      const response = await axiosInstance.get(`/vehicles/${vehicleId}/photo`);
+      
+      if (response.data && typeof response.data === 'object') {
+        if (response.data.success === false) {
+          return {
+            success: false,
+            message: response.data.message || 'Erro ao carregar foto'
+          };
+        }
+        
+        if (response.data.success === true && response.data.data) {
+          return {
+            success: true,
+            data: {
+              photo: response.data.data.photo,
+              photoType: response.data.data.photoType || 'image/jpeg'
+            },
+            message: 'Foto carregada com sucesso'
+          };
+        }
+      }
+      
+      return {
+        success: false,
+        message: 'Formato de resposta não reconhecido'
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Erro ao carregar foto do veículo'
+      };
+    }
+  },
+
+  secondTicket: async (id: string): Promise<VehicleResponse> => {
+    const response = await axiosInstance.get(`/vehicles/entries/${id}/duplicate`);
     return response.data;
   },
 
-  deleteVehicle: async (data:{id: string}): Promise<deleteVehicleResponse> => {
-    const response = await axiosInstance.post<deleteVehicleResponse>(
-      '/vehicles/deleteVehicle', data);
-      return response.data;
+  deactivateVehicle: async (id: string): Promise<DeleteVehicleResponse> => {
+    const response = await axiosInstance.patch(`/vehicles/entries/${id}/deactivate`);
+    return response.data;
   },
 
-  secondTicket: async (id: string): Promise<SecondticketResponse> => {
-    const response = await axiosInstance.get(`/vehicles/${id}/ticket`);
-    return response.data
+  activateVehicle: async (id: string): Promise<DeleteVehicleResponse> => {
+    const response = await axiosInstance.patch(`/vehicles/entries/${id}/activate`);
+    return response.data;
   },
 
-  getUniquevehicle: async (id: string, plate: string): Promise<VehicleResponse> => {
-    const response =  await axiosInstance.get(`/vehicles/${id}/${plate}/vehicle`);
-    return response.data
-  },
-
-  getParked: async (): Promise<ParkedVehiclesResponse> => {
-    const response = await axiosInstance.get<ParkedVehiclesResponse>('/vehicles/parked');
+  editVehicle: async (id: string, plate: string, category: string): Promise<VehicleResponse> => {
+    const response = await axiosInstance.patch(`/vehicles/entries/${id}`, {
+      plate,
+      category
+    });
     return response.data;
   },
 };

@@ -3,31 +3,147 @@ import { useState } from "react";
 
 const useEditVehicle = () => {
   const [loading, setLoading] = useState(false);
-  const [apiError, setApiError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
 
-  const handleApiCall = async (apiCall: Promise<any>) => {
+  const secondTicket = async (id: string) => {
     setLoading(true);
-    setApiError(null);
+    setError(null);
     setSuccess(false);
+    setMessage(null);
 
     try {
-      const response = await apiCall;
+      const response = await VehicleApi.secondTicket(id);
 
-      console.log(response.ticket)
-      if (response.success) {
+      if(response.success) {
         setSuccess(true);
-        return response;
+        setMessage(response.message || "Ticket gerado com sucesso.");
+        return {
+          success: true,
+          message: response.message || "Ticket gerado com sucesso.",
+          ticket: response.ticket,
+        };
       } else {
-        throw new Error(response.message || "Erro na operação.");
+        setError(response.message || "Erro ao gerar ticket.");
+        return {
+          success: false,
+          message: response.message || "Erro ao gerar ticket.",
+          ticket: null,
+        };
       }
     } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
-        "Erro inesperado. Tente novamente mais tarde";
+      const errorMessage = error?.response?.data?.message || "Erro ao gerar ticket.";
+      setError(errorMessage);
+      setMessage(errorMessage);
+      return {
+        success: false,
+        message: errorMessage,
+      };
+    } finally {
+      setLoading(false);
+    }
+  }
 
-      setApiError(errorMessage);
+  const deleteVehicle = async (id: string) => {
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
+    setMessage(null);
+
+    try {
+      const response = await VehicleApi.deactivateVehicle(id);
+
+      if(response.success) {
+        setSuccess(true);
+        setMessage(response.message || "Veículo deletado com sucesso.");
+        return {
+          success: true,
+          message: response.message || "Veículo deletado com sucesso.",
+        };
+      } else {
+        setError(response.message || "Erro ao deletar veículo.");
+        return {
+          success: false,
+          message: response.message || "Erro ao deletar veículo.",
+        };
+      }
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || "Erro ao deletar veículo.";
+      setError(errorMessage);
+      setMessage(errorMessage);
+      return {
+        success: false,
+        message: errorMessage,
+      };
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const activateVehicle = async (id: string) => {
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
+    setMessage(null);
+
+    try {
+      const response = await VehicleApi.activateVehicle(id);
+
+      if(response.success) {
+        setSuccess(true);
+        setMessage(response.message || "Veículo reativado com sucesso.");
+        return {
+          success: true,
+          message: response.message || "Veículo reativado com sucesso.",
+        };
+      } else {
+        setError(response.message || "Erro ao reativar veículo.");
+        return {
+          success: false,
+          message: response.message || "Erro ao reativar veículo.",
+        };
+      }
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || "Erro ao reativar veículo.";
+      setError(errorMessage);
+      setMessage(errorMessage);
+      return {
+        success: false,
+        message: errorMessage,
+      };
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const editVehicle = async (id: string, plate: string, category: string) => {
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
+    setMessage(null);
+
+    try {
+      const response = await VehicleApi.editVehicle(id, plate, category);
+
+      if(response.success) {
+        setSuccess(true);
+        setMessage(response.message || "Veículo atualizado com sucesso.");
+        return {
+          success: true,
+          message: response.message || "Veículo atualizado com sucesso.",
+        };
+      } else {
+        setError(response.message || "Erro ao atualizar veículo.");
+        return {
+          success: false,
+          message: response.message || "Erro ao atualizar veículo.",
+        };
+      }
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || "Erro ao atualizar veículo.";
+      setError(errorMessage);
+      setMessage(errorMessage);
       return {
         success: false,
         message: errorMessage,
@@ -37,37 +153,15 @@ const useEditVehicle = () => {
     }
   };
 
-  const editVehicle = (id: string, plate: string, category: string) => {
-    return handleApiCall(
-      VehicleApi.editdataVehicle({
-        id,
-        plate: plate.toUpperCase(),
-        category,
-      })
-    );
-  };
-
-  const deleteVehicle = (id: string) => {
-    return handleApiCall(VehicleApi.deleteVehicle({ id }));
-  };
-
-  const secondTicket = (id: string) => {
-    return handleApiCall(VehicleApi.secondTicket(id));
-  };
-
-  const reset = () => {
-    setApiError(null);
-    setSuccess(false);
-  };
-
   return {
-    editVehicle,
-    deleteVehicle,
-    secondTicket,
     loading,
-    error: apiError,
+    error,
     success,
-    reset,
+    message,
+    secondTicket,
+    deleteVehicle,
+    activateVehicle,
+    editVehicle,
   };
 };
 

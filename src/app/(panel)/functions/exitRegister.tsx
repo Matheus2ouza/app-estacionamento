@@ -1,6 +1,5 @@
 import Header from "@/src/components/Header";
 import Colors from "@/src/constants/Colors";
-import useParking from "@/src/hooks/vehicleFlow/useExitData";
 import { styles } from "@/src/styles/functions/exitStyle";
 import { FontAwesome } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -17,7 +16,6 @@ import { TextInput } from "react-native-paper";
 export default function ExitRegister() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"plate" | "category" | "operator">("plate");
-  const { cars, loading, refresh } = useParking();
   
   const filterOptions = [
     { label: "Placa", value: "plate" },

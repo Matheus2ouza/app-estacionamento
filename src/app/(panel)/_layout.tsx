@@ -7,17 +7,13 @@ export default function PanelLayout() {
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
 
-  console.log("[PanelLayout] Renderizando. isLoading:", isLoading, "isAuthenticated:", isAuthenticated);
-
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      console.log("[PanelLayout] Não autenticado, redirecionando para /login");
       router.replace("/login");
     }
   }, [isLoading, isAuthenticated]);
 
   if (isLoading) {
-    console.log("[PanelLayout] Carregando autenticação, não renderiza nada");
     return null;
   }
 

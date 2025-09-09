@@ -18,35 +18,15 @@ export function useRoleNavigation() {
   const redirected = useRef(false);
 
   useEffect(() => {
-    console.log("[useRoleNavigation] Verificando redirecionamento:", {
-      isLoading,
-      isAuthenticated,
-      role,
-      segments: segments.join('/'),
-      redirected: redirected.current
-    });
 
     // Só executa quando a autenticação estiver completa e o usuário estiver autenticado
     if (!isLoading && isAuthenticated && role && !redirected.current) {
       const currentRoute = segments[segments.length - 1];
       const targetFileName = ROLE_FILE_MAPPING[role as RoleType];
       
-      console.log("[useRoleNavigation] Verificando rota:", {
-        currentRoute,
-        targetFileName,
-        role,
-        segments
-      });
-      
       if (targetFileName) {
         // Verifica se o usuário está na rota correta para seu role
         const isOnCorrectRoute = currentRoute === targetFileName;
-        
-        console.log("[useRoleNavigation] Comparação de rotas:", {
-          currentRoute,
-          targetFileName,
-          isOnCorrectRoute
-        });
         
         // Só redireciona se estiver na pasta pai (sem especificar qual arquivo)
         // Não redireciona se o usuário já está navegando para uma rota específica
@@ -55,11 +35,9 @@ export function useRoleNavigation() {
           const currentPath = segments.slice(0, -1).join('/'); // Remove o último segmento
           const targetRoute = `${currentPath}/${targetFileName}`;
           
-          console.log("[useRoleNavigation] Redirecionando para:", targetRoute);
           redirected.current = true;
           router.replace(targetRoute as any);
         } else {
-          console.log("[useRoleNavigation] Usuário já está navegando para uma rota específica, não redirecionando");
         }
       }
     }

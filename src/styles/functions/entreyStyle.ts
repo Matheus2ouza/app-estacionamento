@@ -277,6 +277,10 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
   },
+  dropdownRequired: {
+    borderColor: Colors.red[300],
+    backgroundColor: Colors.red[50],
+  },
   icon: {
     marginRight: 5,
   },

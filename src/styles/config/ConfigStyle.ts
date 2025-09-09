@@ -3,34 +3,71 @@ import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   scrollContainer: {
-    marginTop: 10,
+    paddingHorizontal: 16,
+    paddingTop: 10,
     paddingBottom: 30,
   },
   options: {
-    flex: 1,
-    alignItems: "center",
+    gap: 12,
   },
-  optionsRow: {
-    width: "90%",
+  optionCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    padding: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginTop: 10,
-    paddingVertical: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: Colors.gray[200],
   },
-  label: {
+  optionLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  optionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.blue[50],
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  optionContent: {
+    flex: 1,
+  },
+  optionLabel: {
     fontFamily: "Roboto_500Medium",
-    fontSize: 19,
-    color: Colors.blue.logo,
+    fontSize: 16,
+    color: Colors.text.primary,
+    marginBottom: 2,
   },
-  exit: {
-    color: Colors.red[500]
+  optionDescription: {
+    maxWidth: "90%",
+    fontFamily: "Roboto_400Regular",
+    fontSize: 12,
+    color: Colors.text.secondary,
   },
-  separator: {
-    width: "90%",
-    height: 2,
-    backgroundColor: Colors.blue.dark,
-    opacity: 0.5,
-    marginTop: 5,
+  optionArrow: {
+    marginLeft: 8,
+  },
+  exitCard: {
+    backgroundColor: Colors.red[50],
+    borderColor: Colors.red[200],
+  },
+  exitIcon: {
+    backgroundColor: Colors.red[100],
+  },
+  exitLabel: {
+    color: Colors.red[600],
+  },
+  exitDescription: {
+    color: Colors.red[500],
   },
 });

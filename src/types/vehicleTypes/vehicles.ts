@@ -6,9 +6,25 @@ export interface RegisterVehicleData {
   billingMethod?: string;
 }
 
-export interface RegisterVehicleResponse {
+export interface VehicleResponse {
   success: boolean;
   message?: string;
   ticket?: string;
   error?: string;
+}
+
+export interface VehiclePhotoResponse {
+  success: boolean;
+  data?: photoData;
+  message?: string;
+}
+
+export interface photoData {
+  photo: string;
+  photoType: string;
+}
+
+export interface DeleteVehicleResponse {
+  success: boolean;
+  message?: string;
 }

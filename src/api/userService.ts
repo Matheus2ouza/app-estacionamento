@@ -4,6 +4,8 @@ import type { DataUser, ListUsers, LoginData, UserData } from '../types/auth';
 import axiosInstance from './axiosInstance';
 
 interface LoginResponse {
+  success: boolean;
+  message: string;
   token: string;
 }
 

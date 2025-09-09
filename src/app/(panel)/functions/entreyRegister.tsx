@@ -1,11 +1,10 @@
 import CameraComponent from "@/src/components/CameraComponent";
 import FeedbackModal from "@/src/components/FeedbackModal";
 import Header from "@/src/components/Header";
-import PreviewPDF from "@/src/components/previewPDF";
+import PDFViewer from "@/src/components/PDFViewer";
 import { PrimaryButton } from "@/src/components/PrimaryButton";
 import Colors from "@/src/constants/Colors";
 import { useBillingMethod } from "@/src/hooks/cash/useBillingMethod";
-import { usePdfActions } from "@/src/hooks/vehicleFlow/usePdfActions";
 import useRegisterVehicle from "@/src/hooks/vehicleFlow/useRegisterEntry";
 import { styles } from "@/src/styles/functions/entreyStyle";
 import { BillingMethodList } from "@/src/types/billingMethod";
@@ -54,7 +53,6 @@ export default function EntreyRegister() {
   // PDF base64 retornado pela API após registro bem-sucedido
   const [pdfBase64, setPdfBase64] = useState<string | null>(null);
   const [pdfPreviewVisible, setPdfPreviewVisible] = useState(false);
-  const { downloadPdf, printPdf } = usePdfActions();
 
   // VALIDAÇÃO DE PLACA COM DEBOUNCE
   // Valida formatos ABC1234, ABC-1234 e ABC1D23 (antigo e Mercosul) com delay de 1.5s
@@ -132,12 +130,20 @@ export default function EntreyRegister() {
   // REGISTRO DE VEÍCULO
   // Envia dados para API e gerencia resposta (sucesso/erro)
   const handleRegister = async () => {
+    // Validação dos dados obrigatórios
+    if (!plate.trim() || !isPlateValid || isValidating || !selectedBillingMethod) {
+      setModalMessage("Por favor, preencha todos os campos obrigatórios: placa, categoria e método de cobrança.");
+      setModalIsSuccess(false);
+      setModalVisible(true);
+      return;
+    }
+
     const vehicleData = {
       plate: plate.trim(),
       category: selectedCategory,
       photo: capturedPhotoUri || undefined,
       observation: observation.trim() || undefined,
-      billingMethod: selectedBillingMethod?.id || undefined,
+      billingMethod: selectedBillingMethod.id,
     };
 
     const result = await registerVehicle(vehicleData);
@@ -162,72 +168,36 @@ export default function EntreyRegister() {
     }
   };
 
-  const handleDownload = async () => {
-    console.log("handleDownload chamado");
-    console.log("pdfBase64:", pdfBase64 ? "disponível" : "não disponível");
-    console.log("plate:", plate);
-
-    if (!pdfBase64) {
-      setModalMessage("Erro: PDF não disponível para download");
-      setModalIsSuccess(false);
-      setModalVisible(true);
-      return;
-    }
-
-    const dateStr = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
-    const filename = `ticket-${plate || 'veiculo'}-${dateStr}.pdf`;
-
-    try {
-      console.log("Iniciando download do PDF...");
-      await downloadPdf(pdfBase64, filename);
-      
-      setModalMessage("PDF baixado com sucesso! Verifique sua pasta de downloads ou compartilhamentos.");
-      setModalIsSuccess(true);
-      setModalVisible(true);
-    } catch (err) {
-      console.error("Erro ao baixar o PDF:", err);
-      
-      const errorMessage = err instanceof Error ? err.message : "Erro desconhecido ao baixar o PDF";
-      setModalMessage(`Erro ao baixar PDF: ${errorMessage}`);
-      setModalIsSuccess(false);
-      setModalVisible(true);
-    }
+  const handlePdfSuccess = (message: string) => {
+    setModalMessage(message);
+    setModalIsSuccess(true);
+    setModalVisible(true);
   };
 
-  const handlePrint = async () => {
-    if (!pdfBase64) {
-      setModalMessage("Erro: PDF não disponível para impressão");
-      setModalIsSuccess(false);
-      setModalVisible(true);
-      return;
-    }
-
-    try {
-      console.log("Iniciando impressão do PDF...");
-      await printPdf(pdfBase64);
-      
-      setModalMessage("Comando de impressão enviado com sucesso!");
-      setModalIsSuccess(true);
-      setModalVisible(true);
-    } catch (err) {
-      console.error("Erro ao imprimir o PDF:", err);
-      
-      const errorMessage = err instanceof Error ? err.message : "Erro desconhecido ao imprimir o PDF";
-      setModalMessage(`Erro ao imprimir PDF: ${errorMessage}`);
-      setModalIsSuccess(false);
-      setModalVisible(true);
-    }
+  const handlePdfError = (error: string) => {
+    setModalMessage(error);
+    setModalIsSuccess(false);
+    setModalVisible(true);
   };
 
-  // CLEANUP DE TIMEOUTS
+  // CLEANUP DE TIMEOUTS E MEMÓRIA
   // Evita vazamentos de memória ao desmontar componente
   useEffect(() => {
     return () => {
       if (validationTimeout) {
         clearTimeout(validationTimeout);
       }
+      // Limpar dados grandes da memória
+      setPdfBase64(null);
+      setCapturedPhotoUri(null);
     };
   }, [validationTimeout]);
+
+  // Limpeza adicional quando o PDF preview é fechado
+  const handleClosePdfPreview = () => {
+    setPdfPreviewVisible(false);
+    setPdfBase64(null); // Limpa o PDF da memória
+  };
 
   useEffect(() => {
     loadBillingMethods();
@@ -293,7 +263,11 @@ export default function EntreyRegister() {
     <TouchableOpacity
       style={[
         styles.categoryButton,
-        selectedCategory === option.value && styles.categoryButtonSelected,
+        selectedCategory === option.value && {
+          ...styles.categoryButtonSelected,
+          backgroundColor: option.color === Colors.blue[500] ? Colors.blue[50] : Colors.orange[50],
+          borderColor: option.color
+        },
         { borderColor: option.color }
       ]}
       onPress={() => setSelectedCategory(option.value as any)}
@@ -305,7 +279,10 @@ export default function EntreyRegister() {
       <View style={styles.categoryTextContainer}>
         <Text style={[
           styles.categoryButtonText,
-          selectedCategory === option.value && styles.categoryButtonTextSelected
+          selectedCategory === option.value && {
+            ...styles.categoryButtonTextSelected,
+            color: option.color
+          }
         ]}>
           {option.label}
         </Text>
@@ -366,7 +343,9 @@ export default function EntreyRegister() {
                 </View>
               </View>
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Placa do Veículo</Text>
+                <Text style={styles.inputLabel}>
+                  Placa do Veículo <Text style={{ color: Colors.red[500] }}>*</Text>
+                </Text>
                 <TextInput
                   style={styles.textInput}
                   value={plate}
@@ -395,7 +374,9 @@ export default function EntreyRegister() {
               </View>
 
               <View style={styles.categoryContainer}>
-                <Text style={styles.categoryLabel}>Categoria do Veículo</Text>
+                <Text style={styles.categoryLabel}>
+                  Categoria do Veículo <Text style={{ color: Colors.red[500] }}>*</Text>
+                </Text>
                 <View style={styles.categoryButtons}>
                   {CATEGORY_OPTIONS.map((option) => (
                     <View key={option.value}>
@@ -406,7 +387,9 @@ export default function EntreyRegister() {
               </View>
 
               <View style={styles.billingContainer}>
-                <Text style={styles.billingLabel}>Método de Cobrança</Text>
+                <Text style={styles.billingLabel}>
+                  Método de Cobrança <Text style={{ color: Colors.red[500] }}>*</Text>
+                </Text>
                 {billingMethods.filter(method => method.isActive).length === 0 ? (
                   <View style={styles.emptyBillingContainer}>
                     <View style={styles.emptyBillingIcon}>
@@ -536,9 +519,9 @@ export default function EntreyRegister() {
                   onPress={handleRegister}
                   style={[
                     styles.buttonConfirm, 
-                    (!plate.trim() || !isPlateValid || isValidating || billingMethods.filter(method => method.isActive).length === 0) && styles.buttonDisabled
+                    (!plate.trim() || !isPlateValid || isValidating || !selectedBillingMethod) && styles.buttonDisabled
                   ]}
-                  disabled={loading || !plate.trim() || !isPlateValid || isValidating || billingMethods.filter(method => method.isActive).length === 0}
+                  disabled={loading || !plate.trim() || !isPlateValid || isValidating || !selectedBillingMethod}
                 />
               </View>
             </ScrollView>
@@ -561,15 +544,13 @@ export default function EntreyRegister() {
         navigateDelay={2000}
       />
       
-      <PreviewPDF
+      <PDFViewer
         base64={pdfBase64 || ""}
         visible={pdfPreviewVisible}
-        onClose={() => {
-          setPdfPreviewVisible(false);
-          setPdfBase64(null); // Limpa o PDF quando fechar o preview
-        }}
-        onDownload={handleDownload}
-        onPrint={handlePrint}
+        onClose={handleClosePdfPreview}
+        filename={`ticket-${plate || 'veiculo'}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.pdf`}
+        onSuccess={handlePdfSuccess}
+        onError={handlePdfError}
       />
     </View>
   );
