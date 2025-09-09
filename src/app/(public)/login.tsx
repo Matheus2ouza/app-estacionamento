@@ -13,7 +13,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import { TextInput } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import ApiErrorModal from "@/src/components/ApiErrorModal";
+import FeedbackModal from "@/src/components/FeedbackModal";
 import { useAuth } from "@/src/context/AuthContext";
 import { useUserLogin } from "@/src/hooks/auth/useLogin";
 import { useRouter } from "expo-router";
@@ -33,21 +33,14 @@ export default function Login() {
 
       const { token, role } = await login({ username, password });
 
-      console.log("Login bem-sucedido. Token:", token);
-      console.log("Role recebido:", role);
-
       await auth.login(token);
-      console.log("Contexto de autenticação atualizado.");
 
-      if (role === "ADMIN") {
-        console.log("Redirecionando para admin...");
+      if (role === "ADMIN" || role === "MANAGER") {
         router.replace("/home/admin");
-      } else if (role === "MANAGER" || role === "NORMAL") {
-        console.log("Redirecionando para employee...");
+      } else if (role === "NORMAL") {
         router.replace("/home/normal");
       }
     } catch (err) {
-      console.log("Erro no handleLogin:", err);
     }
   }
 
@@ -116,7 +109,15 @@ export default function Login() {
         </View>
       </KeyboardAwareScrollView>
 
-      <ApiErrorModal visible={!!error} message={error} onClose={clearError} />
+      <FeedbackModal
+        visible={!!error}
+        message={error || ''}
+        type="error"
+        onClose={clearError}
+        dismissible={true}
+        autoNavigateOnSuccess={false}
+        navigateDelay={2000}
+      />
     </SafeAreaView>
   );
 }

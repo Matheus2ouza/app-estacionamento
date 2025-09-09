@@ -12,6 +12,10 @@ export interface AuthContextData {
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
+  hasPermission: (minRole: "ADMIN" | "NORMAL" | "MANAGER") => boolean;
+  hasExactRole: (exactRole: "ADMIN" | "NORMAL" | "MANAGER") => boolean;
+  hasManagerPermission: () => boolean;
+  hasAdminPermission: () => boolean;
 }
 
 export interface Employee {

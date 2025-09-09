@@ -4,6 +4,15 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { setAuthToken } from "../api/axiosInstance";
 import type { AuthContextData, DecodedToken } from "../types/auth";
 
+// Hierarquia de roles (igual ao backend)
+const ROLE_HIERARCHY = {
+  NORMAL: 1,
+  MANAGER: 2,
+  ADMIN: 3,
+} as const;
+
+type RoleType = keyof typeof ROLE_HIERARCHY;
+
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 // Tempo de sessão
@@ -36,7 +45,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
       } catch (error) {
-        console.error("[Auth] Erro ao restaurar sessão:", error);
       } finally {
         setIsLoading(false);
       }
@@ -60,7 +68,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await SecureStore.setItemAsync("token", newToken);
       await SecureStore.setItemAsync("token_expiration", expiresAt.toString());
     } catch (error) {
-      console.error("[Auth] Erro no login:", error);
     }
   };
 
@@ -72,15 +79,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await SecureStore.deleteItemAsync("token");
       await SecureStore.deleteItemAsync("token_expiration");
     } catch (error) {
-      console.error("[Auth] Erro no logout:", error);
     }
   };
 
   const isAuthenticated = !!token;
 
+  // Função para verificar se o usuário tem permissão mínima
+  const hasPermission = (minRole: RoleType): boolean => {
+    if (!role) return false;
+    const userRoleLevel = ROLE_HIERARCHY[role];
+    const requiredRoleLevel = ROLE_HIERARCHY[minRole];
+    return userRoleLevel >= requiredRoleLevel;
+  };
+
+  // Função para verificar se o usuário tem exatamente um role específico
+  const hasExactRole = (exactRole: RoleType): boolean => {
+    return role === exactRole;
+  };
+
+  // Função para verificar se o usuário tem permissão de MANAGER ou superior
+  const hasManagerPermission = (): boolean => {
+    return hasPermission('MANAGER');
+  };
+
+  // Função para verificar se o usuário tem permissão de ADMIN
+  const hasAdminPermission = (): boolean => {
+    return hasExactRole('ADMIN');
+  };
+
   return (
     <AuthContext.Provider
-      value={{ token, userId, role, login, logout, isAuthenticated, isLoading }}
+      value={{ 
+        token, 
+        userId, 
+        role, 
+        login, 
+        logout, 
+        isAuthenticated, 
+        isLoading,
+        hasPermission,
+        hasExactRole,
+        hasManagerPermission,
+        hasAdminPermission
+      }}
     >
       {children}
     </AuthContext.Provider>

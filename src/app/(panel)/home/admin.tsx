@@ -49,8 +49,6 @@ export default function AdminHome() {
   const fetchCashDetails = async () => {
     if (cashData?.id && !cashDetails) {
       const details = await detailsCash(cashData.id);
-      console.log("o details logo abaixo")
-      console.log(details)
       if (details) {
         setCashDetails(details);
       }
@@ -160,7 +158,25 @@ export default function AdminHome() {
     const startTime = Date.now();
     
     try {
-      const numericValue = parseFloat(initialValue);
+      // Função para converter valor monetário brasileiro para número
+      const convertBrazilianCurrency = (value: string): number => {
+        if (!value || value.trim() === '') return 0;
+        
+        // Remove espaços e caracteres não numéricos exceto vírgula e ponto
+        let cleanValue = value.replace(/\s/g, '').replace(/[^\d,.-]/g, '');
+        
+        // Se tem vírgula, assume formato brasileiro (17,50)
+        if (cleanValue.includes(',')) {
+          // Substitui vírgula por ponto para parseFloat
+          cleanValue = cleanValue.replace(',', '.');
+        }
+        
+        const result = parseFloat(cleanValue);
+        return isNaN(result) ? 0 : result;
+      };
+
+      const numericValue = convertBrazilianCurrency(initialValue);
+      
       const [success, message] = await openCash(numericValue);
       
       if (success) {

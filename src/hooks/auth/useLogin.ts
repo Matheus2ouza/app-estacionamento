@@ -32,7 +32,7 @@ export function useUserLogin() {
       };
     } catch (err: any) {
       setLoading(false);
-      const message = err.response?.data?.message || "Erro desconhecido";
+      const message = err.response?.data?.error || err.response?.data?.message || "Erro desconhecido";
       setError(message);
       throw new Error(message); // importante para os modais também
     }
