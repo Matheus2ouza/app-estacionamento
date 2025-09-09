@@ -1,11 +1,12 @@
 import Colors from "@/src/constants/Colors";
-import { StyleSheet, View, ViewStyle } from "react-native";
+import { DimensionValue, StyleSheet, View, ViewStyle } from "react-native";
 
 type SeparatorProps = {
   marginTop?: number;
   marginBottom?: number;
   style?: ViewStyle;
-  width?: string | number
+  width?: DimensionValue;
+  color?: string;
 };
 
 export default function Separator({
@@ -13,12 +14,14 @@ export default function Separator({
   marginBottom,
   style,
   width = "100%",
+  color,
 }: SeparatorProps) {
   return (
     <View
       style={[
         styles.separator,
-        { marginTop, marginBottom },
+        { marginTop, marginBottom, width },
+        color && { backgroundColor: color },
         style,
       ]}
     />
