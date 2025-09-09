@@ -136,8 +136,6 @@ export default function SearchInput({
 
 const styles = StyleSheet.create({
   container: {
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.gray[100],
   },
   searchContainer: {
     paddingTop: 16,
@@ -161,7 +159,7 @@ const styles = StyleSheet.create({
   sortContainer: {
     paddingHorizontal: 16,
     paddingTop: 5,
-    paddingBottom: 10,
+    paddingBottom: 5,
   },
   sortLabel: {
     fontSize: 14,
