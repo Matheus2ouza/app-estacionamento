@@ -86,8 +86,9 @@ export default function CameraComponent({
     if (cameraRef.current) {
       try {
         const photo = await cameraRef.current.takePictureAsync({
-          quality: 0.5, // 50% de qualidade para otimizar tamanho
-          base64: false, // Retorna URI do arquivo, não base64
+          quality: 0.5,
+          base64: false,
+          skipProcessing: true,
         });
         
         if (photo?.uri) {
