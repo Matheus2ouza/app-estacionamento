@@ -1,15 +1,20 @@
+import CameraComponent from "@/src/components/CameraComponent";
 import FeedbackModal from "@/src/components/FeedbackModal";
+import GenericConfirmationModal from "@/src/components/GenericConfirmationModal";
 import Header from "@/src/components/Header";
+import PDFViewer from "@/src/components/PDFViewer";
+import PhotoViewerModal from "@/src/components/PhotoViewerModal";
 import { PrimaryButton } from "@/src/components/PrimaryButton";
 import { SecondaryButton } from "@/src/components/SecondaryButton";
 import Colors from "@/src/constants/Colors";
 import { useBillingMethod } from "@/src/hooks/cash/useBillingMethod";
 import useEditVehicle from "@/src/hooks/vehicleFlow/useEditVehicle";
+import { useVehiclePhoto } from "@/src/hooks/vehicleFlow/useVehiclePhoto";
 import { styles } from "@/src/styles/functions/editStyle";
-import { BillingMethodList } from "@/src/types/billingMethod";
+import { BillingMethodList } from "@/src/types/billingMethodTypes/billingMethod";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -20,6 +25,7 @@ import {
   View
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
+import Spinner from "react-native-loading-spinner-overlay";
 
 interface RouteParams {
   id?: string;
@@ -28,6 +34,7 @@ interface RouteParams {
   observation?: string;
   billingMethodId?: string;
   billingMethodTitle?: string;
+  photoType?: string;
 }
 
 const CATEGORY_OPTIONS = [
@@ -48,6 +55,7 @@ const CATEGORY_OPTIONS = [
 export default function EditRegister() {
   // Parâmetros da rota
   const params = useLocalSearchParams() as RouteParams;
+  const { loading: loadingImage, error: photoError, fetchVehiclePhoto, invalidateCache } = useVehiclePhoto();
   const categoryParam = (params.category || "carro").toLowerCase() as
     | "carro"
     | "moto";
@@ -60,9 +68,26 @@ export default function EditRegister() {
   const [observation, setObservation] = useState(params.observation || "");
   
   // Estados para modais e feedback
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalMessage, setModalMessage] = useState("");
-  const [modalIsSuccess, setModalIsSuccess] = useState(false);
+  const [showFeedback, setShowFeedback] = useState<boolean>(false);
+  const [feedbackMessage, setFeedbackMessage] = useState<string>("");
+  const [feedbackType, setFeedbackType] = useState<'success' | 'error' | 'warning' | 'info'>('info');
+  
+  // Estados para modal de confirmação
+  const [confirmationVisible, setConfirmationVisible] = useState(false);
+  
+  // Estados para modal de geração de ticket
+  const [ticketModalVisible, setTicketModalVisible] = useState(false);
+  
+  // Estados para PDF do ticket
+  const [ticketPdf, setTicketPdf] = useState<string | null>(null);
+  const [ticketPdfVisible, setTicketPdfVisible] = useState(false);
+
+  // Estados para imagem do veículo
+  const [vehicleImage, setVehicleImage] = useState<string | null>(null);
+  const [cameraVisible, setCameraVisible] = useState(false);
+  const [photoViewerVisible, setPhotoViewerVisible] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [loadingPhoto, setLoadingPhoto] = useState(false);
 
   // Estados para métodos de cobrança
   const [billingMethods, setBillingMethods] = useState<BillingMethodList[]>([]);
@@ -77,7 +102,9 @@ export default function EditRegister() {
 
   // Hooks
   const {
-    editVehicle,
+    updateVehicle,
+    updateVehiclePhoto,
+    deleteVehiclePhoto,
     loading,
     error,
     success,
@@ -105,6 +132,52 @@ export default function EditRegister() {
       console.error('Erro ao carregar métodos de cobrança:', error);
     } finally {
       setBillingMethodsLoading(false);
+    }
+  };
+
+  // Função para buscar foto automaticamente
+  const loadVehiclePhoto = async () => {
+    if (!params.id || loadingImage) {
+      return;
+    }
+    
+    setLoadingPhoto(true);
+    try {
+      const photoData = await fetchVehiclePhoto(params.id);
+      
+      if (photoData) {
+        setVehicleImage(photoData.photo);
+      } else {
+        setVehicleImage(null);
+      }
+      // Não mostrar erro se não houver foto, pois é opcional
+    } catch (error) {
+      // Erro silencioso para foto opcional
+    } finally {
+      setLoadingPhoto(false);
+    }
+  };
+
+  const handleViewImage = async () => {
+    if (loadingImage) {
+      return;
+    }
+    
+    try {
+      const photoData = await fetchVehiclePhoto(params.id!);
+      
+      if (photoData) {
+        setVehicleImage(photoData.photo);
+        setPhotoViewerVisible(true);
+      } else if (photoError) {
+        setFeedbackMessage(photoError);
+        setFeedbackType('error');
+        setShowFeedback(true);
+      }
+    } catch (error) {
+      setFeedbackMessage('Não foi possível carregar a imagem');
+      setFeedbackType('error');
+      setShowFeedback(true);
     }
   };
 
@@ -146,61 +219,39 @@ export default function EditRegister() {
   // Efeitos
   useEffect(() => {
     loadBillingMethods();
+    loadVehiclePhoto();
   }, []);
 
-  useEffect(() => {
-    if (error || success) {
-      // Reset states when error or success occurs
-      setModalMessage(error || success ? "Operação realizada" : "");
-      setModalIsSuccess(!!success);
-      setModalVisible(!!(error || success));
-    }
-  }, [error, success]);
+  // useEffect removido - as mensagens são definidas diretamente nas funções
 
-  // Funções auxiliares
-  const closeFeedbackModal = useCallback(() => {
-    setModalVisible(false);
-  }, []);
 
-  const showFeedback = useCallback((isSuccess: boolean, message: string) => {
-    setModalIsSuccess(isSuccess);
-    setModalMessage(message);
-    setModalVisible(true);
-  }, []);
-
-  // Manipulação de dados
-  const handleUpdate = async () => {
+  // Validação e preparação para confirmação
+  const handleUpdate = () => {
     // Validação dos dados obrigatórios
     if (!plate.trim() || !isPlateValid || isValidating || !selectedBillingMethod) {
-      setModalMessage("Por favor, preencha todos os campos obrigatórios: placa, categoria e método de cobrança.");
-      setModalIsSuccess(false);
-      setModalVisible(true);
+      setFeedbackMessage("Por favor, preencha todos os campos obrigatórios: placa, categoria e método de cobrança.");
+      setFeedbackType('error');
+      setShowFeedback(true);
       return;
     }
 
     if (!params.id) {
-      setModalMessage("ID do veículo não encontrado.");
-      setModalIsSuccess(false);
-      setModalVisible(true);
+      setFeedbackMessage("ID do veículo não encontrado.");
+      setFeedbackType('error');
+      setShowFeedback(true);
       return;
     }
 
-    try {
-      const result = await editVehicle(params.id, plate, selectedCategory);
-      
-      setModalMessage(result.message);
-      setModalIsSuccess(result.success);
-      setModalVisible(true);
+    // Mostrar modal de confirmação
+    setConfirmationVisible(true);
+  };
 
-      if (result.success) {
-        // Volta para a tela anterior após sucesso
-        setTimeout(() => {
-          router.back();
-        }, 2000);
-      }
-    } catch (err) {
-      // Erro tratado no hook
-    }
+  // Execução real da atualização após confirmação
+  const handleConfirmUpdate = async () => {
+    setConfirmationVisible(false);
+    
+    // Mostrar modal para gerar ticket (sem enviar para API ainda)
+    setTicketModalVisible(true);
   };
 
   // Funções auxiliares para formatação
@@ -233,6 +284,201 @@ export default function EditRegister() {
     
     return `${hours.toString().padStart(2, '0')}:${remainingMinutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
+
+  // Funções para controle de imagem
+  const handleOpenCamera = () => {
+    setCameraVisible(true);
+    setIsProcessing(false);
+  };
+
+  const handleCloseCamera = () => {
+    setCameraVisible(false);
+  };
+
+  const handlePhotoCaptured = async (photoUri: string) => {
+    if (!params.id) {
+      setFeedbackMessage("ID do veículo não encontrado.");
+      setFeedbackType('error');
+      setShowFeedback(true);
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const result = await updateVehiclePhoto(params.id, photoUri);
+      
+      if (result.success) {
+        // Invalidar cache para forçar nova busca na API
+        invalidateCache(params.id);
+        
+        // Fazer nova busca da foto após atualização
+        setLoadingPhoto(true);
+        try {
+          const photoData = await fetchVehiclePhoto(params.id);
+          
+          if (photoData) {
+            setVehicleImage(photoData.photo);
+          } else {
+            setVehicleImage(null);
+          }
+        } catch (error) {
+          // Erro silencioso
+        } finally {
+          setLoadingPhoto(false);
+        }
+        
+        setCameraVisible(false);
+        setFeedbackMessage(result.message || "Foto atualizada com sucesso");
+        setFeedbackType('success');
+        setShowFeedback(true);
+      } else {
+        setFeedbackMessage(result.message || "Erro ao atualizar foto");
+        setFeedbackType('error');
+        setShowFeedback(true);
+      }
+    } catch (error) {
+      setFeedbackMessage('Erro ao salvar a foto do veículo');
+      setFeedbackType('error');
+      setShowFeedback(true);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleViewPhoto = () => {
+    if (vehicleImage) {
+      setPhotoViewerVisible(true);
+    }
+  };
+
+  const handleDeletePhoto = async () => {
+    if (!params.id) {
+      setFeedbackMessage("ID do veículo não encontrado.");
+      setFeedbackType('error');
+      setShowFeedback(true);
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const result = await deleteVehiclePhoto(params.id);
+      
+      if (result.success) {
+        // Invalidar cache para forçar nova busca na API
+        invalidateCache(params.id);
+        
+        // Fazer nova busca da foto após deleção para confirmar que foi removida
+        setLoadingPhoto(true);
+        try {
+          const photoData = await fetchVehiclePhoto(params.id);
+          
+          if (photoData) {
+            setVehicleImage(photoData.photo);
+          } else {
+            setVehicleImage(null);
+          }
+        } catch (error) {
+          // Se não conseguir buscar a foto, assume que foi deletada
+          setVehicleImage(null);
+        } finally {
+          setLoadingPhoto(false);
+        }
+        
+        setFeedbackMessage(result.message || "Foto removida com sucesso");
+        setFeedbackType('success');
+        setShowFeedback(true);
+      } else {
+        setFeedbackMessage(result.message || "Erro ao remover foto");
+        setFeedbackType('error');
+        setShowFeedback(true);
+      }
+    } catch (error) {
+      setFeedbackMessage('Erro ao remover a foto do veículo');
+      setFeedbackType('error');
+      setShowFeedback(true);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+
+  // Função para atualizar o veículo na API
+  const updateVehicleInAPI = async (requiredTicket: boolean = false) => {
+    try {
+      // Preparar dados para envio
+      const vehicleData = {
+        plate,
+        category: selectedCategory,
+        billingMethod: selectedBillingMethod?.id,
+        observation: observation.trim() === "" ? null : observation.trim(),
+        requiredTicket
+      };
+
+      const result = await updateVehicle(params.id!, vehicleData);
+      
+      if (result.success) {
+        // Se foi solicitado ticket e ele foi retornado, mostrar o PDF
+        if (requiredTicket && result.ticket) {
+          setTicketPdf(result.ticket);
+          setTicketPdfVisible(true);
+        } else {
+          setFeedbackMessage("Veículo atualizado com sucesso");
+          setFeedbackType('success');
+          setShowFeedback(true);
+          
+          // Volta para a tela anterior após um delay
+          setTimeout(() => {
+            router.back();
+          }, 2000);
+        }
+      } else {
+        setFeedbackMessage(result.message);
+        setFeedbackType('error');
+        setShowFeedback(true);
+      }
+    } catch (err) {
+      // Erro tratado no hook
+    }
+  };
+
+  // Funções para modal de ticket
+  const handleGenerateTicket = async () => {
+    setTicketModalVisible(false);
+    
+    // Atualizar veículo na API com requiredTicket = true
+    await updateVehicleInAPI(true);
+  };
+
+  const handleSkipTicket = async () => {
+    setTicketModalVisible(false);
+    
+    // Atualizar veículo na API com requiredTicket = false
+    await updateVehicleInAPI(false);
+  };
+
+  // Funções para PDF do ticket
+  const handleCloseTicketPdf = () => {
+    setTicketPdfVisible(false);
+    setTicketPdf(null);
+    
+    // Volta para a tela anterior após fechar o PDF
+    setTimeout(() => {
+      router.back();
+    }, 500);
+  };
+
+  const handleTicketPdfSuccess = (message: string) => {
+    setFeedbackMessage(message);
+    setFeedbackType('success');
+    setShowFeedback(true);
+  };
+
+  const handleTicketPdfError = (error: string) => {
+    setFeedbackMessage(error);
+    setFeedbackType('error');
+    setShowFeedback(true);
+  };
+
 
   // Cleanup de timeouts
   useEffect(() => {
@@ -281,6 +527,23 @@ export default function EditRegister() {
 
   return (
     <View style={styles.mainContainer}>
+      {/* Câmera em tela cheia */}
+      {cameraVisible && (
+        <View style={styles.cameraFullScreen}>
+          <CameraComponent
+            mode="update"
+            onManualAction={handleCloseCamera}
+            onPhotoCaptured={handlePhotoCaptured}
+            onUpdatePhoto={handlePhotoCaptured}
+            manualButtonText="Fechar Câmera"
+            isProcessing={isProcessing}
+          />
+        </View>
+      )}
+
+      {/* Formulário principal */}
+      {!cameraVisible && (
+        <>
       <Header title="Editar Veículo" titleStyle={styles.header} />
 
       <KeyboardAvoidingView
@@ -295,8 +558,15 @@ export default function EditRegister() {
         >
           <View style={styles.welcomeCard}>
             <View style={styles.welcomeHeader}>
-              <View style={styles.welcomeIcon}>
-                <Ionicons name="car" size={32} color={Colors.white} />
+              <View style={[
+                styles.welcomeIcon,
+                { backgroundColor: selectedCategory === "carro" ? Colors.blue[500] : Colors.orange[500] }
+              ]}>
+                <Ionicons 
+                  name={selectedCategory === "carro" ? "car" : "bicycle"} 
+                  size={32} 
+                  color={Colors.white} 
+                />
               </View>
               <View style={styles.welcomeInfo}>
                 <Text style={styles.welcomeTitle}>
@@ -307,6 +577,21 @@ export default function EditRegister() {
                 </Text>
               </View>
             </View>
+          </View>
+
+          {/* Seção Informativa */}
+          <View style={styles.infoContainer}>
+            <View style={styles.infoHeader}>
+              <View style={styles.infoIconContainer}>
+                <Ionicons name="information-circle" size={24} color="white" />
+              </View>
+              <Text style={styles.infoTitle}>
+                Informações sobre Edição
+              </Text>
+            </View>
+            <Text style={styles.infoDescription}>
+              Você pode editar a placa, categoria e método de cobrança do veículo. A observação é opcional e pode ser usada para registrar informações adicionais sobre o veículo. Caso não queira mexer em algum dos campos, basta deixar o valor atual. No caso da foto, ela é atualizada separadamente dos dados do veículo.
+            </Text>
           </View>
 
           <View style={styles.inputContainer}>
@@ -414,10 +699,20 @@ export default function EditRegister() {
                 <Text style={styles.billingDataValue}>{getBillingValue()}</Text>
               </View>
               
-              {selectedBillingMethod.time !== undefined && selectedBillingMethod.time !== null && (
+              <View style={styles.billingDataRow}>
+                <Text style={styles.billingDataLabel}>Tipo de Cobrança:</Text>
+                <Text style={styles.billingDataValue}>
+                  {selectedBillingMethod.category === 'POR_HORA' ? 'Por Hora' :
+                   selectedBillingMethod.category === 'POR_MINUTO' ? 'Por Minuto' :
+                   selectedBillingMethod.category === 'VALOR_FIXO' ? 'Valor Fixo' :
+                   selectedBillingMethod.category}
+                </Text>
+              </View>
+              
+              {selectedBillingMethod.timeMinutes !== undefined && selectedBillingMethod.timeMinutes !== null && (
                 <View style={styles.billingDataRow}>
-                  <Text style={styles.billingDataLabel}>Tempo de Permanência:</Text>
-                  <Text style={styles.billingDataValue}>{formatTimeFromMinutes(selectedBillingMethod.time)}</Text>
+                  <Text style={styles.billingDataLabel}>Tempo de Cobrança:</Text>
+                  <Text style={styles.billingDataValue}>{formatTimeFromMinutes(selectedBillingMethod.timeMinutes)}</Text>
                 </View>
               )}
               
@@ -446,6 +741,64 @@ export default function EditRegister() {
             </Text>
           </View>
 
+          {/* Campo de Imagem */}
+          <View style={styles.imageContainer}>
+            <Text style={styles.imageLabel}>Foto do Veículo (Opcional)</Text>
+            
+            {vehicleImage ? (
+              <View style={styles.imagePreviewContainer}>
+                <View style={styles.imagePreview}>
+                  <Ionicons name="image" size={48} color={Colors.blue[500]} />
+                </View>
+                
+                <View style={styles.imageActions}>
+                  <TouchableOpacity
+                    style={[styles.imageActionButton, styles.viewButton]}
+                    onPress={handleViewPhoto}
+                  >
+                    <Ionicons name="eye" size={20} color={Colors.white} />
+                    <Text style={styles.imageActionText}>Visualizar</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity
+                    style={[styles.imageActionButton, styles.cameraButton]}
+                    onPress={handleOpenCamera}
+                    disabled={loading || isProcessing}
+                  >
+                    <Ionicons name="camera" size={20} color={Colors.white} />
+                    <Text style={styles.imageActionText}>Nova Foto</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity
+                    style={[styles.imageActionButton, styles.deleteButton]}
+                    onPress={handleDeletePhoto}
+                    disabled={loading || isProcessing}
+                  >
+                    <Ionicons name="trash" size={20} color={Colors.white} />
+                    <Text style={styles.imageActionText}>Remover</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={styles.noImageContainer}
+                onPress={handleOpenCamera}
+                disabled={loading || isProcessing}
+              >
+                <View style={styles.noImageIcon}>
+                  <Ionicons name="camera-outline" size={32} color={Colors.gray[400]} />
+                </View>
+                <View style={styles.noImageContent}>
+                  <Text style={styles.noImageTitle}>Nenhuma foto registrada</Text>
+                  <Text style={styles.noImageSubtitle}>
+                    Toque para fotografar o veículo
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={Colors.gray[400]} />
+              </TouchableOpacity>
+            )}
+          </View>
+
           <View style={styles.buttonContainer}>
             <SecondaryButton
               title="Cancelar"
@@ -462,20 +815,72 @@ export default function EditRegister() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+        </>
+      )}
+
+      <PhotoViewerModal
+        visible={photoViewerVisible}
+        onClose={() => setPhotoViewerVisible(false)}
+        photoData={vehicleImage ? {
+          photo: vehicleImage,
+          photoType: "image/jpeg"
+        } : null}
+      />
+
+      <GenericConfirmationModal
+        visible={confirmationVisible}
+        title="Confirmar Edição"
+        message="Tem certeza que deseja salvar as alterações nos dados do veículo?"
+        details="Uma vez confirmado, os dados do veículo serão atualizados no estacionamento e não podem ser restaurados para os que eram anteriores."
+        confirmText="Confirmar"
+        cancelText="Cancelar"
+        onConfirm={handleConfirmUpdate}
+        onCancel={() => setConfirmationVisible(false)}
+        confirmButtonStyle="primary"
+      />
+
+      <GenericConfirmationModal
+        visible={ticketModalVisible}
+        title="Gerar Ticket"
+        message="Deseja gerar um ticket com os dados atualizados do veículo?"
+        confirmText="Gerar Ticket"
+        cancelText="Pular"
+        onConfirm={handleGenerateTicket}
+        onCancel={handleSkipTicket}
+        confirmButtonStyle="primary"
+      />
+
+      <Spinner
+        visible={loadingPhoto || isProcessing}
+        textContent={isProcessing ? "Processando..." : "Carregando foto do veículo..."}
+        textStyle={{
+          color: Colors.text.primary,
+          fontSize: 16,
+          fontWeight: '500'
+        }}
+        color={Colors.blue.logo}
+        overlayColor={Colors.overlay.medium}
+        size="large"
+        animation="fade"
+      />
 
       <FeedbackModal
-        visible={modalVisible}
-        message={modalMessage}
-        type={modalIsSuccess ? 'success' : 'error'}
-        onClose={() => setModalVisible(false)}
-        dismissible={!modalIsSuccess}
-        onBackPress={() => {
-          if (modalIsSuccess) {
-            router.back();
-          }
-        }}
-        autoNavigateOnSuccess={modalIsSuccess}
+        visible={showFeedback}
+        message={feedbackMessage}
+        type={feedbackType}
+        onClose={() => setShowFeedback(false)}
+        dismissible={true}
+        autoNavigateOnSuccess={false}
         navigateDelay={2000}
+      />
+
+      <PDFViewer
+        base64={ticketPdf || ""}
+        visible={ticketPdfVisible}
+        onClose={handleCloseTicketPdf}
+        filename={`ticket-${plate || 'veiculo'}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.pdf`}
+        onSuccess={handleTicketPdfSuccess}
+        onError={handleTicketPdfError}
       />
     </View>
   );
