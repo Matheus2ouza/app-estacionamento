@@ -177,7 +177,8 @@ export default function Parking() {
         category: vehicle.category,
         observation: vehicle.observation || "",
         billingMethodId: vehicle.billingMethod?.id || "",
-        billingMethodTitle: vehicle.billingMethod?.title || ""
+        billingMethodTitle: vehicle.billingMethod?.title || "",
+        photoType: vehicle.photoType || ""
       }
     });
   };

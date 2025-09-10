@@ -9,7 +9,7 @@ import { useAuth } from "@/src/context/AuthContext";
 import { useCashContext } from "@/src/context/CashContext";
 import { useCash } from "@/src/hooks/cash/useCash";
 import { styles } from "@/src/styles/home/adminHomeStyles";
-import { CashData } from "@/src/types/cash";
+import { CashData } from "@/src/types/cashTypes/cash";
 import { Feather } from "@expo/vector-icons";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
@@ -31,6 +31,11 @@ export default function AdminHome() {
   const [feedbackSuccess, setFeedbackSuccess] = useState(false)
   const [timeCloseFeedback, setTimeCloseFeedback] = useState(5000)
   const [cashDetails, setCashDetails] = useState<CashData | null>(null)
+  const [parkingDetails, setParkingDetails] = useState<{
+    free: number;
+    used: number;
+    details: number[];
+  } | null>(null)
   const { role, userId } = useAuth();
   const { 
     loading: cashLoading, 
@@ -43,7 +48,7 @@ export default function AdminHome() {
     closeCash,
   } = useCashContext();
 
-  const { detailsCash } = useCash();
+  const { detailsCash, detailsParking } = useCash();
 
   // Função para buscar detalhes do caixa
   const fetchCashDetails = async () => {
@@ -55,19 +60,89 @@ export default function AdminHome() {
     }
   };
 
-  // Função para atualizar dados do caixa (usada no refresh)
-  const updateCashDetails = async () => {
-    // Primeiro verifica o status do caixa
-    const status = await fetchStatus();
-    
-    // Depois busca os detalhes se o caixa existir
-    if (cashData?.id && (status === 'open' || status === 'closed')) {
-      const details = await detailsCash(cashData.id);
-      console.log("o details logo abaixo")
-      console.log(details)
-      if (details) {
-        setCashDetails(details);
+  // Função para buscar detalhes do estacionamento
+  const fetchParkingDetails = async () => {
+    if (cashData?.id) {
+      const details = await detailsParking(cashData.id);
+      if (details && details.data) {
+        const parkingData = {
+          free: details.data.capacityMax - details.data.quantityVehicles,
+          used: details.data.quantityVehicles,
+          details: [details.data.quantityCars, details.data.quantityMotorcycles]
+        };
+        setParkingDetails(parkingData);
       }
+    }
+  };
+
+  // Função para atualizar dados do caixa (usada no refresh geral)
+  const updateCashDetails = async () => {
+    try {
+      // Primeiro verifica o status do caixa
+      const status = await fetchStatus();
+      
+      // Depois busca os detalhes se o caixa existir
+      if (cashData?.id && (status === 'open' || status === 'closed')) {
+        const details = await detailsCash(cashData.id);
+        if (details) {
+          setCashDetails(details);
+        }
+        
+        // Buscar dados do estacionamento APENAS se o caixa estiver aberto
+        if (status === 'open') {
+          await fetchParkingDetails();
+        } else {
+          // Limpar dados do estacionamento se o caixa estiver fechado
+          setParkingDetails(null);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar dados gerais:', error);
+    }
+  };
+
+  // Função específica para refresh do CashBox
+  const handleCashBoxRefresh = async () => {
+    setShowLoader(true);
+    const startTime = Date.now();
+    
+    try {
+      if (cashData?.id && (cashStatus === 'open' || cashStatus === 'closed')) {
+        const details = await detailsCash(cashData.id);
+        if (details) {
+          setCashDetails(details);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar dados do caixa:', error);
+    } finally {
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, 1000 - elapsedTime);
+      
+      setTimeout(() => {
+        setShowLoader(false);
+      }, remainingTime);
+    }
+  };
+
+  // Função específica para refresh do ParkingBox
+  const handleParkingBoxRefresh = async () => {
+    setShowLoader(true);
+    const startTime = Date.now();
+    
+    try {
+      if (cashData?.id && cashStatus === 'open') {
+        await fetchParkingDetails();
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar dados do estacionamento:', error);
+    } finally {
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, 1000 - elapsedTime);
+      
+      setTimeout(() => {
+        setShowLoader(false);
+      }, remainingTime);
     }
   };
 
@@ -83,6 +158,8 @@ export default function AdminHome() {
       setShowCashClosed(false);
       // Buscar detalhes do caixa quando estiver aberto
       fetchCashDetails();
+      // Buscar dados do estacionamento (APENAS quando aberto)
+      fetchParkingDetails();
     }
     
     if (cashStatus === 'closed') {
@@ -92,12 +169,15 @@ export default function AdminHome() {
       if (!cashDetails && cashData?.id) {
         fetchCashDetails();
       }
+      // Limpar dados do estacionamento quando fechado
+      setParkingDetails(null);
     }
     
     if (cashStatus === 'not_created') {
       setMessage(true);
       setShowCashClosed(false);
-      setCashDetails(null); // Limpar detalhes apenas quando não há caixa
+      setCashDetails(null); // Limpar detalhes quando não há caixa
+      setParkingDetails(null); // Limpar dados do estacionamento
     }
   }, [cashStatus, cashData?.id]);
 
@@ -121,6 +201,8 @@ export default function AdminHome() {
         if (!cashDetails && cashData?.id) {
           await fetchCashDetails();
         }
+        // Limpar dados do estacionamento quando fechado
+        setParkingDetails(null);
       }
       
       if(status === 'open') {
@@ -129,6 +211,10 @@ export default function AdminHome() {
         // Buscar detalhes se não tiver ainda
         if (!cashDetails && cashData?.id) {
           await fetchCashDetails();
+        }
+        // Buscar dados do estacionamento (APENAS quando aberto)
+        if (!parkingDetails && cashData?.id) {
+          await fetchParkingDetails();
         }
       }
     } finally {
@@ -331,7 +417,7 @@ export default function AdminHome() {
       <View style={styles.body}>
         <CashBox 
           cashStatus={cashStatus}
-          onRefresh={updateCashDetails}
+          onRefresh={handleCashBoxRefresh}
           cashData={cashDetails ? {
             "Valor Inicial": cashDetails.initialValue,
             Dinheiro: cashDetails.totalCash,
@@ -345,7 +431,8 @@ export default function AdminHome() {
 
         <ParkingBox 
           cashStatus={cashStatus}
-          onRefresh={checkCashStatus}
+          onRefresh={handleParkingBoxRefresh}
+          parkingData={parkingDetails || undefined}
         />
 
         <LinearGradient

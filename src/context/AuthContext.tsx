@@ -2,7 +2,7 @@ import * as SecureStore from "expo-secure-store";
 import { jwtDecode } from "jwt-decode";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { setAuthToken } from "../api/axiosInstance";
-import type { AuthContextData, DecodedToken } from "../types/auth";
+import type { AuthContextData, DecodedToken } from "../types/authTypes/auth";
 
 // Hierarquia de roles (igual ao backend)
 const ROLE_HIERARCHY = {

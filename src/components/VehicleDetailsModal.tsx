@@ -129,7 +129,7 @@ export default function VehicleDetailsModal({
     
     try {
       const photoData = await fetchVehiclePhoto(vehicle.id);
-      
+
       if (photoData) {
         setCurrentPhotoData(photoData);
         setPhotoViewerVisible(true);
@@ -256,20 +256,33 @@ export default function VehicleDetailsModal({
 
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Imagem:</Text>
-              <Pressable 
-                style={[styles.viewImageButton, loadingImage && styles.viewImageButtonDisabled]}
-                onPress={handleViewImage}
-                disabled={loadingImage}
-              >
-                <FontAwesome 
-                  name={loadingImage ? "spinner" : "image"} 
-                  size={14} 
-                  color={loadingImage ? Colors.gray[500] : Colors.blue.primary} 
-                />
-                <Text style={[styles.viewImageButtonText, loadingImage && styles.viewImageButtonTextDisabled]}>
-                  {loadingImage ? 'Carregando...' : 'Visualizar Imagem'}
-                </Text>
-              </Pressable>
+              {vehicle.photoType ? (
+                <Pressable 
+                  style={[styles.viewImageButton, loadingImage && styles.viewImageButtonDisabled]}
+                  onPress={handleViewImage}
+                  disabled={loadingImage}
+                >
+                  <FontAwesome 
+                    name={loadingImage ? "spinner" : "image"} 
+                    size={14} 
+                    color={loadingImage ? Colors.gray[500] : Colors.blue.primary} 
+                  />
+                  <Text style={[styles.viewImageButtonText, loadingImage && styles.viewImageButtonTextDisabled]}>
+                    {loadingImage ? 'Carregando...' : 'Visualizar Imagem'}
+                  </Text>
+                </Pressable>
+              ) : (
+                <View style={styles.noImageContainer}>
+                  <FontAwesome 
+                    name="image" 
+                    size={14} 
+                    color={Colors.gray[400]} 
+                  />
+                  <Text style={styles.noImageText}>
+                    Nenhuma foto disponível
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
 
@@ -625,6 +638,23 @@ const styles = StyleSheet.create({
   },
   viewImageButtonTextDisabled: {
     color: Colors.gray[500],
+  },
+  noImageContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: Colors.gray[50],
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: Colors.gray[200],
+    gap: 6,
+  },
+  noImageText: {
+    ...TypographyThemes.nunito.body,
+    fontSize: 12,
+    color: Colors.gray[500],
+    fontWeight: '500',
   },
   actionsContainer: {
     flexDirection: 'row',

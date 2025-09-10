@@ -19,7 +19,7 @@ const ParkingBox: React.FC<ParkingBoxProps> = ({ cashStatus, onRefresh, parkingD
   const mockParkingData = {
     free: 42,
     used: 99,
-    details: [99, 99, 99], // carro, moto, carro grande
+    details: [99, 99], // carro, moto
   };
 
   const renderParkingData = () => {
@@ -68,17 +68,6 @@ const ParkingBox: React.FC<ParkingBoxProps> = ({ cashStatus, onRefresh, parkingD
           <View style={styles.iconDescriptionRow}>
             <FontAwesome name="motorcycle" size={18} color={Colors.text.primary} />
             <Text style={styles.iconText}>{dataToShow.details[1]}</Text>
-          </View>
-
-          <View style={styles.dividerVertical} />
-
-          <View style={styles.iconDescriptionRow}>
-            <MaterialCommunityIcons
-              name="car-estate"
-              size={22}
-              color={Colors.text.primary}
-            />
-            <Text style={styles.iconText}>{dataToShow.details[2]}</Text>
           </View>
         </View>
       </View>
@@ -194,13 +183,14 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "center",
     flexDirection: "row",
-    justifyContent: "center",
-    gap: 15,
+    justifyContent: "space-around",
+    paddingHorizontal: 20,
   },
   iconDescriptionRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginHorizontal: 10,
+    justifyContent: "center",
+    flex: 1,
   },
   iconText: {
     fontSize: 12,

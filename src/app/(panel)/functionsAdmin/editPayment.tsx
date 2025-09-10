@@ -6,7 +6,7 @@ import { SecondaryButton } from "@/src/components/SecondaryButton";
 import Colors from "@/src/constants/Colors";
 import { useBillingMethod } from "@/src/hooks/cash/useBillingMethod";
 import { styles } from "@/src/styles/functions/editPaymentStyle";
-import { changeOptions } from "@/src/types/billingMethod";
+import { changeOptions } from "@/src/types/billingMethodTypes/billingMethod";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
@@ -23,8 +23,6 @@ export default function EditPayment() {
     carPrice: string;
     motoPrice: string;
   }>();
-
-  console.log('params', params);
 
   const [change, setChange] = useState<string>("");
   const [title, setTitle] = useState<string>("");
@@ -258,7 +256,7 @@ export default function EditPayment() {
                 </Text>
               </View>
               <Text style={styles.infoDescription}>
-                Você pode editar o título, tolerância, tempo de cobrança e preços. O método de cobrança não pode ser alterado após a criação.
+                  Você pode editar o título, tolerância, tempo de cobrança e preços. O método de cobrança não pode ser alterado após a criação.
               </Text>
             </View>
 

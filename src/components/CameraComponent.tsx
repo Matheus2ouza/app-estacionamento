@@ -12,15 +12,16 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Colors from '../constants/Colors';
 
 interface CameraComponentProps {
-  mode: 'default';
+  mode: 'default' | 'update';
   onBarcodeScanned?: (data: { data: string }) => void;
   onManualAction?: () => void;
   onPhotoCaptured?: (photoUri: string) => void;
+  onUpdatePhoto?: (photoUri: string) => void;
   manualButtonText?: string;
   isProcessing?: boolean;
-  isScanning?: boolean;
 }
 
 export default function CameraComponent({
@@ -28,9 +29,9 @@ export default function CameraComponent({
   onBarcodeScanned,
   onManualAction,
   onPhotoCaptured,
+  onUpdatePhoto,
   manualButtonText = "Consultar manualmente",
   isProcessing = false,
-  isScanning = true,
 }: CameraComponentProps) {
   const [facing, setFacing] = useState<"front" | "back">("back");
   const [permission, requestPermission] = useCameraPermissions();
@@ -95,8 +96,11 @@ export default function CameraComponent({
           // URI contém o caminho do arquivo temporário: file:///path/to/image.jpg
           setCapturedPhoto(photo.uri);
           setShowPreview(true);
-          // Envia o URI para a tela principal para uso posterior
-          onPhotoCaptured?.(photo.uri);
+          // NO MODO UPDATE: NÃO chama onPhotoCaptured imediatamente
+          // Apenas no modo default chama onPhotoCaptured
+          if (mode === 'default') {
+            onPhotoCaptured?.(photo.uri);
+          }
         }
       } catch (error) {
         console.error('Erro ao capturar foto:', error);
@@ -107,7 +111,13 @@ export default function CameraComponent({
 
   const acceptPhoto = () => {
     setShowPreview(false);
-    onManualAction?.();
+    if (mode === 'update' && capturedPhoto) {
+      onUpdatePhoto?.(capturedPhoto);
+      // Fechar câmera automaticamente após atualizar foto
+      onManualAction?.();
+    } else {
+      onManualAction?.();
+    }
   };
 
   const retakePhoto = () => {
@@ -115,10 +125,13 @@ export default function CameraComponent({
     setShowPreview(false);
   };
 
+
   const renderCameraContent = () => {
     switch (mode) {
       case 'default':
         return renderDefaultCamera();
+      case 'update':
+        return renderUpdateCamera();
       default:
         return renderDefaultCamera();
     }
@@ -195,6 +208,78 @@ export default function CameraComponent({
     );
   };
 
+  const renderUpdateCamera = () => {
+    if (!permission) {
+      return (
+        <View style={styles.container}>
+          <ActivityIndicator size="large" color="#FFFFFF" />
+          <Text style={styles.permissionText}>Solicitando permissão...</Text>
+        </View>
+      );
+    }
+
+    if (!permission.granted) {
+      return (
+        <View style={styles.container}>
+          <Text style={styles.permissionText}>
+            Precisamos da sua permissão para acessar a câmera
+          </Text>
+          <TouchableOpacity
+            style={styles.permissionButton}
+            onPress={requestPermission}
+          >
+            <Text style={styles.permissionButtonText}>Conceder Permissão</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.container}>
+        <CameraView
+          ref={cameraRef}
+          style={styles.camera}
+          facing={facing}
+        />
+
+        {isProcessing && (
+          <View style={styles.processingContainer}>
+            <ActivityIndicator size="large" color="#FFFFFF" />
+            <Text style={styles.processingText}>Atualizando foto...</Text>
+          </View>
+        )}
+
+        <View style={styles.photoButtonContainer}>
+          <TouchableOpacity
+            style={styles.flipButton}
+            onPress={toggleCameraFacing}
+          >
+            <FontAwesome6 name="camera-rotate" size={30} color="white" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.captureButton}
+            onPress={takePicture}
+            disabled={isProcessing}
+          >
+            <View style={styles.captureButtonInner} />
+          </TouchableOpacity>
+
+          {onManualAction && (
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={onManualAction}
+              disabled={isProcessing}
+            >
+              <Text style={styles.closeButtonText}>✕</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+    );
+  };
+
+
   // PREVIEW DA FOTO CAPTURADA
   // Mostra a imagem salva e permite aceitar ou rejeitar
   const renderPhotoPreview = () => {
@@ -217,8 +302,14 @@ export default function CameraComponent({
             style={styles.acceptButton}
             onPress={acceptPhoto}
           >
-            <FontAwesome6 name="check" size={20} color="white" />
-            <Text style={styles.acceptButtonText}>Usar Foto</Text>
+            <FontAwesome6 
+              name={mode === 'update' ? "upload" : "check"} 
+              size={20} 
+              color="white" 
+            />
+            <Text style={styles.acceptButtonText}>
+              {mode === 'update' ? 'Atualizar Foto' : 'Usar Foto'}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -237,7 +328,7 @@ export default function CameraComponent({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: Colors.black,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -251,12 +342,12 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: Colors.overlay.dark,
     justifyContent: 'center',
     alignItems: 'center',
   },
   processingText: {
-    color: '#FFFFFF',
+    color: Colors.white,
     fontSize: 16,
     marginTop: 10,
     fontWeight: 'bold',
@@ -271,7 +362,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   flipButton: {
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: Colors.overlay.dark,
     width: 50,
     height: 50,
     borderRadius: 25,
@@ -282,20 +373,20 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: Colors.whiteSemiTransparent,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 4,
-    borderColor: '#FFFFFF',
+    borderColor: Colors.white,
   },
   captureButtonInner: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
   },
   closeButton: {
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: Colors.overlay.dark,
     width: 50,
     height: 50,
     borderRadius: 25,
@@ -303,24 +394,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   closeButtonText: {
-    color: '#FFFFFF',
+    color: Colors.white,
     fontSize: 20,
     fontWeight: 'bold',
   },
   permissionText: {
-    color: '#FFFFFF',
+    color: Colors.white,
     fontSize: 16,
     textAlign: 'center',
     marginBottom: 20,
   },
   permissionButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: Colors.blue.primary,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
   },
   permissionButtonText: {
-    color: '#FFFFFF',
+    color: Colors.white,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -338,7 +429,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   retakeButton: {
-    backgroundColor: 'rgba(220, 38, 38, 0.9)',
+    backgroundColor: Colors.red.error,
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderRadius: 12,
@@ -348,18 +439,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     elevation: 3,
-    shadowColor: '#000',
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
   },
   retakeButtonText: {
-    color: '#FFFFFF',
+    color: Colors.white,
     fontSize: 14,
     fontWeight: '600',
   },
   acceptButton: {
-    backgroundColor: 'rgba(34, 197, 94, 0.9)',
+    backgroundColor: Colors.green.success,
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderRadius: 12,
@@ -369,13 +460,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     elevation: 3,
-    shadowColor: '#000',
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
   },
   acceptButtonText: {
-    color: '#FFFFFF',
+    color: Colors.white,
     fontSize: 14,
     fontWeight: '600',
   },

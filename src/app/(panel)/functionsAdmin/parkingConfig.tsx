@@ -3,14 +3,14 @@ import Header from "@/src/components/Header";
 import { PrimaryButton } from "@/src/components/PrimaryButton";
 import Separator from "@/src/components/Separator";
 import Colors from "@/src/constants/Colors";
-import { usePatioConfig } from "@/src/hooks/parking/usePatioConfig";
+import { useParkingConfig } from "@/src/hooks/parking/useParkingConfig";
 import { styles } from "@/src/styles/functions/patioConfigStyle";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useState } from "react";
 import { RefreshControl, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import Spinner from "react-native-loading-spinner-overlay";
 
-export default function PatioConfig() {
+export default function ParkingConfig() {
   const {
     spots,
     loading: initialLoading,
@@ -18,7 +18,7 @@ export default function PatioConfig() {
     handleChange,
     handleSave,
     refreshData,
-  } = usePatioConfig();
+  } = useParkingConfig();
 
   const [showFeedback, setShowFeedback] = useState<boolean>(false);
   const [feedbackMessage, setFeedbackMessage] = useState<string>("");

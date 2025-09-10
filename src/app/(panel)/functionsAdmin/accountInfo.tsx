@@ -9,7 +9,7 @@ import { useAuth } from "@/src/context/AuthContext";
 import { useUserActions } from "@/src/hooks/auth/useUserActions";
 import { useEmployees } from "@/src/hooks/auth/useUsersList";
 import { styles } from "@/src/styles/functions/accountInfoStyle";
-import { Employee } from "@/src/types/auth";
+import { Employee } from "@/src/types/authTypes/auth";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";

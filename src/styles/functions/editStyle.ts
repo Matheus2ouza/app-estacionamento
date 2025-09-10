@@ -59,6 +59,42 @@ export const styles = StyleSheet.create({
     color: Colors.text.secondary,
     lineHeight: 20,
   },
+  // Seção informativa
+  infoContainer: {
+    marginTop: 5,
+    padding: 20,
+    backgroundColor: Colors.blue.primary,
+    marginBottom: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.blue.light,
+    shadowColor: Colors.blue.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  infoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  infoIconContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 12,
+    padding: 8,
+    marginRight: 12,
+  },
+  infoTitle: {
+    ...TypographyThemes.poppins.subtitle,
+    fontWeight: '700',
+    color: Colors.white,
+  },
+  infoDescription: {
+    ...TypographyThemes.nunito.bodySmall,
+    color: 'rgba(255, 255, 255, 0.9)',
+    lineHeight: 22,
+  },
   inputContainer: {
     gap: 8,
   },
@@ -324,5 +360,99 @@ export const styles = StyleSheet.create({
   buttonCancel: {
     flex: 1,
     width: "100%",
+  },
+  // Estilos para campo de imagem
+  imageContainer: {
+    gap: 8,
+  },
+  imageLabel: {
+    ...TypographyThemes.inter.subtitle,
+    fontSize: 16,
+    fontWeight: "600",
+    color: Colors.text.primary,
+    marginLeft: 4,
+  },
+  imagePreviewContainer: {
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: Colors.gray[200],
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+  },
+  imagePreview: {
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  imageActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  imageActionButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    gap: 6,
+  },
+  viewButton: {
+    backgroundColor: Colors.blue[500],
+  },
+  cameraButton: {
+    backgroundColor: Colors.green[500],
+  },
+  deleteButton: {
+    backgroundColor: Colors.red[500],
+  },
+  imageActionText: {
+    ...TypographyThemes.nunito.bodySmall,
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.white,
+  },
+  noImageContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.gray[50],
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: Colors.gray[200],
+    borderStyle: "dashed",
+  },
+  noImageIcon: {
+    marginRight: 12,
+  },
+  noImageContent: {
+    flex: 1,
+  },
+  noImageTitle: {
+    ...TypographyThemes.inter.subtitle,
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.gray[600],
+    marginBottom: 2,
+  },
+  noImageSubtitle: {
+    ...TypographyThemes.nunito.bodySmall,
+    fontSize: 12,
+    color: Colors.gray[500],
+    lineHeight: 16,
+  },
+  cameraFullScreen: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
+    backgroundColor: Colors.black,
   },
 });

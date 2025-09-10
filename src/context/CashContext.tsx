@@ -1,5 +1,5 @@
 import { CashStatus, useCash } from '@/src/hooks/cash/useCash';
-import { cash } from '@/src/types/cash';
+import { cash } from '@/src/types/cashTypes/cash';
 import React, { createContext, ReactNode, useContext, useEffect } from 'react';
 
 interface CashContextType {
@@ -12,6 +12,7 @@ interface CashContextType {
   openCash: (initialValue: number) => Promise<[boolean, string]>;
   reOpenCash: (cashId: string) => Promise<[boolean, string]>;
   closeCash: (cashId: string, finalValue: number) => Promise<[boolean, string]>;
+  detailsParking: (cashId: string) => Promise<any>;
   refreshCashStatus: () => Promise<CashStatus>;
   clearError: () => void;
   clearSuccess: () => void;

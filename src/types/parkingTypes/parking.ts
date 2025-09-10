@@ -23,6 +23,8 @@ export interface CapacityParkingResponse {
   data: {
     capacityMax: number;
     quantityVehicles: number;
+    quantityCars: number;
+    quantityMotorcycles: number;
     maxCars: number;
     maxMotorcycles: number;
     percentage: number;
@@ -44,6 +46,7 @@ export interface ParkedVehicle {
   status: string;
   observation?: string;
   formattedEntryTime: string;
+  photoType?: string;
 }
 
 // Tipo para a resposta da API de veículos

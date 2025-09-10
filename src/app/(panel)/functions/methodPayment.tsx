@@ -6,7 +6,7 @@ import Colors from "@/src/constants/Colors";
 import { useAuth } from "@/src/context/AuthContext";
 import { useBillingMethod } from "@/src/hooks/cash/useBillingMethod";
 import { activeMethodStyles, containerStyles, disabledMethodStyles, styles } from "@/src/styles/functions/methodPaymentStyle";
-import { BillingMethodList, changeOptions } from "@/src/types/billingMethod";
+import { BillingMethodList, changeOptions } from "@/src/types/billingMethodTypes/billingMethod";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";

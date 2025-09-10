@@ -5,7 +5,7 @@ import { PrimaryButton } from "@/src/components/PrimaryButton";
 import Colors from "@/src/constants/Colors";
 import { useBillingMethod } from "@/src/hooks/cash/useBillingMethod";
 import { styles } from "@/src/styles/functions/createPaymentStyle";
-import { changeOptions } from "@/src/types/billingMethod";
+import { changeOptions } from "@/src/types/billingMethodTypes/billingMethod";
 import { router } from "expo-router";
 import { useState } from "react";
 import { KeyboardAvoidingView, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";

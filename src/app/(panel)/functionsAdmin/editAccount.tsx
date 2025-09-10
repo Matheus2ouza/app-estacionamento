@@ -44,7 +44,6 @@ export default function EditAccount() {
 
   const params = useLocalSearchParams();
 
-  console.log(params);
   const { 
     id, 
     username: initialUsername, 
