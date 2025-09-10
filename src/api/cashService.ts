@@ -9,7 +9,7 @@ export const cashApi = {
   },
 
   openCash: async (initialValue: number): Promise<cashResponse> => {
-    const response = await axiosInstance.post("/cash/open", initialValue);
+    const response = await axiosInstance.post("/cash/open", {initialValue});
     return response.data
   },
   
