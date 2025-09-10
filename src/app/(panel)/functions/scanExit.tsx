@@ -179,7 +179,7 @@ export default function ScanExit() {
 
   // Consulta manual
   const handleManualConsult = () => {
-    router.push("/functions/exitRegister");
+    router.push("/functions/listExit");
   };
 
   // Fechar modal de feedback

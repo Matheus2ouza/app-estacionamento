@@ -1,20 +1,49 @@
+import FeedbackModal from "@/src/components/FeedbackModal";
 import Header from "@/src/components/Header";
 import PhotoViewerModal from "@/src/components/PhotoViewerModal";
 import { PrimaryButton } from "@/src/components/PrimaryButton";
 import Colors from "@/src/constants/Colors";
+import { useExitVehicle } from "@/src/hooks/vehicleFlow/useExitVehicle";
 import { useVehiclePhoto } from "@/src/hooks/vehicleFlow/useVehiclePhoto";
 import { styles } from "@/src/styles/functions/informationVehicleStyle";
 import { FontAwesome } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
 export default function InformationExit() {
   const { vehicleData } = useLocalSearchParams();
   const { loading: loadingImage, error: photoError, fetchVehiclePhoto } = useVehiclePhoto();
+  const { calculateExit, loading: loadingExit, success, error, message } = useExitVehicle();
   const [photoViewerVisible, setPhotoViewerVisible] = useState(false);
   const [currentPhotoData, setCurrentPhotoData] = useState<{photo: string; photoType: string} | null>(null);
-  
+  const [calculatedAmount, setCalculatedAmount] = useState<number | null>(null);
+  const [feedbackVisible, setFeedbackVisible] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [feedbackType, setFeedbackType] = useState<'success' | 'error' | 'warning' | 'info'>('info');
+
+  const showFeedback = (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
+    setFeedbackMessage(message);
+    setFeedbackType(type);
+    setFeedbackVisible(true);
+  };
+
+  // Logs para monitorar estados do hook useExitVehicle
+  useEffect(() => {
+    console.log("🔄 [InformationExit] Estado do useExitVehicle - loading:", loadingExit);
+    console.log("🔄 [InformationExit] Estado do useExitVehicle - success:", success);
+    console.log("🔄 [InformationExit] Estado do useExitVehicle - error:", error);
+    console.log("🔄 [InformationExit] Estado do useExitVehicle - message:", message);
+  }, [loadingExit, success, error, message]);
+
+  // Monitorar erros do hook useExitVehicle
+  useEffect(() => {
+    if (error) {
+      console.log("❌ [InformationExit] Erro detectado:", error);
+      showFeedback(error, "error");
+    }
+  }, [error]);
+
   // Parse dos dados do veículo recebidos via parâmetros
   const vehicle = vehicleData ? JSON.parse(vehicleData as string) : {
     id: "1",
@@ -32,6 +61,30 @@ export default function InformationExit() {
     },
     photoType: "entry",
   };
+
+  // Monitorar sucesso do cálculo e navegar para exitRegister
+  useEffect(() => {
+    if (success && calculatedAmount !== null) {
+      // Combinar dados do veículo com o valor calculado
+      const exitData = {
+        ...vehicle,
+        calculatedAmount: calculatedAmount
+      };
+
+      console.log("🔍 [InformationExit] Dados do veículo:", vehicle);
+      console.log("🔍 [InformationExit] Valor calculado:", calculatedAmount);
+      console.log("🔍 [InformationExit] Dados completos para exitRegister:", exitData);
+      console.log("🔍 [InformationExit] JSON stringificado:", JSON.stringify(exitData));
+
+      // TODO: Descomentar quando quiser navegar para a próxima tela
+      // router.push({
+      //   pathname: "/functions/exitRegister",
+      //   params: {
+      //     exitData: JSON.stringify(exitData)
+      //   }
+      // });
+    }
+  }, [success, calculatedAmount, vehicle]);
 
   const formatDate = (dateString: string) => {
     try {
@@ -83,10 +136,28 @@ export default function InformationExit() {
     }
   };
 
-  const handleRegisterExit = () => {
-    // Implementar registro de saída
-    console.log("Registrar saída do veículo:", vehicle);
-    // Navegar para próxima tela ou mostrar confirmação
+  const handleRegisterExit = async () => {
+    try {
+      console.log("🚀 [InformationExit] Iniciando cálculo de saída...");
+      console.log("🚀 [InformationExit] ID do veículo:", vehicle.id);
+      console.log("🚀 [InformationExit] Placa do veículo:", vehicle.plate);
+      console.log("🚀 [InformationExit] Dados completos do veículo:", vehicle);
+      
+      const result = await calculateExit(vehicle.id, vehicle.plate);
+      
+      console.log("📊 [InformationExit] Resultado do cálculo:", result);
+      
+      if (result?.data) {
+        console.log("✅ [InformationExit] Valor calculado recebido:", result.data);
+        setCalculatedAmount(result.data);
+      } else {
+        console.log("❌ [InformationExit] Nenhum valor calculado recebido");
+        showFeedback("Erro ao calcular valor da saída. Tente novamente.", "error");
+      }
+    } catch (error) {
+      console.error("❌ [InformationExit] Erro ao calcular saída:", error);
+      showFeedback("Erro ao calcular valor da saída. Tente novamente.", "error");
+    }
   };
 
   // Função para obter o valor (já filtrado pela API)
@@ -256,9 +327,10 @@ export default function InformationExit() {
         {/* Botão de ação */}
         <View style={styles.buttonContainer}>
           <PrimaryButton
-            title="Registrar Saída"
+            title={loadingExit ? "Calculando..." : "Registrar Saída"}
             onPress={handleRegisterExit}
             style={styles.buttonConfirm}
+            disabled={loadingExit}
           />
         </View>
       </ScrollView>
@@ -268,6 +340,15 @@ export default function InformationExit() {
         visible={photoViewerVisible}
         onClose={handleClosePhotoViewer}
         photoData={currentPhotoData}
+      />
+
+      {/* Feedback Modal */}
+      <FeedbackModal
+        visible={feedbackVisible}
+        message={feedbackMessage}
+        type={feedbackType}
+        onClose={() => setFeedbackVisible(false)}
+        dismissible={true}
       />
     </View>
   );
