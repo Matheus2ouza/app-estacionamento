@@ -1,5 +1,5 @@
 import { ProductApi } from "@/src/api/productsService";
-import { Product } from "@/src/types/products";
+import { Product } from "@/src/types/productsTypes/products";
 import { useState } from "react";
 
 const useRegisterProduct = () => {

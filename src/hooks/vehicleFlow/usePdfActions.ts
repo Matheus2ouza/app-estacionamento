@@ -23,14 +23,13 @@ export function usePdfActions() {
               const fileAge = now - (fileInfo.modificationTime * 1000);
               if (fileAge > maxAge) {
                 await FileSystem.deleteAsync(filePath);
-                console.log('Arquivo antigo removido:', file);
               }
             }
           }
         }
       }
     } catch (error) {
-      console.warn('Erro ao limpar cache:', error);
+      // Erro silencioso na limpeza do cache
     }
   }
   // Função para salvar/baixar arquivo pdf base64 com nome customizado
@@ -57,13 +56,9 @@ export function usePdfActions() {
       // Verificar tamanho do base64 para evitar problemas de memória
       const base64Size = base64Data.length;
       const estimatedSizeMB = (base64Size * 3) / 4 / 1024 / 1024; // Aproximação do tamanho em MB
-      
-      console.log('Salvando PDF:', filename);
-      console.log('Tamanho estimado:', estimatedSizeMB.toFixed(2), 'MB');
 
       // Se o arquivo for muito grande (>50MB), usar processamento em chunks
       if (estimatedSizeMB > 50) {
-        console.warn('PDF muito grande, usando processamento otimizado');
         await writeLargeBase64File(fileUri, base64Data);
       } else {
         // Escrever o arquivo normalmente para arquivos menores
@@ -78,8 +73,6 @@ export function usePdfActions() {
         throw new Error('Falha ao criar o arquivo PDF');
       }
 
-      console.log('Arquivo criado com sucesso:', fileInfo);
-
       // Verificar se o sharing está disponível
       const isAvailable = await Sharing.isAvailableAsync();
       if (!isAvailable) {
@@ -93,10 +86,8 @@ export function usePdfActions() {
         UTI: 'com.adobe.pdf',
       });
 
-      console.log('PDF compartilhado com sucesso');
       return fileUri;
     } catch (error) {
-      console.error('Erro no download do PDF:', error);
       throw error;
     }
   }
@@ -130,8 +121,6 @@ export function usePdfActions() {
   // Função para imprimir usando expo-print
   async function printPdf(base64: string) {
     try {
-      console.log('Iniciando impressão do PDF...');
-
       // Preparar o base64 para impressão
       let base64Data = base64;
       if (base64.startsWith('data:application/pdf;base64,')) {
@@ -145,10 +134,7 @@ export function usePdfActions() {
         uri: `data:application/pdf;base64,${base64Data}`,
         orientation: Print.Orientation.portrait,
       });
-
-      console.log('PDF enviado para impressão com sucesso');
     } catch (error) {
-      console.error('Erro na impressão do PDF:', error);
       throw error;
     }
   }

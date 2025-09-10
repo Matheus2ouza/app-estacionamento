@@ -1,4 +1,5 @@
 import { VehicleApi } from "@/src/api/vehicleFlowService";
+import { UpdateVehicleData, UpdateVehicleResponse } from "@/src/types/vehicleTypes/vehicles";
 import { useState } from "react";
 
 const useEditVehicle = () => {
@@ -117,14 +118,14 @@ const useEditVehicle = () => {
     }
   }
 
-  const editVehicle = async (id: string, plate: string, category: string) => {
+  const updateVehicle = async (id: string, data: UpdateVehicleData) => {
     setLoading(true);
     setError(null);
     setSuccess(false);
     setMessage(null);
 
     try {
-      const response = await VehicleApi.editVehicle(id, plate, category);
+      const response: UpdateVehicleResponse = await VehicleApi.updateVehicle(id, data);
 
       if(response.success) {
         setSuccess(true);
@@ -132,16 +133,91 @@ const useEditVehicle = () => {
         return {
           success: true,
           message: response.message || "Veículo atualizado com sucesso.",
+          ticket: response.ticket,
         };
       } else {
         setError(response.message || "Erro ao atualizar veículo.");
         return {
           success: false,
           message: response.message || "Erro ao atualizar veículo.",
+          ticket: null,
         };
       }
     } catch (error: any) {
       const errorMessage = error?.response?.data?.message || "Erro ao atualizar veículo.";
+      setError(errorMessage);
+      setMessage(errorMessage);
+      return {
+        success: false,
+        message: errorMessage,
+        ticket: null,
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateVehiclePhoto = async (id: string, photo: string) => {
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
+    setMessage(null);
+
+    try {
+      const response = await VehicleApi.updateVehiclePhoto(id, photo);
+
+      if(response.success) {
+        setSuccess(true);
+        setMessage(response.message || "Foto do veículo atualizada com sucesso.");
+        return {
+          success: true,
+          message: response.message || "Foto do veículo atualizada com sucesso.",
+        };
+      } else {
+        setError(response.message || "Erro ao atualizar foto do veículo.");
+        return {
+          success: false,
+          message: response.message || "Erro ao atualizar foto do veículo.",
+        };
+      }
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || "Erro ao atualizar foto do veículo.";
+      setError(errorMessage);
+      setMessage(errorMessage);
+      return {
+        success: false,
+        message: errorMessage,
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteVehiclePhoto = async (id: string) => {
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
+    setMessage(null);
+
+    try {
+      const response = await VehicleApi.deleteVehiclePhoto(id);
+
+      if(response.success) {
+        setSuccess(true);
+        setMessage(response.message || "Foto do veículo deletada com sucesso.");
+        return {
+          success: true,
+          message: response.message || "Foto do veículo deletada com sucesso.",
+        };
+      } else {
+        setError(response.message || "Erro ao deletar foto do veículo.");
+        return {
+          success: false,
+          message: response.message || "Erro ao deletar foto do veículo.",
+        };
+      }
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || "Erro ao deletar foto do veículo.";
       setError(errorMessage);
       setMessage(errorMessage);
       return {
@@ -161,7 +237,9 @@ const useEditVehicle = () => {
     secondTicket,
     deleteVehicle,
     activateVehicle,
-    editVehicle,
+    updateVehicle,
+    updateVehiclePhoto,
+    deleteVehiclePhoto,
   };
 };
 

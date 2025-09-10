@@ -1,5 +1,5 @@
 import { AuthApi } from "@/src/api/userService";
-import type { DecodedToken, LoginData } from "@/src/types/auth";
+import type { DecodedToken, LoginData } from "@/src/types/authTypes/auth";
 import * as SecureStore from "expo-secure-store";
 import { jwtDecode } from "jwt-decode";
 import { useState } from "react";

@@ -1,5 +1,5 @@
 import { AuthApi } from '@/src/api/userService';
-import type { UserData } from '@/src/types/auth';
+import type { UserData } from '@/src/types/authTypes/auth';
 import { useState } from 'react';
 
 export function useUserActions() {

@@ -1,8 +1,8 @@
 import { ParkingApi } from "@/src/api/parkingService";
-import { Spots } from "@/src/types/parking";
+import { Spots } from "@/src/types/parkingTypes/parking";
 import { useEffect, useState } from "react";
 
-export function usePatioConfig() {
+export function useParkingConfig() {
   const [spots, setSpots] = useState<Spots>({
     car: "",
     motorcycle: "",
@@ -26,7 +26,6 @@ export function usePatioConfig() {
         }
 
         const config = response.data;
-        console.log(config);
 
         setSpots({
           car: String(config.maxCars),
@@ -75,7 +74,6 @@ export function usePatioConfig() {
       }
 
       const config = response.data;
-      console.log(config);
 
       setSpots({
         car: String(config.maxCars),

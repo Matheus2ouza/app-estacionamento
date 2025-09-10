@@ -1,5 +1,5 @@
 import { AuthApi } from "@/src/api/userService";
-import { Employee, roleHierarchy } from "@/src/types/auth";
+import { Employee, roleHierarchy } from "@/src/types/authTypes/auth";
 import { useCallback, useEffect, useState } from "react";
 
 export function useEmployees() {

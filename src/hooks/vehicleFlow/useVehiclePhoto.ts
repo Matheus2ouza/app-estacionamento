@@ -25,26 +25,36 @@ export const useVehiclePhoto = () => {
 
     try {
       const response = await VehicleApi.vehiclePhoto(vehicleId);
-      
+
       if (response.success && response.data) {
-        // O backend retorna base64 sem prefixo, precisamos adicionar
-        const photoData = {
-          photo: `data:${response.data.photoType || 'image/jpeg'};base64,${response.data.photo}`,
-          photoType: response.data.photoType || 'image/jpeg'
-        };
+        // Verificar se realmente há dados de foto (não apenas o prefixo)
+        const hasRealPhoto = response.data.photo && response.data.photo.length > 0;
         
-        // Armazenar no cache com limite de tamanho
-        if (photoCache.size >= MAX_CACHE_SIZE) {
-          // Remove o primeiro item (mais antigo) quando o cache está cheio
-          const firstKey = photoCache.keys().next().value;
-          if (firstKey) {
-            photoCache.delete(firstKey);
+        if (hasRealPhoto) {
+          // O backend retorna base64 sem prefixo, precisamos adicionar
+          const photoData = {
+            photo: `data:${response.data.photoType || 'image/jpeg'};base64,${response.data.photo}`,
+            photoType: response.data.photoType || 'image/jpeg'
+          };
+          
+          // Armazenar no cache com limite de tamanho
+          if (photoCache.size >= MAX_CACHE_SIZE) {
+            // Remove o primeiro item (mais antigo) quando o cache está cheio
+            const firstKey = photoCache.keys().next().value;
+            if (firstKey) {
+              photoCache.delete(firstKey);
+            }
           }
+          
+          photoCache.set(vehicleId, photoData);
+          
+          setPhotoData(photoData);
+          return photoData;
+        } else {
+          // Não há foto real, apenas dados vazios
+          setPhotoData(null);
+          return null;
         }
-        photoCache.set(vehicleId, photoData);
-        
-        setPhotoData(photoData);
-        return photoData;
       } else {
         const errorMessage = response.message || 'Foto não encontrada para este veículo';
         setError(errorMessage);
@@ -72,6 +82,11 @@ export const useVehiclePhoto = () => {
     photoCache.delete(vehicleId);
   };
 
+  const invalidateCache = (vehicleId: string) => {
+    // Remove do cache para forçar nova busca na API
+    photoCache.delete(vehicleId);
+  };
+
   const getCacheSize = () => {
     return photoCache.size;
   };
@@ -84,6 +99,7 @@ export const useVehiclePhoto = () => {
     clearPhoto,
     clearCache,
     removeFromCache,
+    invalidateCache,
     getCacheSize
   };
 };

@@ -1,5 +1,7 @@
 import { cashApi } from "@/src/api/cashService";
-import { CashData, cashResponse } from "@/src/types/cash";
+import { ParkingApi } from "@/src/api/parkingService";
+import { CashData, cashResponse } from "@/src/types/cashTypes/cash";
+import { CapacityParkingResponse } from "@/src/types/parkingTypes/parking";
 import { useState } from "react";
 
 export type CashStatus = 'not_created' | 'open' | 'closed';
@@ -18,7 +20,6 @@ export function useCash() {
 
     try {
       const response = await cashApi.statusCash();
-      console.log(response)
 
       if (!response.success) {
         // Cenário 1: Caixa não foi criado
@@ -92,7 +93,6 @@ export function useCash() {
     setSuccess(false);
 
     try {
-      console.log(cashId)
       const response = await cashApi.reOpenCash(cashId);
       if (response.success && response.cash?.status === 'OPEN') {
         setSuccess(true);
@@ -164,6 +164,35 @@ export function useCash() {
     }
   }
 
+  const detailsParking = async (cashId: string): Promise<CapacityParkingResponse | null> => {
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      const response: CapacityParkingResponse = await ParkingApi.getCapacityParking(cashId)
+
+      if (response.success && response.data) {
+        setSuccess(true);
+        return {
+          success: response.success,
+          message: response.message,
+          data: response.data
+        }
+      } else {
+        const errorMsg = response.message || 'Erro ao buscar detalhes do caixa';
+        setError(errorMsg);
+        return null;
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao buscar detalhes do caixa';
+      setError(errorMessage);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const refreshCashStatus = async (): Promise<CashStatus> => {
     return await fetchStatus();
   };
@@ -179,6 +208,7 @@ export function useCash() {
     reOpenCash,
     closeCash,
     detailsCash,
+    detailsParking,
     refreshCashStatus,
     clearError: () => setError(null),
     clearSuccess: () => setSuccess(false)
