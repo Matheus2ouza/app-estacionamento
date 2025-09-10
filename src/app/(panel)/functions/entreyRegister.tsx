@@ -49,7 +49,7 @@ export default function EntreyRegister() {
     useRegisterVehicle();
 
   // Contexto do caixa para verificar status
-  const { cashStatus, isCashNotCreated, isCashClosed } = useCashContext();
+  const { cashData, cashStatus, isCashNotCreated, isCashClosed } = useCashContext();
 
   // Verificar se a tela deve ser bloqueada
   const isScreenBlocked = isCashNotCreated() || isCashClosed();
@@ -151,13 +151,25 @@ export default function EntreyRegister() {
       return;
     }
 
+    // Validação do ID do caixa
+    if (!cashData?.id) {
+      setModalMessage("Erro: ID do caixa não disponível. Verifique se o caixa está aberto.");
+      setModalIsSuccess(false);
+      setModalVisible(true);
+      return;
+    }
+
     const vehicleData = {
       plate: plate.trim(),
       category: selectedCategory,
       photo: capturedPhotoUri || undefined,
       observation: observation.trim() || undefined,
       billingMethod: selectedBillingMethod.id,
+      cashRegisterId: cashData?.id,
     };
+
+    console.log("🚀 [EntreyRegister] Dados do veículo para registro:", vehicleData);
+    console.log("🚀 [EntreyRegister] ID do caixa:", cashData?.id);
 
     const result = await registerVehicle(vehicleData);
 

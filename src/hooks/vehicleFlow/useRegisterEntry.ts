@@ -42,6 +42,7 @@ const useRegisterVehicle = () => {
         category: data.category,
         observation: data.observation,
         billingMethod: data.billingMethod,
+        cashRegisterId: data.cashRegisterId,
       };
 
       const response = await VehicleApi.registerEntry(payload, data.photo || "");

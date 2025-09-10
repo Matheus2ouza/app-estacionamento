@@ -4,6 +4,7 @@ export interface RegisterVehicleData {
   photo?: string;
   observation?: string | null;
   billingMethod?: string;
+  cashRegisterId: string;
 }
 
 export interface VehicleResponse {
@@ -71,4 +72,10 @@ export interface billingMethod {
   tolerance: number;
   timeMinutes: number;
   value: number;
+}
+
+export interface CalculateExitResponse {
+  success: boolean;
+  message?: string;
+  amount?: number;
 }
