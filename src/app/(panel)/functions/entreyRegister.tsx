@@ -7,7 +7,7 @@ import Colors from "@/src/constants/Colors";
 import { useBillingMethod } from "@/src/hooks/cash/useBillingMethod";
 import useRegisterVehicle from "@/src/hooks/vehicleFlow/useRegisterEntry";
 import { styles } from "@/src/styles/functions/entreyStyle";
-import { BillingMethodList } from "@/src/types/billingMethod";
+import { BillingMethodList } from "@/src/types/billingMethodTypes/billingMethod";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -447,10 +447,20 @@ export default function EntreyRegister() {
                     <Text style={styles.billingDataValue}>{getBillingValue()}</Text>
                   </View>
                   
-                  {selectedBillingMethod.time !== undefined && selectedBillingMethod.time !== null && (
+                  <View style={styles.billingDataRow}>
+                    <Text style={styles.billingDataLabel}>Tipo de Cobrança:</Text>
+                    <Text style={styles.billingDataValue}>
+                      {selectedBillingMethod.category === 'POR_HORA' ? 'Por Hora' :
+                       selectedBillingMethod.category === 'POR_MINUTO' ? 'Por Minuto' :
+                       selectedBillingMethod.category === 'VALOR_FIXO' ? 'Valor Fixo' :
+                       selectedBillingMethod.category}
+                    </Text>
+                  </View>
+                  
+                  {selectedBillingMethod.timeMinutes !== undefined && selectedBillingMethod.timeMinutes !== null && (
                     <View style={styles.billingDataRow}>
-                      <Text style={styles.billingDataLabel}>Tempo de Permanência:</Text>
-                      <Text style={styles.billingDataValue}>{formatTimeFromMinutes(selectedBillingMethod.time)}</Text>
+                      <Text style={styles.billingDataLabel}>Tempo de Cobrança:</Text>
+                      <Text style={styles.billingDataValue}>{formatTimeFromMinutes(selectedBillingMethod.timeMinutes)}</Text>
                     </View>
                   )}
                   
@@ -500,12 +510,12 @@ export default function EntreyRegister() {
                   </View>
                   <View style={styles.cameraButtonText}>
                     <Text style={styles.cameraButtonTitle}>
-                      {capturedPhotoUri ? "Foto Registrada" : "Registrar Avaria"}
+                      {capturedPhotoUri ? "Foto Registrada" : "Registrar Foto"}
                     </Text>
                     <Text style={styles.cameraButtonSubtitle}>
                       {capturedPhotoUri 
                         ? "Foto capturada com sucesso" 
-                        : "Fotografe avarias ou problemas do veículo"
+                        : "Fotografe o veículo"
                       }
                     </Text>
                   </View>
