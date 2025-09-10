@@ -1,4 +1,4 @@
-import { DeleteVehicleResponse, RegisterVehicleData, ScanVehicleResponse, UpdateVehicleData, UpdateVehicleResponse, VehiclePhotoResponse, VehicleResponse } from '../types/vehicleTypes/vehicles';
+import { CalculateExitResponse, DeleteVehicleResponse, RegisterVehicleData, ScanVehicleResponse, UpdateVehicleData, UpdateVehicleResponse, VehiclePhotoResponse, VehicleResponse } from '../types/vehicleTypes/vehicles';
 import axiosInstance from './axiosInstance';
 
 
@@ -9,6 +9,7 @@ export const VehicleApi = {
     // Adicionar os dados do veículo
     formData.append('plate', data.plate);
     formData.append('category', data.category);
+    formData.append('cashRegisterId', data.cashRegisterId);
     
     if (data.observation) {
       formData.append('observation', data.observation);
@@ -117,6 +118,11 @@ export const VehicleApi = {
 
   fetchVehicle: async (id: string, plate: string): Promise<ScanVehicleResponse> => {
     const response = await axiosInstance.get(`/vehicles/entries/${id}/${plate}`);
+    return response.data;
+  },
+
+  calculateExit: async (id: string, plate: string): Promise<CalculateExitResponse> => {
+    const response = await axiosInstance.post(`/vehicles/exit/${id}/${plate}/calculate`);
     return response.data;
   },
 };
