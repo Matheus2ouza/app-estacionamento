@@ -9,7 +9,7 @@ export const cashApi = {
   },
 
   openCash: async (initialValue: number): Promise<cashResponse> => {
-    const response = await axiosInstance.post("/cash/open-cash", {initialValue});
+    const response = await axiosInstance.post("/cash/open", initialValue);
     return response.data
   },
   
@@ -19,12 +19,12 @@ export const cashApi = {
   },
 
   closeCash: async (cashId: string, finalValue: number): Promise<cashResponse> => {
-    const response = await axiosInstance.post(`/cash/close-cash/${cashId}`, finalValue);
+    const response = await axiosInstance.post(`/cash/${cashId}/close`, finalValue);
     return response.data
   },
 
   detailsCash: async (cashId: string): Promise<detailsResponse> => {
-    const response = await axiosInstance.get(`/cash/cash-data/${cashId}`);
+    const response = await axiosInstance.get(`/cash/${cashId}/data`);
     return response.data;
   },
 

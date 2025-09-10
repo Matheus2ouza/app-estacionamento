@@ -1,4 +1,4 @@
-import { DeleteVehicleResponse, RegisterVehicleData, VehiclePhotoResponse, VehicleResponse } from '../types/vehicleTypes/vehicles';
+import { DeleteVehicleResponse, RegisterVehicleData, ScanVehicleResponse, UpdateVehicleData, UpdateVehicleResponse, VehiclePhotoResponse, VehicleResponse } from '../types/vehicleTypes/vehicles';
 import axiosInstance from './axiosInstance';
 
 
@@ -86,11 +86,37 @@ export const VehicleApi = {
     return response.data;
   },
 
-  editVehicle: async (id: string, plate: string, category: string): Promise<VehicleResponse> => {
-    const response = await axiosInstance.patch(`/vehicles/entries/${id}`, {
-      plate,
-      category
+  updateVehicle: async (id: string, data: UpdateVehicleData): Promise<UpdateVehicleResponse> => {
+    const response = await axiosInstance.put(`/vehicles/entries/${id}`, data);
+    return response.data;
+  },
+
+  updateVehiclePhoto: async (id: string, photo: string): Promise<VehiclePhotoResponse> => {
+    const formData = new FormData();
+    
+    if (photo) {
+      formData.append('photo', {
+        uri: photo,
+        type: 'image/jpeg',
+        name: 'photo.jpg',
+      } as any);
+    }
+    
+    const response = await axiosInstance.put(`/vehicles/entries/${id}/photo`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     });
+    return response.data;
+  },
+
+  deleteVehiclePhoto: async (id: string): Promise<VehiclePhotoResponse> => {
+    const response = await axiosInstance.delete(`/vehicles/entries/${id}/photo`);
+    return response.data;
+  },
+
+  fetchVehicle: async (id: string, plate: string): Promise<ScanVehicleResponse> => {
+    const response = await axiosInstance.get(`/vehicles/entries/${id}/${plate}`);
     return response.data;
   },
 };
