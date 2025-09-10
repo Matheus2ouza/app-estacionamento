@@ -245,6 +245,30 @@ export const styles = StyleSheet.create({
     color: Colors.gray[500],
     fontWeight: '500',
   },
+  viewImageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: Colors.blue[50],
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: Colors.blue[200],
+    gap: 6,
+  },
+  viewImageButtonText: {
+    ...TypographyThemes.nunito.body,
+    fontSize: 12,
+    color: Colors.blue.primary,
+    fontWeight: '600',
+  },
+  viewImageButtonDisabled: {
+    backgroundColor: Colors.gray[100],
+    borderColor: Colors.gray[300],
+  },
+  viewImageButtonTextDisabled: {
+    color: Colors.gray[500],
+  },
   buttonContainer: {
     paddingBottom: 20,
     alignItems: 'center',

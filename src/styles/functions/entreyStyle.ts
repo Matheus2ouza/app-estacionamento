@@ -424,4 +424,16 @@ export const styles = StyleSheet.create({
     zIndex: 1000,
     backgroundColor: '#000',
   },
+  // Estilos para tela bloqueada
+  blockedContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 40,
+  },
+  blockedAlert: {
+    marginHorizontal: 0,
+    marginVertical: 0,
+  },
 });
