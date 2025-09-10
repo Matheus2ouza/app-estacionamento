@@ -1,4 +1,4 @@
-import { CapacityParkingResponse, ConfigurationsSetupVacancies, dataParking, VehiclesResponse } from "../types/parking";
+import { CapacityParkingResponse, ConfigurationsSetupVacancies, dataParking, VehiclesResponse } from "../types/parkingTypes/parking";
 import axiosInstance from "./axiosInstance";
 
 export const ParkingApi = {

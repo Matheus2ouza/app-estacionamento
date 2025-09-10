@@ -1,5 +1,5 @@
-import { BillingMethod, BillingMethodListResponse, BillingMethodResponse } from "../types/billingMethod";
-import { cashResponse, detailsResponse } from "../types/cash";
+import { BillingMethod, BillingMethodListResponse, BillingMethodResponse } from "../types/billingMethodTypes/billingMethod";
+import { cashResponse, detailsResponse } from "../types/cashTypes/cash";
 import axiosInstance from "./axiosInstance";
 
 export const cashApi = {

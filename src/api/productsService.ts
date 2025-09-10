@@ -1,4 +1,4 @@
-import { Product, Response } from "../types/products";
+import { Product, Response } from "../types/productsTypes/products";
 import axiosInstance from "./axiosInstance";
 
 export const ProductApi = {
