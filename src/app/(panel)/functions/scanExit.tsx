@@ -1,5 +1,7 @@
+import CashAvailabilityAlert from "@/src/components/CashAvailabilityAlert";
 import FeedbackModal from "@/src/components/FeedbackModal";
 import Colors from "@/src/constants/Colors";
+import { useCashContext } from "@/src/context/CashContext";
 import { useFetchVehicle } from "@/src/hooks/vehicleFlow/useFetchVehicle";
 import { styles } from "@/src/styles/functions/scanExit";
 import { FontAwesome6 } from "@expo/vector-icons";
@@ -25,6 +27,17 @@ export default function ScanExit() {
   const [facing, setFacing] = useState<"front" | "back">("back");
   const [permission, requestPermission] = useCameraPermissions();
   const [vehicleData, setVehicleData] = useState<any>(null);
+  
+  // Contexto do caixa para verificar status
+  const { cashStatus, isCashNotCreated, isCashClosed } = useCashContext();
+
+  // Verificar se a tela deve ser bloqueada
+  const isScreenBlocked = isCashNotCreated() || isCashClosed();
+
+  // Funções de callback para os botões do alerta
+  const handleBackPress = () => {
+    router.back();
+  };
   
   const pulseAnim = useRef(new Animated.Value(1)).current;
   
@@ -182,7 +195,27 @@ export default function ScanExit() {
   // Tela de scan
   return (
     <View style={styles.container}>
-      {!permission ? (
+      {/* ALERTA DE TELA BLOQUEADA */}
+      {isScreenBlocked ? (
+        <View style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingHorizontal: 20,
+          paddingVertical: 40,
+          backgroundColor: Colors.black,
+        }}>
+          <CashAvailabilityAlert 
+            mode="blocking" 
+            cashStatus={cashStatus} 
+            onBackPress={handleBackPress}
+            style={{
+              marginHorizontal: 0,
+              marginVertical: 0,
+            }}
+          />
+        </View>
+      ) : !permission ? (
         <View style={styles.permissionContainer}>
           <ActivityIndicator size="large" color={Colors.white} />
           <Text style={styles.permissionText}>Solicitando permissão...</Text>

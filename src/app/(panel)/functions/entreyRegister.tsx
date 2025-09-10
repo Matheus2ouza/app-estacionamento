@@ -1,9 +1,11 @@
 import CameraComponent from "@/src/components/CameraComponent";
+import CashAvailabilityAlert from "@/src/components/CashAvailabilityAlert";
 import FeedbackModal from "@/src/components/FeedbackModal";
 import Header from "@/src/components/Header";
 import PDFViewer from "@/src/components/PDFViewer";
 import { PrimaryButton } from "@/src/components/PrimaryButton";
 import Colors from "@/src/constants/Colors";
+import { useCashContext } from "@/src/context/CashContext";
 import { useBillingMethod } from "@/src/hooks/cash/useBillingMethod";
 import useRegisterVehicle from "@/src/hooks/vehicleFlow/useRegisterEntry";
 import { styles } from "@/src/styles/functions/entreyStyle";
@@ -45,6 +47,17 @@ export default function EntreyRegister() {
 
   const { registerVehicle, loading, error, success, message } =
     useRegisterVehicle();
+
+  // Contexto do caixa para verificar status
+  const { cashStatus, isCashNotCreated, isCashClosed } = useCashContext();
+
+  // Verificar se a tela deve ser bloqueada
+  const isScreenBlocked = isCashNotCreated() || isCashClosed();
+
+  // Funções de callback para os botões do alerta
+  const handleBackPress = () => {
+    router.back();
+  };
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
@@ -307,7 +320,6 @@ export default function EntreyRegister() {
             onPhotoCaptured={handlePhotoCaptured}
             manualButtonText="Fechar Câmera"
             isProcessing={isProcessing}
-            isScanning={false}
           />
         </View>
       )}
@@ -317,16 +329,39 @@ export default function EntreyRegister() {
         <>
           <Header title="Entrada de Veículo" titleStyle={styles.header} />
 
-          <KeyboardAvoidingView
-            style={styles.container}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
-          >
-            <ScrollView
-              contentContainerStyle={styles.scrollContainer}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
+          {/* ALERTA DE TELA BLOQUEADA */}
+          {isScreenBlocked && (
+            <View style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              paddingHorizontal: 20,
+              paddingVertical: 40,
+            }}>
+              <CashAvailabilityAlert 
+                mode="blocking" 
+                cashStatus={cashStatus} 
+                onBackPress={handleBackPress}
+                style={{
+                  marginHorizontal: 0,
+                  marginVertical: 0,
+                }}
+              />
+            </View>
+          )}
+
+          {/* CONTEÚDO PRINCIPAL - SÓ MOSTRA SE NÃO ESTIVER BLOQUEADO */}
+          {!isScreenBlocked && (
+            <KeyboardAvoidingView
+              style={styles.container}
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
             >
+              <ScrollView
+                contentContainerStyle={styles.scrollContainer}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+              >
               <View style={styles.welcomeCard}>
                 <View style={styles.welcomeHeader}>
                   <View style={styles.welcomeIcon}>
@@ -534,8 +569,9 @@ export default function EntreyRegister() {
                   disabled={loading || !plate.trim() || !isPlateValid || isValidating || !selectedBillingMethod}
                 />
               </View>
-            </ScrollView>
-          </KeyboardAvoidingView>
+              </ScrollView>
+            </KeyboardAvoidingView>
+          )}
         </>
       )}
 

@@ -1,13 +1,19 @@
 import Header from "@/src/components/Header";
+import PhotoViewerModal from "@/src/components/PhotoViewerModal";
 import { PrimaryButton } from "@/src/components/PrimaryButton";
 import Colors from "@/src/constants/Colors";
+import { useVehiclePhoto } from "@/src/hooks/vehicleFlow/useVehiclePhoto";
 import { styles } from "@/src/styles/functions/informationVehicleStyle";
 import { FontAwesome } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
-import { ScrollView, Text, View } from "react-native";
+import { useState } from "react";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
 export default function InformationExit() {
   const { vehicleData } = useLocalSearchParams();
+  const { loading: loadingImage, error: photoError, fetchVehiclePhoto } = useVehiclePhoto();
+  const [photoViewerVisible, setPhotoViewerVisible] = useState(false);
+  const [currentPhotoData, setCurrentPhotoData] = useState<{photo: string; photoType: string} | null>(null);
   
   // Parse dos dados do veículo recebidos via parâmetros
   const vehicle = vehicleData ? JSON.parse(vehicleData as string) : {
@@ -91,6 +97,28 @@ export default function InformationExit() {
     return 0;
   };
 
+  const handleViewImage = async () => {
+    if (loadingImage) return;
+    
+    try {
+      const photoData = await fetchVehiclePhoto(vehicle.id);
+
+      if (photoData) {
+        setCurrentPhotoData(photoData);
+        setPhotoViewerVisible(true);
+      } else if (photoError) {
+        console.log("Erro ao carregar foto:", photoError);
+      }
+    } catch (error) {
+      console.log("Erro ao carregar foto:", error);
+    }
+  };
+
+  const handleClosePhotoViewer = () => {
+    setPhotoViewerVisible(false);
+    setCurrentPhotoData(null);
+  };
+
   return (
     <View style={styles.container}>
       <Header title="Informações do Veículo" />
@@ -169,16 +197,20 @@ export default function InformationExit() {
           <View style={[styles.infoRow, styles.lastInfoRow]}>
             <Text style={styles.infoLabel}>Foto:</Text>
             {vehicle.photoType ? (
-              <View style={styles.hasImageContainer}>
+              <Pressable 
+                style={[styles.viewImageButton, loadingImage && styles.viewImageButtonDisabled]}
+                onPress={handleViewImage}
+                disabled={loadingImage}
+              >
                 <FontAwesome 
-                  name="image" 
+                  name={loadingImage ? "spinner" : "image"} 
                   size={14} 
-                  color={Colors.green[600]} 
+                  color={loadingImage ? Colors.gray[500] : Colors.blue.primary} 
                 />
-                <Text style={styles.hasImageText}>
-                  Foto disponível
+                <Text style={[styles.viewImageButtonText, loadingImage && styles.viewImageButtonTextDisabled]}>
+                  {loadingImage ? 'Carregando...' : 'Visualizar Imagem'}
                 </Text>
-              </View>
+              </Pressable>
             ) : (
               <View style={styles.noImageContainer}>
                 <FontAwesome 
@@ -187,7 +219,7 @@ export default function InformationExit() {
                   color={Colors.gray[400]} 
                 />
                 <Text style={styles.noImageText}>
-                  Sem foto
+                  Nenhuma foto disponível
                 </Text>
               </View>
             )}
@@ -230,6 +262,13 @@ export default function InformationExit() {
           />
         </View>
       </ScrollView>
+
+      {/* Photo Viewer Modal */}
+      <PhotoViewerModal
+        visible={photoViewerVisible}
+        onClose={handleClosePhotoViewer}
+        photoData={currentPhotoData}
+      />
     </View>
   );
 }

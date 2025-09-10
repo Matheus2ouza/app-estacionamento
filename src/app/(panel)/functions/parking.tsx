@@ -1,3 +1,4 @@
+import CashAvailabilityAlert from "@/src/components/CashAvailabilityAlert";
 import Header from "@/src/components/Header";
 import SearchInput from "@/src/components/SearchInput";
 import VehicleDetailsModal from "@/src/components/VehicleDetailsModal";
@@ -22,7 +23,15 @@ export default function Parking() {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<string>("plate");
   const [currentTime, setCurrentTime] = useState(new Date());
-  const { cashData } = useCashContext();
+  const { cashData, cashStatus, isCashNotCreated, isCashClosed } = useCashContext();
+
+  // Verificar se a tela deve ser bloqueada
+  const isScreenBlocked = isCashNotCreated() || isCashClosed();
+
+  // Funções de callback para os botões do alerta
+  const handleBackPress = () => {
+    router.back();
+  };
 
   const sortOptions = [
     { key: "plate", label: "Placa", icon: "car" },
@@ -384,9 +393,29 @@ export default function Parking() {
     <View style={{ flex: 1 }}>
       <Header title="Pátio"/>
 
-      <View style={styles.container}>
-        {/* Bateria de Capacidade */}
-        {renderBattery()}
+      {/* ALERTA DE TELA BLOQUEADA */}
+      {isScreenBlocked ? (
+        <View style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingHorizontal: 20,
+          paddingVertical: 40,
+        }}>
+          <CashAvailabilityAlert 
+            mode="blocking" 
+            cashStatus={cashStatus} 
+            onBackPress={handleBackPress}
+            style={{
+              marginHorizontal: 0,
+              marginVertical: 0,
+            }}
+          />
+        </View>
+      ) : (
+        <View style={styles.container}>
+          {/* Bateria de Capacidade */}
+          {renderBattery()}
 
         {/* Busca */}
         <View style={styles.searchContainer}>
@@ -496,6 +525,7 @@ export default function Parking() {
           )}
         </View>
       </View>
+      )}
 
       {/* Modal de Detalhes */}
       <VehicleDetailsModal
