@@ -39,9 +39,9 @@ export default function Admin() {
       onPress: () => router.push("/functions/scanExit"),
     },
     {
-      id: "patio",
-      title: "Pátio",
-      description: "Visualizar veículos no pátio e capacidade",
+      id: "parking",
+      title: "Estacionamento",
+      description: "Visualizar veículos no estacionamento e capacidade",
       icon: "grid-outline",
       onPress: () => router.push("/functions/parking"),
     },
@@ -83,11 +83,11 @@ export default function Admin() {
       onPress: () => router.push("/functions/methodPayment"),
     },
     {
-      id: "config-patio",
-      title: "Configurações do Pátio",
+      id: "config-parking",
+      title: "Configurações do Estacionamento",
       description: "Configurar vagas",
       icon: "settings-outline",
-      onPress: () => router.push("/functionsAdmin/patioConfig"),
+      onPress: () => router.push("/functionsAdmin/parkingConfig"),
     },
     {
       id: "contas",
