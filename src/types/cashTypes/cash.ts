@@ -1,5 +1,3 @@
-
-
 export type cash = {
   id: string,
   operator: string;
@@ -7,9 +5,12 @@ export type cash = {
   opening_date: string;
 }
 
+export type CashStatus = 'not_created' | 'open' | 'closed';
+
 export type cashResponse = {
   success: boolean;
   message?: string;
+  cashStatus: CashStatus;
   cash?: cash;
 }
 
