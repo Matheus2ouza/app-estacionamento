@@ -33,6 +33,8 @@ export function useParking() {
         data: {
           capacityMax: 0,
           quantityVehicles: 0,
+          quantityCars: 0,
+          quantityMotorcycles: 0,
           maxCars: 0,
           maxMotorcycles: 0,
           percentage: 0
