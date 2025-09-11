@@ -26,17 +26,24 @@ export default function Admin() {
   const options: OptionItem[] = [
     {
       id: "entrada",
-      title: "Entrada",
+      title: "Registrar entrada",
       description: "Registrar entrada de veículos",
       icon: "car-outline",
       onPress: () => router.push("/functions/entreyRegister"),
     },
     {
-      id: "saida",
-      title: "Saída",
-      description: "Registrar saída de veículos",
+      id: "saida-scan",
+      title: "Registrar saída",
+      description: "Registrar saída de veículos com leitor de código de barras",
       icon: "exit-outline",
       onPress: () => router.push("/functions/scanExit"),
+    },
+    {
+      id: "saida-manual",
+      title: "Registrar saída manualmente",
+      description: "Registrar saída de veículos manualmente",
+      icon: "exit-outline",
+      onPress: () => router.push("/functions/listExit"),
     },
     {
       id: "parking",
