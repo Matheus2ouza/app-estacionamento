@@ -1,4 +1,4 @@
-import { CalculateExitResponse, DeleteVehicleResponse, RegisterVehicleData, ScanVehicleResponse, UpdateVehicleData, UpdateVehicleResponse, VehiclePhotoResponse, VehicleResponse } from '../types/vehicleTypes/vehicles';
+import { CalculateExitResponse, DeleteVehicleResponse, RegisterExitData, RegisterExitResponse, RegisterVehicleData, ScanVehicleResponse, UpdateVehicleData, UpdateVehicleResponse, VehiclePhotoResponse, VehicleResponse } from '../types/vehicleTypes/vehicles';
 import axiosInstance from './axiosInstance';
 
 
@@ -123,6 +123,34 @@ export const VehicleApi = {
 
   calculateExit: async (id: string, plate: string): Promise<CalculateExitResponse> => {
     const response = await axiosInstance.post(`/vehicles/exit/${id}/${plate}/calculate`);
+    return response.data;
+  },
+
+  registerExit: async (data: RegisterExitData): Promise<VehicleResponse> => {
+    const formData = new FormData();
+    
+    // Adicionar os dados do veículo
+    formData.append('amountReceived', data.amountReceived.toString());
+    formData.append('changeGiven', data.changeGiven.toString());
+    formData.append('discountAmount', data.discountAmount.toString());
+    formData.append('finalAmount', data.finalAmount.toString());
+    formData.append('originalAmount', data.originalAmount.toString());
+    formData.append('method', data.method);
+    
+    if (data.photo) {
+      formData.append('photo', {
+        uri: data.photo,
+        type: 'image/jpeg',
+        name: 'photo.jpg',
+      } as any);
+    }
+    
+    const response = await axiosInstance.post<RegisterExitResponse>(
+      `/vehicles/exit/${data.cashId}/${data.vehicleId}/confirm`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
     return response.data;
   },
 };
