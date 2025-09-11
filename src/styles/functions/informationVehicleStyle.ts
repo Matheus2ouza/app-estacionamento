@@ -274,6 +274,6 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonConfirm: {
-    width: '80%',
+    width: '100%',
   },
 });
