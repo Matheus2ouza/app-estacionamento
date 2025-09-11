@@ -7,9 +7,13 @@ export interface Product{
   expirationDate?: string
 }
 
-export interface Response {
-  success: boolean
-  message: string
-  list?: Product[]
-  error: string
+// Interface para resposta paginada
+export interface Responselist {
+  success: boolean;
+  message: string;
+  data: {
+    products: Product[];
+    nextCursor?: string;
+    hasMore: boolean;
+  };
 }
