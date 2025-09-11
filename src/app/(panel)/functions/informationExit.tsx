@@ -7,7 +7,7 @@ import { useExitVehicle } from "@/src/hooks/vehicleFlow/useExitVehicle";
 import { useVehiclePhoto } from "@/src/hooks/vehicleFlow/useVehiclePhoto";
 import { styles } from "@/src/styles/functions/informationVehicleStyle";
 import { FontAwesome } from "@expo/vector-icons";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
@@ -28,18 +28,10 @@ export default function InformationExit() {
     setFeedbackVisible(true);
   };
 
-  // Logs para monitorar estados do hook useExitVehicle
-  useEffect(() => {
-    console.log("🔄 [InformationExit] Estado do useExitVehicle - loading:", loadingExit);
-    console.log("🔄 [InformationExit] Estado do useExitVehicle - success:", success);
-    console.log("🔄 [InformationExit] Estado do useExitVehicle - error:", error);
-    console.log("🔄 [InformationExit] Estado do useExitVehicle - message:", message);
-  }, [loadingExit, success, error, message]);
 
   // Monitorar erros do hook useExitVehicle
   useEffect(() => {
     if (error) {
-      console.log("❌ [InformationExit] Erro detectado:", error);
       showFeedback(error, "error");
     }
   }, [error]);
@@ -71,18 +63,12 @@ export default function InformationExit() {
         calculatedAmount: calculatedAmount
       };
 
-      console.log("🔍 [InformationExit] Dados do veículo:", vehicle);
-      console.log("🔍 [InformationExit] Valor calculado:", calculatedAmount);
-      console.log("🔍 [InformationExit] Dados completos para exitRegister:", exitData);
-      console.log("🔍 [InformationExit] JSON stringificado:", JSON.stringify(exitData));
-
-      // TODO: Descomentar quando quiser navegar para a próxima tela
-      // router.push({
-      //   pathname: "/functions/exitRegister",
-      //   params: {
-      //     exitData: JSON.stringify(exitData)
-      //   }
-      // });
+      router.push({
+        pathname: "/functions/exitRegister",
+        params: {
+          exitData: JSON.stringify(exitData)
+        }
+      });
     }
   }, [success, calculatedAmount, vehicle]);
 
@@ -138,24 +124,15 @@ export default function InformationExit() {
 
   const handleRegisterExit = async () => {
     try {
-      console.log("🚀 [InformationExit] Iniciando cálculo de saída...");
-      console.log("🚀 [InformationExit] ID do veículo:", vehicle.id);
-      console.log("🚀 [InformationExit] Placa do veículo:", vehicle.plate);
-      console.log("🚀 [InformationExit] Dados completos do veículo:", vehicle);
-      
       const result = await calculateExit(vehicle.id, vehicle.plate);
       
-      console.log("📊 [InformationExit] Resultado do cálculo:", result);
-      
       if (result?.data) {
-        console.log("✅ [InformationExit] Valor calculado recebido:", result.data);
         setCalculatedAmount(result.data);
       } else {
-        console.log("❌ [InformationExit] Nenhum valor calculado recebido");
         showFeedback("Erro ao calcular valor da saída. Tente novamente.", "error");
       }
     } catch (error) {
-      console.error("❌ [InformationExit] Erro ao calcular saída:", error);
+      console.error("Erro ao calcular saída:", error);
       showFeedback("Erro ao calcular valor da saída. Tente novamente.", "error");
     }
   };
