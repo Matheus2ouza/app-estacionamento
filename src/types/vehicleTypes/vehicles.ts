@@ -79,3 +79,23 @@ export interface CalculateExitResponse {
   message?: string;
   amount?: number;
 }
+
+export interface RegisterExitResponse {
+  success: boolean;
+  message?: string;
+  data?: string;
+}
+
+export interface RegisterExitData {
+  cashId: string;
+  vehicleId: string;
+  amountReceived: number;
+  changeGiven: number;
+  discountAmount: number;
+  finalAmount: number;
+  originalAmount: number;
+  method: PaymentMethod;
+  photo: string | null;
+};
+
+export type PaymentMethod = "DINHEIRO" | "PIX" | "CREDITO" | "DEBITO";
