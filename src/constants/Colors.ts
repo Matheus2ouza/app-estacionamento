@@ -2,6 +2,7 @@ const Colors = {
   // ===== CORES BASE =====
   white: "#ffffff",
   black: "#000000",
+  backgroundQrCode: "#f1f4f5",
   transparent: "transparent",
   whiteSemiTransparent: "rgba(255, 255, 255, 0.9)",
 
