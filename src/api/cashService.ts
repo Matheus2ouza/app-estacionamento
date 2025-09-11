@@ -1,5 +1,5 @@
 import { BillingMethod, BillingMethodListResponse, BillingMethodResponse } from "../types/billingMethodTypes/billingMethod";
-import { cashResponse, detailsResponse } from "../types/cashTypes/cash";
+import { cashResponse, detailsResponse, generalDetailsResponse } from "../types/cashTypes/cash";
 import axiosInstance from "./axiosInstance";
 
 export const cashApi = {
@@ -57,6 +57,11 @@ export const cashApi = {
   billingUpdatePut: async (data: BillingMethod & { id: string }): Promise<BillingMethodResponse> => {
     const { id, ...updateData } = data;
     const response = await axiosInstance.put(`/cash/billing-method/${id}`, updateData);
+    return response.data;
+  },
+
+  generalDetailsCash: async (cashId: string): Promise<generalDetailsResponse> => {
+    const response = await axiosInstance.get(`/cash/${cashId}/general`);
     return response.data;
   },
 };
