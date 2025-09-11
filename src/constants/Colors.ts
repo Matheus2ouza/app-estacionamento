@@ -204,6 +204,7 @@ const Colors = {
     primary: "#ffffff",
     secondary: "#f9fafb",
     tertiary: "#f3f4f6",
+    quaternary: "#f2f2f2",
     dark: "#1f2937",
     overlay: "rgba(0, 0, 0, 0.5)",
     modal: "rgba(0, 0, 0, 0.3)",
