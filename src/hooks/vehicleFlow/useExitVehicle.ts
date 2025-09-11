@@ -1,5 +1,5 @@
 import { VehicleApi } from "@/src/api/vehicleFlowService";
-import { CalculateExitResponse } from "@/src/types/vehicleTypes/vehicles";
+import { CalculateExitResponse, RegisterExitData, RegisterExitResponse } from "@/src/types/vehicleTypes/vehicles";
 import { useState } from "react";
 
 export const useExitVehicle = () => {
@@ -38,8 +38,47 @@ export const useExitVehicle = () => {
     }
   };
 
+  const registerExit = async (data: RegisterExitData) => {
+    setLoading(true);
+    setSuccess(false);
+    setError(null);
+
+    try {
+      const response: RegisterExitResponse = await VehicleApi.registerExit(data);
+
+      if(response.success) {
+        setSuccess(true);
+        setMessage(response.message || "Saída registrada com sucesso.");
+        return {
+          success: true,
+          message: response.message || "Saída registrada com sucesso.",
+          data: response.data,
+        };
+      } else {
+        setError(response.message || "Erro ao registrar saída.");
+        return {
+          success: false,
+          message: response.message || "Erro ao registrar saída.",
+          data: null,
+        };
+      }
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || "Erro ao registrar saída.";
+      setError(errorMessage);
+      setMessage(errorMessage);
+      return {
+        success: false,
+        message: errorMessage,
+        data: null,
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     calculateExit,
+    registerExit,
     loading,
     success,
     error,
