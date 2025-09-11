@@ -64,14 +64,14 @@ export default function Admin() {
       title: "Despesas",
       description: "Visualizar e registrar despesas",
       icon: "receipt-outline",
-      onPress: () => {},
+      onPress: () => {router.push("/functions/expenseRecord")},
     },
     {
       id: "caixa",
       title: "Caixa",
       description: "Gerenciar operações de caixa e financeiro",
       icon: "wallet-outline",
-      onPress: () => {},
+      onPress: () => router.push("/(panel)/functionsAdmin/cash/CashScreen"),
       adminOnly: true,
     },
     {
