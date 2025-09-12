@@ -449,7 +449,7 @@ export default function AdminHome() {
           </Pressable>
           <Pressable
             onPress={() => {
-              router.push("/functions/inventory");
+              router.push("/functions/registerProductSale");
             }}
           >
             <View style={styles.buttonDashboard}>
