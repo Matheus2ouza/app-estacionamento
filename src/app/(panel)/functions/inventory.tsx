@@ -178,8 +178,7 @@ export default function Inventory() {
   const handleSellProduct = () => {
     setIsFabExpanded(false);
     toggleFab();
-    // TODO: Implementar venda de produto
-    console.log("Vender produto");
+    router.push("/functions/registerProductSale");
   };
 
 const renderProductItem = ({ item }: { item: any }) => {

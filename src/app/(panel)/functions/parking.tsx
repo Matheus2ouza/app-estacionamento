@@ -2,13 +2,13 @@ import CashAvailabilityAlert from "@/src/components/CashAvailabilityAlert";
 import Header from "@/src/components/Header";
 import SearchInput from "@/src/components/SearchInput";
 import VehicleDetailsModal from "@/src/components/VehicleDetailsModal";
-import Colors from "@/src/constants/Colors";
+import Colors, { generateRandomColor } from "@/src/constants/Colors";
 import { useCashContext } from "@/src/context/CashContext";
 import { useParkedVehicles, useParking } from "@/src/hooks/parking/useParking";
 import { styles } from "@/src/styles/functions/parkingStyle";
 import { FontAwesome } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -94,6 +94,19 @@ export default function Parking() {
     if (percentage < 90) return Colors.orange[500];
     return Colors.red[500];
   };
+
+  // Gera cores aleatórias para cada veículo usando useMemo
+  const vehicleColors = useMemo(() => {
+    const colors: {[key: string]: string} = {};
+    vehicles.forEach(vehicle => {
+      colors[vehicle.id] = generateRandomColor();
+    });
+    return colors;
+  }, [vehicles]);
+
+  const getVehicleBorderColor = useCallback((vehicleId: string) => {
+    return vehicleColors[vehicleId] || Colors.blue.primary;
+  }, [vehicleColors]);
 
   const calculateElapsedTime = (entryTime: string) => {
     try {
@@ -237,7 +250,10 @@ export default function Parking() {
     return (
       <View style={[
         styles.listItem,
-        isDeleted && styles.listItemDeleted
+        isDeleted && styles.listItemDeleted,
+        {
+          borderLeftColor: isDeleted ? Colors.gray[400] : getVehicleBorderColor(item.id)
+        }
       ]}>
         <Text style={[
           styles.itemNumber,
