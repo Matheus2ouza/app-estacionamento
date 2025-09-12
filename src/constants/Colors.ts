@@ -468,4 +468,28 @@ const Colors = {
   },
 };
 
+// Função para gerar cores hexadecimais aleatórias (excluindo preto e branco)
+export const generateRandomColor = (): string => {
+  // Gerar valores RGB aleatórios
+  const r = Math.floor(Math.random() * 256);
+  const g = Math.floor(Math.random() * 256);
+  const b = Math.floor(Math.random() * 256);
+  
+  // Verificar se a cor é muito escura (próxima do preto) ou muito clara (próxima do branco)
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  
+  // Se for muito escura (brightness < 50) ou muito clara (brightness > 200), gerar novamente
+  if (brightness < 50 || brightness > 200) {
+    return generateRandomColor(); // Recursão para gerar uma nova cor
+  }
+  
+  // Converter para hexadecimal
+  const toHex = (value: number) => {
+    const hex = value.toString(16);
+    return hex.length === 1 ? '0' + hex : hex;
+  };
+  
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+};
+
 export default Colors;
