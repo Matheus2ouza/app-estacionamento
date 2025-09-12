@@ -1,5 +1,5 @@
 import Header from '@/src/components/Header';
-import Colors from '@/src/constants/Colors';
+import Colors, { generateRandomColor } from '@/src/constants/Colors';
 import { useCashContext } from '@/src/context/CashContext';
 import { useCash } from '@/src/hooks/cash/useCash';
 import { styles } from '@/src/styles/functions/cashStyles';
@@ -31,6 +31,13 @@ export default function CashIndex() {
 
   const [refreshing, setRefreshing] = useState(false);
   const [expandedCards, setExpandedCards] = useState<string[]>([]);
+  
+  // Cores das bordas para cada card
+  const [cardBorderColors] = useState({
+    vehicles: generateRandomColor(),
+    products: generateRandomColor(),
+    expenses: generateRandomColor(),
+  });
   
   // Animações para cada card
   const [animations] = useState({
@@ -366,6 +373,7 @@ export default function CashIndex() {
             styles.vehiclesCard,
             expandedCards.includes('vehicles') && styles.expandedCard,
             {
+              borderLeftColor: cardBorderColors.vehicles,
               transform: [{
                 scale: animations.vehicles.interpolate({
                   inputRange: [0, 1],
@@ -460,6 +468,7 @@ export default function CashIndex() {
             styles.productsCard,
             expandedCards.includes('products') && styles.expandedCard,
             {
+              borderLeftColor: cardBorderColors.products,
               transform: [{
                 scale: animations.products.interpolate({
                   inputRange: [0, 1],
@@ -554,6 +563,7 @@ export default function CashIndex() {
             styles.expensesCard,
             expandedCards.includes('expenses') && styles.expandedCard,
             {
+              borderLeftColor: cardBorderColors.expenses,
               transform: [{
                 scale: animations.expenses.interpolate({
                   inputRange: [0, 1],
