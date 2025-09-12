@@ -15,7 +15,7 @@ import {
 import Colors from '../constants/Colors';
 
 interface CameraComponentProps {
-  mode: 'default' | 'update';
+  mode: 'default' | 'update' | 'barcode';
   onBarcodeScanned?: (data: { data: string }) => void;
   onManualAction?: () => void;
   onPhotoCaptured?: (photoUri: string) => void;
@@ -132,6 +132,8 @@ export default function CameraComponent({
         return renderDefaultCamera();
       case 'update':
         return renderUpdateCamera();
+      case 'barcode':
+        return renderBarcodeCamera();
       default:
         return renderDefaultCamera();
     }
@@ -279,6 +281,85 @@ export default function CameraComponent({
     );
   };
 
+  const renderBarcodeCamera = () => {
+    if (!permission) {
+      return (
+        <View style={styles.container}>
+          <ActivityIndicator size="large" color="#FFFFFF" />
+          <Text style={styles.permissionText}>Solicitando permissão...</Text>
+        </View>
+      );
+    }
+
+    if (!permission.granted) {
+      return (
+        <View style={styles.container}>
+          <Text style={styles.permissionText}>
+            Precisamos da sua permissão para acessar a câmera
+          </Text>
+          <TouchableOpacity
+            style={styles.permissionButton}
+            onPress={requestPermission}
+          >
+            <Text style={styles.permissionButtonText}>Conceder Permissão</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.container}>
+        <CameraView
+          ref={cameraRef}
+          style={styles.camera}
+          facing={facing}
+          barcodeScannerSettings={{
+            barcodeTypes: ["qr", "pdf417", "aztec", "ean13", "ean8", "upc_e", "upc_a", "code128", "code39", "codabar", "itf14", "datamatrix"],
+          }}
+          onBarcodeScanned={onBarcodeScanned}
+        />
+
+        {/* Overlay para código de barras */}
+        <View style={styles.barcodeOverlay}>
+          <Text style={styles.barcodeInstruction}>
+            Posicione o código de barras dentro do quadro
+          </Text>
+          <Text style={styles.barcodeSubInstruction}>
+            A leitura será automática
+          </Text>
+          
+          <View style={styles.barcodeFrame}>
+            <Animated.View style={[styles.barcodeFrameInner, { transform: [{ scale: pulseAnim }] }]}>
+              <View style={styles.barcodeCorners}>
+                <View style={[styles.corner, styles.topLeft]} />
+                <View style={[styles.corner, styles.topRight]} />
+                <View style={[styles.corner, styles.bottomLeft]} />
+                <View style={[styles.corner, styles.bottomRight]} />
+              </View>
+            </Animated.View>
+          </View>
+        </View>
+
+        <View style={styles.photoButtonContainer}>
+          <TouchableOpacity
+            style={styles.flipButton}
+            onPress={toggleCameraFacing}
+          >
+            <FontAwesome6 name="camera-rotate" size={30} color="white" />
+          </TouchableOpacity>
+
+          {onManualAction && (
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={onManualAction}
+            >
+              <Text style={styles.closeButtonText}>✕</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+    );
+  };
 
   // PREVIEW DA FOTO CAPTURADA
   // Mostra a imagem salva e permite aceitar ou rejeitar
@@ -469,5 +550,91 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontSize: 14,
     fontWeight: '600',
+  },
+  barcodeOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  barcodeFrame: {
+    width: 320,
+    height: 200,
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  barcodeFrameInner: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  barcodeCorners: {
+    width: '100%',
+    height: '100%',
+    position: 'relative',
+  },
+  corner: {
+    position: 'absolute',
+    width: 20,
+    height: 20,
+    borderColor: Colors.blue.logo,
+    borderWidth: 3,
+  },
+  topLeft: {
+    top: 0,
+    left: 0,
+    borderRightWidth: 0,
+    borderBottomWidth: 0,
+    borderTopLeftRadius: 8,
+  },
+  topRight: {
+    top: 0,
+    right: 0,
+    borderLeftWidth: 0,
+    borderBottomWidth: 0,
+    borderTopRightRadius: 8,
+  },
+  bottomLeft: {
+    bottom: 0,
+    left: 0,
+    borderRightWidth: 0,
+    borderTopWidth: 0,
+    borderBottomLeftRadius: 8,
+  },
+  bottomRight: {
+    bottom: 0,
+    right: 0,
+    borderLeftWidth: 0,
+    borderTopWidth: 0,
+    borderBottomRightRadius: 8,
+  },
+  barcodeInstruction: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+    backgroundColor: Colors.overlay.dark,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    marginBottom: 8,
+    maxWidth: '80%',
+  },
+  barcodeSubInstruction: {
+    color: Colors.gray[300],
+    fontSize: 14,
+    fontWeight: '400',
+    textAlign: 'center',
+    backgroundColor: Colors.overlay.medium,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginBottom: 0,
   },
 });
