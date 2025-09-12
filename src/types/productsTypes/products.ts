@@ -2,6 +2,7 @@
 export interface Product{
   id?: string
   productName: string
+  barcode?: string
   unitPrice: number
   quantity: number
   expirationDate?: string
@@ -16,4 +17,10 @@ export interface Responselist {
     nextCursor?: string;
     hasMore: boolean;
   };
+}
+
+export interface ProductRegisterResponse {
+  success: boolean;
+  message: string;
+  data?: Product;
 }
