@@ -20,15 +20,14 @@ export function useProductsPagination(limit: number = 10) {
 
     try {
       const response = await ProductApi.listProducts(undefined, limit);
+      console.log('🔍 [useProductsPagination] Response:', response);
+      console.log('🔍 [useProductsPagination] Response.data.products:', response.data.products);
 
       if (response.success) {
         setProducts(response.data.products);
         setNextCursor(response.data.nextCursor || null);
         setHasMore(response.data.hasMore);
         
-        console.log('🔍 [useProductsPagination] Produtos iniciais carregados:', response.data.products.length);
-        console.log('🔍 [useProductsPagination] HasMore:', response.data.hasMore);
-        console.log('🔍 [useProductsPagination] NextCursor:', response.data.nextCursor);
       } else {
         setError(response.message || 'Erro ao carregar produtos');
       }
@@ -72,7 +71,7 @@ export function useProductsPagination(limit: number = 10) {
       setLoading(false);
     }
   };
-
+  
   return {
     products,
     loading,

@@ -1,24 +1,31 @@
 import { ProductApi } from "@/src/api/productsService";
-import { Product } from "@/src/types/productsTypes/products";
+import { Product, ProductRegisterResponse } from "@/src/types/productsTypes/products";
 import { useState } from "react";
 
 const useRegisterProduct = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<boolean>(false);
+  const [message, setMessage] = useState<string | null>(null);
 
   const registerProduct = async (data: Product) => {
     setLoading(true);
     setError(null);
 
     try {
-      const register = await ProductApi.createProduct(data);
+      const register: ProductRegisterResponse = await ProductApi.createProduct(data);
       if (register.success) {
+        setSuccess(true);
+        setMessage(register.message || "Produto registrado com sucesso.");
         return {
-          success: true,
-          message: register.message,
+          data: register.data,
         };
       } else {
-        throw new Error("Erro ao tentar registrar o produto.");
+        setSuccess(false);
+        setMessage(register.message || "Erro ao registrar o produto.");
+        return {
+          data: null,
+        };
       }
     } catch (err: any) {
       const errorMessage =
@@ -26,10 +33,12 @@ const useRegisterProduct = () => {
         err?.message ||
         "Erro ao registrar o produto.";
 
-      setError(errorMessage);
+      setError(errorMessage || "Erro ao registrar o produto.");
+      setSuccess(false);
+      setMessage(errorMessage || "Erro ao registrar o produto.");
       return {
         success: false,
-        message: errorMessage,
+        data: null,
       };
     } finally {
       setLoading(false);
@@ -40,6 +49,8 @@ const useRegisterProduct = () => {
     registerProduct,
     loading,
     error,
+    success,
+    message,
   };
 };
 
