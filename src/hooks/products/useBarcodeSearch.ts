@@ -1,4 +1,6 @@
 import { ProductApi } from "@/src/api/productsService";
+import { useProductCache } from "@/src/context/ProductCacheContext";
+import { BarcodeSearchResponse } from "@/src/types/productsTypes/products";
 import { useState } from "react";
 
 interface BarcodeSearchResult {
@@ -12,6 +14,9 @@ interface BarcodeSearchResult {
 export function useBarcodeSearch() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<boolean>(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const { searchProductByBarcode } = useProductCache();
 
   const searchByBarcode = async (barcode: string): Promise<BarcodeSearchResult> => {
     if (!barcode || barcode.trim() === '') {
@@ -24,6 +29,7 @@ export function useBarcodeSearch() {
     setLoading(true);
     setError(null);
 
+    console.log('🔍 Busca externa:', barcode);
     try {
       // Primeiro, tentar OpenFoodFacts (API principal)
       try {
@@ -64,7 +70,7 @@ export function useBarcodeSearch() {
       // Se não encontrou em nenhuma API
       return {
         success: false,
-        message: 'Produto não encontrado nas bases de dados'
+        message: 'Produto não encontrado nas bases de dados, Preencha manualmente os campos.'
       };
 
     } catch (error: any) {
@@ -80,10 +86,47 @@ export function useBarcodeSearch() {
     }
   };
 
+  const searchByBarcodeInDatabase = async (barcode: string): Promise<BarcodeSearchResponse> => {
+    setLoading(true);
+    setSuccess(false);
+    setError(null);
+
+    try {
+      // Usar o cache unificado para buscar o produto
+      const result = await searchProductByBarcode(barcode);
+      
+      if (result.success) {
+        setSuccess(true);
+        setMessage(result.message || "Produto encontrado na base de dados.");
+        console.log('🔍 DB: Produto encontrado', result.data?.productName);
+      } else {
+        setError(result.message || "Erro ao buscar produto na base de dados.");
+      }
+      
+      return result;
+    } catch (error: any) {
+      const errorMessage = error.message || "Erro ao buscar produto na base de dados.";
+      setError(errorMessage);
+      setSuccess(false);
+      setMessage(errorMessage);
+      
+      return {
+        success: false,
+        message: errorMessage,
+        data: undefined,
+      };
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return {
     searchByBarcode,
+    searchByBarcodeInDatabase,
     loading,
-    error
+    error,
+    success,
+    message,
   };
 }
 
