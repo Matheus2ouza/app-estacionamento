@@ -1,9 +1,11 @@
 import CameraComponent from "@/src/components/CameraComponent";
 import FeedbackModal from "@/src/components/FeedbackModal";
 import Header from "@/src/components/Header";
+import ProductDetailModal from "@/src/components/ProductDetailModal";
 import ProductListModal from "@/src/components/ProductListModal";
 import Separator from "@/src/components/Separator";
 import Colors, { generateRandomColor } from "@/src/constants/Colors";
+import { useProductCache } from "@/src/context/ProductCacheContext";
 import useBarcodeSearch from "@/src/hooks/products/useBarcodeSearch";
 import { styles } from "@/src/styles/functions/registerProductSaleStyle";
 import { Entypo, MaterialIcons } from "@expo/vector-icons";
@@ -17,9 +19,11 @@ interface ProductItem {
   id: string;
   name: string;
   price: number;
-  quantity: number;
+  quantity: number; // Quantidade sendo vendida
+  stock: number; // Quantidade em estoque
   barcode?: string;
   borderColor?: string;
+  expirationDate?: string;
 }
 
 export default function RegisterProductSale() {
@@ -43,9 +47,14 @@ export default function RegisterProductSale() {
   // Estados para modal de lista de produtos
   const [productListModalVisible, setProductListModalVisible] = useState(false);
   
+  // Estados para modal de detalhes do produto
+  const [productDetailModalVisible, setProductDetailModalVisible] = useState(false);
+  const [selectedProductForDetail, setSelectedProductForDetail] = useState<any>(null);
+  
   // Estados para loading
   const [loading, setLoading] = useState(false);
-  const { searchByBarcode, loading: barcodeLoading } = useBarcodeSearch();
+  const { searchByBarcodeInDatabase, loading: barcodeLoading } = useBarcodeSearch();
+  const { getFromCache, updateSoldQuantity, clearCache, getCacheStats, searchProductByBarcode } = useProductCache();
 
   const isFormValid = products.length > 0;
 
@@ -57,39 +66,53 @@ export default function RegisterProductSale() {
 
   const handleBarcodeScanned = async (data: { data: string }) => {
     const scannedBarcode = data.data;
+    console.log('🛒 Código escaneado:', scannedBarcode);
     setBarcodeModalVisible(false);
     
-    // Buscar produto automaticamente
-    const result = await searchByBarcode(scannedBarcode);
+    // Proteção contra chamadas duplicadas
+    if (barcodeLoading) {
+      console.log('🛒 Busca já em andamento, ignorando...');
+      return;
+    }
+    
+    // Buscar produto automaticamente na base de dados usando cache unificado
+    const result = await searchByBarcodeInDatabase(scannedBarcode);
     
     if (result.success && result.data) {
-      // Verificar se o produto já existe na lista
-      const existingProductIndex = products.findIndex(p => p.name === result.data?.name);
+      const productName = result.data.productName;
       
-      if (existingProductIndex !== -1) {
-        // Se o produto já existe, incrementar a quantidade
-        const updatedProducts = [...products];
-        updatedProducts[existingProductIndex].quantity += 1;
-        setProducts(updatedProducts);
-        updateTotalAmount(updatedProducts);
-      } else {
-        // Se é um produto novo, adicionar à lista
-        // Por enquanto, só temos o nome do produto das APIs externas
-        const newProduct: ProductItem = {
-          id: Date.now().toString(),
-          name: result.data?.name || "Produto não identificado",
-          price: 0, // Preço será definido manualmente
-          quantity: 1,
-          barcode: scannedBarcode,
-          borderColor: generateRandomColor(),
-        };
+      // Aguardar um pouco para o cache ser atualizado, depois buscar produto no cache
+      setTimeout(() => {
+        const cachedProduct = getFromCache(productName);
         
-        setProducts(prev => [...prev, newProduct]);
-        updateTotalAmount([...products, newProduct]);
-      }
-      
-      showFeedback("Produto adicionado com sucesso", "success");
+        if (cachedProduct) {
+          console.log('🛒 Produto no cache:', cachedProduct.productName);
+          
+          // Mostrar modal de detalhes do produto encontrado
+          setSelectedProductForDetail({
+            id: cachedProduct.id || Date.now().toString(),
+            productName: cachedProduct.productName,
+            unitPrice: parseFloat(cachedProduct.unitPrice.toString()),
+            quantity: cachedProduct.availableStock, // Estoque disponível do cache
+            expirationDate: cachedProduct.expirationDate,
+            barcode: scannedBarcode,
+          });
+          setProductDetailModalVisible(true);
+        } else {
+          // Fallback para dados da API se não estiver no cache
+          setSelectedProductForDetail({
+            id: result.data?.id || Date.now().toString(),
+            productName: result.data?.productName || "Produto não identificado",
+            unitPrice: parseFloat(result.data?.unitPrice?.toString() || "0") || 0,
+            quantity: result.data?.quantity || 1,
+            expirationDate: result.data?.expirationDate,
+            barcode: scannedBarcode,
+          });
+          setProductDetailModalVisible(true);
+        }
+      }, 200); // Delay aumentado para garantir que o cache foi atualizado
     } else {
+      console.log('🛒 Produto não encontrado');
       showFeedback(
         result.message || "Produto não encontrado na base de dados", 
         "warning"
@@ -101,41 +124,114 @@ export default function RegisterProductSale() {
     setBarcodeModalVisible(false);
   };
 
-  const handleProductSelect = (product: any) => {
-    console.log('🛒 [RegisterProductSale] Produto selecionado:', product);
-    console.log('🛒 [RegisterProductSale] Produtos atuais:', products);
-    
+  const handleProductDetailClose = () => {
+    setProductDetailModalVisible(false);
+    setSelectedProductForDetail(null);
+  };
+
+  const handleProductDetailRegister = (product: any, quantity: number) => {
     // Verificar se o produto já existe na lista
     const existingProductIndex = products.findIndex(p => p.name === product.productName);
     
     if (existingProductIndex !== -1) {
-      // Se o produto já existe, incrementar a quantidade
-      console.log('🛒 [RegisterProductSale] Produto já existe, incrementando quantidade');
+      // Se o produto já existe, incrementar a quantidade sendo vendida
       const updatedProducts = [...products];
-      updatedProducts[existingProductIndex].quantity += product.quantity || 1;
+      updatedProducts[existingProductIndex].quantity += quantity;
+      // Atualizar o estoque disponível (diminuir a quantidade adicionada)
+      updatedProducts[existingProductIndex].stock -= quantity;
       setProducts(updatedProducts);
       updateTotalAmount(updatedProducts);
+      
+      // Atualizar cache com nova quantidade vendida (com delay para garantir sincronização)
+      const totalSoldQuantity = updatedProducts[existingProductIndex].quantity;
+      setTimeout(() => {
+        updateSoldQuantity(product.productName, totalSoldQuantity);
+      }, 50);
     } else {
       // Se é um produto novo, adicionar à lista
-      console.log('🛒 [RegisterProductSale] Produto novo, adicionando à lista');
+      // Buscar no cache para obter o estoque disponível correto
+      const cachedProduct = getFromCache(product.productName);
+      const availableStock = cachedProduct ? cachedProduct.availableStock : product.quantity;
+      
+      console.log('🛒 Estoque disponível:', product.productName, `cache: ${cachedProduct?.availableStock || 'N/A'}`, `fallback: ${product.quantity}`, `usando: ${availableStock}`);
+      
       const newProduct: ProductItem = {
-        id: product.id || Date.now().toString(),
+        id: product.id,
         name: product.productName,
-        price: product.unitPrice,
-        quantity: product.quantity || 1,
+        price: parseFloat(product.unitPrice.toString()), // Converter para number
+        quantity: quantity, // Quantidade sendo vendida
+        stock: availableStock - quantity, // Estoque disponível (estoque do cache - quantidade vendida)
         barcode: product.barcode,
         borderColor: generateRandomColor(),
+        expirationDate: product.expirationDate,
       };
       
       setProducts(prev => [...prev, newProduct]);
       updateTotalAmount([...products, newProduct]);
+      
+      // Atualizar cache com quantidade vendida (com delay para garantir sincronização)
+      setTimeout(() => {
+        updateSoldQuantity(product.productName, quantity);
+      }, 50);
     }
     
+    console.log('🛒 Produto adicionado:', product.productName, `qtd: ${quantity}`);
+    setProductDetailModalVisible(false);
+    setSelectedProductForDetail(null);
+    showFeedback("Produto adicionado com sucesso", "success");
+  };
+
+  const handleProductSelect = (product: any) => {
+    // Verificar se o produto já existe na lista
+    const existingProductIndex = products.findIndex(p => p.name === product.productName);
+    
+    if (existingProductIndex !== -1) {
+      // Se o produto já existe, incrementar a quantidade sendo vendida
+      const updatedProducts = [...products];
+      const quantityToAdd = product.quantity || 1;
+      updatedProducts[existingProductIndex].quantity += quantityToAdd;
+      // Atualizar o estoque disponível (diminuir a quantidade adicionada)
+      updatedProducts[existingProductIndex].stock -= quantityToAdd;
+      setProducts(updatedProducts);
+      updateTotalAmount(updatedProducts);
+      
+      // Atualizar cache com nova quantidade vendida
+      const totalSoldQuantity = updatedProducts[existingProductIndex].quantity;
+      updateSoldQuantity(product.productName, totalSoldQuantity);
+    } else {
+      // Se é um produto novo, adicionar à lista
+      const quantityToAdd = product.quantity || 1;
+      
+      // Buscar no cache para obter o estoque disponível correto
+      const cachedProduct = getFromCache(product.productName);
+      const availableStock = cachedProduct ? cachedProduct.availableStock : product.quantity;
+      
+      console.log('🛒 Estoque disponível (lista):', product.productName, `cache: ${cachedProduct?.availableStock || 'N/A'}`, `fallback: ${product.quantity}`, `usando: ${availableStock}`);
+      
+      const newProduct: ProductItem = {
+        id: product.id || Date.now().toString(),
+        name: product.productName,
+        price: parseFloat(product.unitPrice.toString()), // Converter para number
+        quantity: quantityToAdd, // Quantidade sendo vendida
+        stock: availableStock - quantityToAdd, // Estoque disponível (estoque do cache - quantidade vendida)
+        barcode: product.barcode,
+        borderColor: generateRandomColor(),
+        expirationDate: product.expirationDate,
+      };
+      
+      setProducts(prev => [...prev, newProduct]);
+      updateTotalAmount([...products, newProduct]);
+      
+      // Atualizar cache com quantidade vendida
+      updateSoldQuantity(product.productName, quantityToAdd);
+    }
+    
+    console.log('🛒 Produto da lista:', product.productName);
     setProductListModalVisible(false);
   };
 
   const updateTotalAmount = (productList: ProductItem[]) => {
-    const total = productList.reduce((sum, product) => sum + (product.price * product.quantity), 0);
+    const total = productList.reduce((sum, product) => sum + ((product.price || 0) * (product.quantity || 0)), 0);
     setTotalAmount(total);
   };
 
@@ -145,17 +241,44 @@ export default function RegisterProductSale() {
       return;
     }
     
-    const updatedProducts = products.map(product =>
-      product.id === productId ? { ...product, quantity: newQuantity } : product
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+    
+    // Verificar se não está tentando vender mais do que o estoque total disponível
+    const totalStockAvailable = product.stock + product.quantity;
+    
+    if (newQuantity > totalStockAvailable) {
+      showFeedback(`Quantidade não pode ser maior que o estoque disponível (${totalStockAvailable})`, "warning");
+      return;
+    }
+    
+    const updatedProducts = products.map(p =>
+      p.id === productId ? { 
+        ...p, 
+        quantity: newQuantity,
+        stock: totalStockAvailable - newQuantity // Estoque = Total disponível - Nova quantidade
+      } : p
     );
+    
     setProducts(updatedProducts);
     updateTotalAmount(updatedProducts);
+    
+    // Atualizar cache com nova quantidade vendida
+    updateSoldQuantity(product.name, newQuantity);
   };
 
   const removeProduct = (productId: string) => {
+    // Encontrar o produto que está sendo removido para devolver o estoque
+    const productToRemove = products.find(p => p.id === productId);
+    
     const updatedProducts = products.filter(product => product.id !== productId);
     setProducts(updatedProducts);
     updateTotalAmount(updatedProducts);
+    
+    // Atualizar cache - remover quantidade vendida deste produto
+    if (productToRemove) {
+      updateSoldQuantity(productToRemove.name, 0);
+    }
     
     // Remove animação e estado expandido do produto removido
     setAnimations(prev => {
@@ -164,6 +287,11 @@ export default function RegisterProductSale() {
       return newAnimations;
     });
     setExpandedCards(prev => prev.filter(id => id !== productId));
+    
+    // Mostrar feedback sobre a remoção
+    if (productToRemove) {
+      showFeedback(`${productToRemove.quantity} unidade(s) de ${productToRemove.name} removida(s)`, "info");
+    }
   };
 
   // Função para alternar expansão do card com animação
@@ -210,21 +338,41 @@ export default function RegisterProductSale() {
     setLoading(true);
     
     try {
-      // Simular registro da venda
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Preparar dados da venda
+      const saleData = {
+        products: products.map(product => ({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          quantity: product.quantity,
+          stock: product.stock,
+          barcode: product.barcode,
+          borderColor: product.borderColor,
+          expirationDate: product.expirationDate,
+          // Dados adicionais que podem ser úteis
+          totalValue: product.price * product.quantity
+        })),
+        totalAmount: totalAmount,
+        totalItems: products.reduce((sum, product) => sum + product.quantity, 0),
+        timestamp: new Date().toISOString()
+      };
+
+      console.log('🛒 Dados da venda:', saleData);
       
-      showFeedback("Lista de produtos finalizada com sucesso!", "success");
+      // Redirecionar para tela de pagamento
+      router.push({
+        pathname: '/functions/RegisterPaymentProducts',
+        params: { saleData: JSON.stringify(saleData) }
+      });
       
-      // Limpar campos após sucesso
+      // Limpar campos após redirecionamento
       setProducts([]);
       setTotalAmount(0);
       
-      // Redirecionar de volta após 2 segundos
-      setTimeout(() => {
-        router.back();
-      }, 2000);
+      // Limpar cache de produtos
+      clearCache();
     } catch (error) {
-      showFeedback("Erro ao finalizar lista", "error");
+      showFeedback("Erro ao preparar lista", "error");
     } finally {
       setLoading(false);
     }
@@ -243,9 +391,21 @@ export default function RegisterProductSale() {
     return () => clearInterval(interval);
   }, [loading]);
 
+  // Limpar cache quando o componente for desmontado
+  useEffect(() => {
+    return () => {
+      clearCache();
+    };
+  }, []); // Removida dependência clearCache para evitar loop
+
   const renderProductItem = ({ item }: { item: ProductItem }) => {
     const isExpanded = expandedCards.includes(item.id);
     const animationValue = animations[item.id] || new Animated.Value(0);
+    
+    // Debug: verificar se item.price está definido
+    if (item.price === undefined || item.price === null) {
+      console.log('🚨 item.price undefined:', item.name);
+    }
     
     return (
       <Animated.View style={[
@@ -253,10 +413,11 @@ export default function RegisterProductSale() {
         isExpanded && styles.expandedProductCard,
         {
           borderLeftColor: item.borderColor || Colors.blue.primary,
+          borderLeftWidth: 4,
           transform: [{
             scale: animationValue.interpolate({
               inputRange: [0, 1],
-              outputRange: [1, 1.02],
+              outputRange: [1, 1.00],
             })
           }],
           opacity: animationValue.interpolate({
@@ -288,7 +449,7 @@ export default function RegisterProductSale() {
           styles.productCardValue,
           isExpanded && styles.expandedProductCardValue
         ]}>
-          R$ {item.price.toFixed(2)}
+          R$ {(item.price || 0).toFixed(2)}
         </Text>
         
         {!isExpanded && (
@@ -317,7 +478,7 @@ export default function RegisterProductSale() {
             
             <View style={styles.productDetailRow}>
               <Text style={styles.productDetailLabel}>Valor Unitário</Text>
-              <Text style={styles.productDetailValue}>R$ {item.price.toFixed(2)}</Text>
+              <Text style={styles.productDetailValue}>R$ {(item.price || 0).toFixed(2)}</Text>
             </View>
             
             <View style={styles.productDetailRow}>
@@ -327,12 +488,12 @@ export default function RegisterProductSale() {
             
             <View style={styles.productDetailRow}>
               <Text style={styles.productDetailLabel}>Valor Total</Text>
-              <Text style={styles.productDetailValue}>R$ {(item.price * item.quantity).toFixed(2)}</Text>
+              <Text style={styles.productDetailValue}>R$ {((item.price || 0) * (item.quantity || 0)).toFixed(2)}</Text>
             </View>
             
             <View style={styles.productDetailRow}>
               <Text style={styles.productDetailLabel}>Estoque</Text>
-              <Text style={styles.productDetailValue}>N/A</Text>
+              <Text style={styles.productDetailValue}>{item.stock}</Text>
             </View>
             
             <View style={styles.productControls}>
@@ -347,10 +508,18 @@ export default function RegisterProductSale() {
                 <Text style={styles.quantityText}>{item.quantity}</Text>
                 
                 <Pressable
-                  style={styles.quantityButton}
+                  style={[
+                    styles.quantityButton,
+                    item.quantity >= (item.stock + item.quantity) && styles.quantityButtonDisabled
+                  ]}
                   onPress={() => updateProductQuantity(item.id, item.quantity + 1)}
+                  disabled={item.quantity >= (item.stock + item.quantity)}
                 >
-                  <MaterialIcons name="add" size={16} color={Colors.white} />
+                  <MaterialIcons 
+                    name="add" 
+                    size={16} 
+                    color={item.quantity >= (item.stock + item.quantity) ? Colors.gray[400] : Colors.white} 
+                  />
                 </Pressable>
               </View>
               
@@ -358,7 +527,7 @@ export default function RegisterProductSale() {
                 style={styles.removeButton}
                 onPress={() => removeProduct(item.id)}
               >
-                <MaterialIcons name="delete" size={16} color={Colors.red[600]} />
+                <MaterialIcons name="delete" size={35} color={Colors.red[600]} />
               </Pressable>
             </View>
           </Animated.View>
@@ -374,23 +543,26 @@ export default function RegisterProductSale() {
       <View style={styles.formContainer}>
         {/* Botões de Ação */}
         <View style={styles.actionButtonsContainer}>
-          <Pressable 
+          <Pressable
             style={styles.addProductButton}
             onPress={() => setProductListModalVisible(true)}
           >
             <MaterialIcons name="add" size={20} color={Colors.white} />
             <Text style={styles.addProductButtonText}>Adicionar Produto</Text>
           </Pressable>
-          
+
           <Pressable
-            style={[styles.scanButton, barcodeLoading && styles.scanButtonDisabled]}
+            style={[
+              styles.scanButton,
+              barcodeLoading && styles.scanButtonDisabled,
+            ]}
             onPress={() => setBarcodeModalVisible(true)}
             disabled={barcodeLoading}
           >
-            <MaterialIcons 
-              name={barcodeLoading ? "hourglass-empty" : "qr-code-scanner"} 
-              size={20} 
-              color={Colors.white} 
+            <MaterialIcons
+              name={barcodeLoading ? "hourglass-empty" : "qr-code-scanner"}
+              size={20}
+              color={Colors.white}
             />
           </Pressable>
         </View>
@@ -403,9 +575,11 @@ export default function RegisterProductSale() {
         {/* Lista de Produtos com Scroll */}
         <View style={styles.productsListContainer}>
           {products.length === 0 ? (
-            <Text style={styles.emptyProductsText}>Nenhum produto adicionado</Text>
+            <Text style={styles.emptyProductsText}>
+              Nenhum produto adicionado
+            </Text>
           ) : (
-            <ScrollView 
+            <ScrollView
               style={styles.productsScrollView}
               contentContainerStyle={styles.productsListContent}
               showsVerticalScrollIndicator={false}
@@ -414,11 +588,11 @@ export default function RegisterProductSale() {
                 {products.map((item) => {
                   const isExpanded = expandedCards.includes(item.id);
                   return (
-                    <View 
-                      key={item.id} 
+                    <View
+                      key={item.id}
                       style={[
                         styles.productCardWrapper,
-                        isExpanded && styles.expandedProductCardWrapper
+                        isExpanded && styles.expandedProductCardWrapper,
                       ]}
                     >
                       {renderProductItem({ item })}
@@ -440,13 +614,13 @@ export default function RegisterProductSale() {
         <TouchableOpacity
           style={[
             styles.finalizeButton,
-            (!isFormValid || loading) && styles.finalizeButtonDisabled
+            (!isFormValid || loading) && styles.finalizeButtonDisabled,
           ]}
           onPress={handleRegisterSale}
           disabled={!isFormValid || loading}
         >
           <Text style={styles.finalizeButtonText}>
-            {loading ? `Finalizando${dotText}` : "Finalizar Lista"}
+            {loading ? `Preparando${dotText}` : "Finalizar Lista"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -469,12 +643,12 @@ export default function RegisterProductSale() {
         visible={productListModalVisible}
         onClose={() => setProductListModalVisible(false)}
         onProductSelect={handleProductSelect}
-        selectedProducts={products.map(p => ({
+        selectedProducts={products.map((p) => ({
           id: p.id,
           productName: p.name,
           unitPrice: p.price,
-          quantity: p.quantity,
-          barcode: p.barcode
+          quantity: p.stock + p.quantity, // Estoque total disponível (estoque atual + quantidade já vendida)
+          barcode: p.barcode,
         }))}
       />
 
@@ -485,12 +659,21 @@ export default function RegisterProductSale() {
         textStyle={{
           color: Colors.text.primary,
           fontSize: 16,
-          fontWeight: '500'
+          fontWeight: "500",
         }}
         color={Colors.blue.logo}
         overlayColor={Colors.overlay.medium}
         size="large"
         animation="fade"
+      />
+
+      {/* Product Detail Modal */}
+      <ProductDetailModal
+        visible={productDetailModalVisible}
+        onClose={handleProductDetailClose}
+        onRegister={handleProductDetailRegister}
+        product={selectedProductForDetail}
+        loading={false}
       />
 
       {/* Feedback Modal */}
