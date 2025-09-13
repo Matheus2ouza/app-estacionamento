@@ -97,7 +97,7 @@ export const styles = StyleSheet.create({
   },
   productCardWrapper: {
     width: "30%",
-    minWidth: 100,
+    minWidth: 110,
   },
   expandedProductCardWrapper: {
     width: "100%",
@@ -118,6 +118,8 @@ export const styles = StyleSheet.create({
   expandedProductCard: {
     borderRadius: 12,
     padding: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.blue.primary,
   },
   productCardHeader: {
     position: "relative",
@@ -270,6 +272,9 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  quantityButtonDisabled: {
+    backgroundColor: Colors.gray[300],
+  },
   quantityText: {
     fontSize: 14,
     fontWeight: "600",
@@ -280,6 +285,7 @@ export const styles = StyleSheet.create({
   removeButton: {
     position: "absolute",
     right: 0,
+    marginTop: 8,
     padding: 6,
   },
   bottomContainer: {
