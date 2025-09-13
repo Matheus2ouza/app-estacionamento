@@ -1,4 +1,5 @@
 import Colors from "@/src/constants/Colors";
+import { useProductCache } from "@/src/context/ProductCacheContext";
 import { useProductsPagination } from "@/src/hooks/products/useSearchProduc";
 import { styles } from "@/src/styles/components/ProductListModalStyle";
 import { Product } from "@/src/types/productsTypes/products";
@@ -38,8 +39,12 @@ export default function ProductListModal({ visible, onClose, onProductSelect, se
     error, 
     hasMore, 
     loadInitial, 
-    loadMore 
+    loadMore,
+    getAllProducts
   } = useProductsPagination(6);
+
+  // Hook de cache de produtos
+  const { getFromCache } = useProductCache();
 
   // Opções de ordenação
   const sortOptions = [
@@ -54,8 +59,13 @@ export default function ProductListModal({ visible, onClose, onProductSelect, se
     setSelectedSort(key);
   };
 
-  // Filtra e ordena os produtos
-  const filteredProducts = products.filter((product) => {
+  // Obter todos os produtos do cache para filtragem
+  const allCachedProducts = getAllProducts();
+  
+  // Filtra e ordena os produtos (usando cache se disponível, senão usa a lista paginada)
+  const productsToFilter = allCachedProducts.length > 0 ? allCachedProducts : products;
+  
+  const filteredProducts = productsToFilter.filter((product) => {
     const searchTerm = searchQuery.toLowerCase();
     return product.productName.toLowerCase().includes(searchTerm);
   }).sort((a, b) => {
@@ -120,27 +130,41 @@ export default function ProductListModal({ visible, onClose, onProductSelect, se
 
   // Função para calcular quantidade já selecionada de um produto
   const getSelectedQuantity = (productName: string) => {
-    return selectedProducts
+    // Primeiro, tentar buscar no cache
+    const cachedProduct = getFromCache(productName);
+    if (cachedProduct) {
+      return cachedProduct.soldQuantity;
+    }
+    
+    // Fallback para lista de produtos selecionados
+    const fallbackQuantity = selectedProducts
       .filter(p => p.productName === productName)
       .reduce((sum, p) => sum + p.quantity, 0);
+    
+    return fallbackQuantity;
   };
 
   // Função para verificar se pode adicionar mais quantidade
   const canAddMore = (product: Product, currentQuantity: number) => {
+    // Primeiro, tentar buscar no cache
+    const cachedProduct = getFromCache(product.productName);
+    if (cachedProduct) {
+      const totalRequested = cachedProduct.soldQuantity + currentQuantity;
+      const canAdd = totalRequested <= cachedProduct.originalStock;
+      return canAdd;
+    }
+    
+    // Fallback para lógica original
     const alreadySelected = getSelectedQuantity(product.productName);
     const totalRequested = alreadySelected + currentQuantity;
-    return totalRequested <= product.quantity;
+    const canAdd = totalRequested <= product.quantity;
+    
+    return canAdd;
   };
 
   const handleAddToCart = () => {
     if (selectedProduct && quantity) {
       const requestedQuantity = parseInt(quantity) || 1;
-      
-      console.log('🛒 [ProductListModal] Adicionando produto:', {
-        product: selectedProduct,
-        requestedQuantity,
-        canAddMore: canAddMore(selectedProduct, requestedQuantity)
-      });
       
       if (canAddMore(selectedProduct, requestedQuantity)) {
         const productWithQuantity = {
@@ -156,9 +180,21 @@ export default function ProductListModal({ visible, onClose, onProductSelect, se
 
   const renderProductItem = ({ item }: { item: Product }) => {
     const isSelected = selectedProduct?.id === item.id;
-    const alreadySelected = getSelectedQuantity(item.productName);
-    const availableQuantity = item.quantity - alreadySelected;
-    const isOutOfStock = availableQuantity <= 0;
+    
+    // Buscar no cache primeiro
+    const cachedProduct = getFromCache(item.productName);
+    let availableQuantity: number;
+    let isOutOfStock: boolean;
+    
+    if (cachedProduct) {
+      availableQuantity = cachedProduct.availableStock;
+      isOutOfStock = availableQuantity <= 0;
+    } else {
+      // Fallback para lógica original
+      const alreadySelected = getSelectedQuantity(item.productName);
+      availableQuantity = item.quantity - alreadySelected;
+      isOutOfStock = availableQuantity <= 0;
+    }
 
     return (
       <View style={[
