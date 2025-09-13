@@ -148,6 +148,7 @@ export default function AddProduct() {
     const product = {
       productName,
       unitPrice: parsedPrice,
+      barcode: barcode,
       quantity: parsedQuantity,
       expirationDate: parsedExpiration,
     };
