@@ -1,10 +1,13 @@
 import CashAvailabilityAlert from "@/src/components/CashAvailabilityAlert";
+import GenericConfirmationModal from "@/src/components/GenericConfirmationModal";
 import Header from "@/src/components/Header";
 import SearchInput from "@/src/components/SearchInput";
 import Colors from "@/src/constants/Colors";
 import { useCashContext } from "@/src/context/CashContext";
+import { useProductStatus } from "@/src/hooks/products/useProductStatus";
 import { useProductsPagination } from "@/src/hooks/products/useSearchProduc";
 import { styles } from "@/src/styles/functions/inventoryStyles";
+import { formatDateToMMYYYY } from "@/src/utils/dateUtils";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Feather from "@expo/vector-icons/Feather";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
@@ -17,6 +20,7 @@ import {
   FlatList,
   Pressable,
   RefreshControl,
+  Switch,
   Text,
   View,
 } from "react-native";
@@ -24,6 +28,7 @@ import {
 export default function Inventory() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSort, setSelectedSort] = useState<string>("name");
+  const [showInactiveProducts, setShowInactiveProducts] = useState(false);
   const { cashData, cashStatus, isCashNotCreated, isCashClosed } = useCashContext();
 
   // Hook de paginação para produtos
@@ -36,8 +41,19 @@ export default function Inventory() {
     loadMore 
   } = useProductsPagination(6);
 
+  // Hook para gerenciar status dos produtos
+  const { toggleProductStatus, loading: statusLoading } = useProductStatus();
+
   // Estado para controlar a visibilidade do alerta
   const [showCashAlert, setShowCashAlert] = useState(false);
+
+  // Estados para o modal de confirmação de desativação
+  const [showDeactivateModal, setShowDeactivateModal] = useState(false);
+  const [productToDeactivate, setProductToDeactivate] = useState<any>(null);
+
+  // Estados para o modal de confirmação de ativação
+  const [showActivateModal, setShowActivateModal] = useState(false);
+  const [productToActivate, setProductToActivate] = useState<any>(null);
 
   // Estados para o botão flutuante expansível
   const [isFabExpanded, setIsFabExpanded] = useState(false);
@@ -66,6 +82,12 @@ export default function Inventory() {
     const searchTerm = searchQuery.toLowerCase();
     
     let filtered = products.filter((product) => {
+      // Filtro por status ativo/inativo
+      if (!showInactiveProducts && !product.isActive) {
+        return false;
+      }
+      
+      // Filtro por busca
       switch(selectedSort) {
         case "name":
           return product.productName.toLowerCase().includes(searchTerm);
@@ -100,7 +122,7 @@ export default function Inventory() {
     });
 
     return filtered;
-  }, [products, searchQuery, selectedSort]);
+  }, [products, searchQuery, selectedSort, showInactiveProducts]);
 
   // Estados para paginação
   const [loadingMore, setLoadingMore] = useState(false);
@@ -181,6 +203,56 @@ export default function Inventory() {
     router.push("/functions/registerProductSale");
   };
 
+  // Funções para o modal de confirmação de desativação
+  const handleConfirmDeactivation = async () => {
+    if (!productToDeactivate) return;
+    
+    try {
+      const response = await toggleProductStatus(productToDeactivate.id, productToDeactivate.isActive);
+      
+      if (response?.success) {
+        // Recarregar a lista de produtos para refletir as mudanças
+        await loadInitial();
+        console.log(`✅ [Inventory] Status do produto ${productToDeactivate.productName} alterado com sucesso`);
+      }
+    } catch (error) {
+      console.error("❌ [Inventory] Erro ao alterar status do produto:", error);
+    } finally {
+      setShowDeactivateModal(false);
+      setProductToDeactivate(null);
+    }
+  };
+
+  const handleCancelDeactivation = () => {
+    setShowDeactivateModal(false);
+    setProductToDeactivate(null);
+  };
+
+  // Funções para o modal de confirmação de ativação
+  const handleConfirmActivation = async () => {
+    if (!productToActivate) return;
+    
+    try {
+      const response = await toggleProductStatus(productToActivate.id, productToActivate.isActive);
+      
+      if (response?.success) {
+        // Recarregar a lista de produtos para refletir as mudanças
+        await loadInitial();
+        console.log(`✅ [Inventory] Status do produto ${productToActivate.productName} alterado com sucesso`);
+      }
+    } catch (error) {
+      console.error("❌ [Inventory] Erro ao alterar status do produto:", error);
+    } finally {
+      setShowActivateModal(false);
+      setProductToActivate(null);
+    }
+  };
+
+  const handleCancelActivation = () => {
+    setShowActivateModal(false);
+    setProductToActivate(null);
+  };
+
 const renderProductItem = ({ item }: { item: any }) => {
   const isExpiringSoon = () => {
     if (!item.expirationDate) return false;
@@ -206,37 +278,131 @@ const renderProductItem = ({ item }: { item: any }) => {
 
   const expirationStatus = getExpirationStatus();
 
-  return (
-    <View style={styles.productCard}>
-      <View style={styles.productHeader}>
-        <Text style={styles.productName}>{item.productName}</Text>
-        <View style={[styles.statusBadge, { backgroundColor: expirationStatus.color }]}>
-          <Text style={styles.statusText}>{expirationStatus.text}</Text>
-        </View>
-      </View>
+  const handleEditProduct = () => {
+    router.push({
+      pathname: "/functions/EditProduct",
+      params: {
+        productData: JSON.stringify({
+          id: item.id,
+          productName: item.productName,
+          unitPrice: item.unitPrice,
+          quantity: item.quantity,
+          barcode: item.barcode,
+          expirationDate: formatDateToMMYYYY(item.expirationDate),
+          isActive: item.isActive
+        })
+      }
+    });
+  };
 
-      <View style={styles.productDetails}>
-        <View style={styles.detailItem}>
-          <FontAwesome name="dollar" size={16} color={Colors.blue.primary} />
-          <Text style={styles.detailLabel}>Preço:</Text>
-          <Text style={styles.detailValue}>R$ {Number(item.unitPrice).toFixed(2)}</Text>
+  const handleToggleProductStatus = () => {
+    if (item.isActive) {
+      // Se o produto está ativo, mostrar modal de confirmação para desativar
+      setProductToDeactivate(item);
+      setShowDeactivateModal(true);
+    } else {
+      // Se o produto está inativo, mostrar modal de confirmação para ativar
+      setProductToActivate(item);
+      setShowActivateModal(true);
+    }
+  };
+
+  return (
+    <View style={[
+      styles.productCard,
+      !item.isActive && styles.deactivatedCard
+    ]}>
+      <View style={styles.productHeader}>
+        <View style={styles.productTitleContainer}>
+          <Text style={[
+            styles.productName,
+            !item.isActive && styles.deactivatedProductName
+          ]}>
+            {item.productName}
+          </Text>
+          {!item.isActive && (
+            <View style={styles.deactivatedMessageContainer}>
+              <Ionicons name="information-circle" size={16} color={Colors.orange[500]} />
+              <Text style={styles.deactivatedMessage}>
+                Produto removido. Para usar, ative novamente ou atualize seus dados.
+              </Text>
+            </View>
+          )}
         </View>
         
-        <View style={styles.detailItem}>
-          <FontAwesome name="cube" size={16} color={Colors.blue.primary} />
-          <Text style={styles.detailLabel}>Qtd:</Text>
-          <Text style={styles.detailValue}>{item.quantity}</Text>
+        <View style={styles.headerRightContainer}>
+          <View style={styles.actionButtons}>
+            <Pressable 
+              style={styles.editButton} 
+              onPress={handleEditProduct}
+            >
+              <Ionicons name="pencil" size={20} color={Colors.gray.light} />
+            </Pressable>
+            <Pressable 
+              style={[
+                styles.deleteButton,
+                item.isActive ? styles.deactivateButton : styles.activateButton
+              ]} 
+              onPress={handleToggleProductStatus}
+              disabled={statusLoading}
+            >
+              {statusLoading ? (
+                <ActivityIndicator size={16} color={Colors.white} />
+              ) : (
+                item.isActive ? (
+                  <Ionicons 
+                    name="trash" 
+                    size={20} 
+                    color={Colors.red[500]} 
+                  />
+                ) : (
+                  <Feather 
+                    name="check" 
+                    size={24} 
+                    color={Colors.green[700]}
+                  />
+                )
+              )}
+            </Pressable>
+          </View>
+          <View style={[
+            styles.statusBadge, 
+            { backgroundColor: !item.isActive ? Colors.red[500] : expirationStatus.color }
+          ]}>
+            <Text style={styles.statusText}>
+              {!item.isActive ? "Inválido" : expirationStatus.text}
+            </Text>
+          </View>
         </View>
       </View>
 
-      <View style={styles.expirationContainer}>
-        <FontAwesome name="calendar" size={14} color={Colors.gray[500]} />
-        <Text style={styles.expirationText}>
-          Validade: {item.expirationDate 
-            ? item.expirationDate.slice(0, 10).split("-").reverse().join("/")
-            : "Não registrada"}
-        </Text>
-      </View>
+      {/* Mostrar detalhes apenas se o produto estiver ativo */}
+      {item.isActive && (
+        <>
+          <View style={styles.productDetails}>
+            <View style={styles.detailItem}>
+              <FontAwesome name="dollar" size={16} color={Colors.blue.primary} />
+              <Text style={styles.detailLabel}>Preço:</Text>
+              <Text style={styles.detailValue}>R$ {Number(item.unitPrice).toFixed(2)}</Text>
+            </View>
+            
+            <View style={styles.detailItem}>
+              <FontAwesome name="cube" size={16} color={Colors.blue.primary} />
+              <Text style={styles.detailLabel}>Qtd:</Text>
+              <Text style={styles.detailValue}>{item.quantity}</Text>
+            </View>
+          </View>
+
+          <View style={styles.expirationContainer}>
+            <FontAwesome name="calendar" size={14} color={Colors.gray[500]} />
+            <Text style={styles.expirationText}>
+              Validade: {item.expirationDate 
+                ? formatDateToMMYYYY(item.expirationDate)
+                : "Não registrada"}
+            </Text>
+          </View>
+        </>
+      )}
     </View>
   );
 };
@@ -287,6 +453,23 @@ const renderProductItem = ({ item }: { item: any }) => {
         showSortOptions={true}
         multipleSelection={false}
       />
+
+      {/* Toggle para mostrar produtos inativos */}
+      <View style={styles.toggleContainer}>
+        <View style={styles.toggleContent}>
+          <View style={styles.toggleInfo}>
+            <Ionicons name="eye-off" size={20} color={Colors.gray[600]} />
+            <Text style={styles.toggleLabel}>Mostrar produtos inativos</Text>
+          </View>
+          <Switch
+            value={showInactiveProducts}
+            onValueChange={setShowInactiveProducts}
+            trackColor={{ false: Colors.gray[300], true: Colors.blue.light }}
+            thumbColor={showInactiveProducts ? Colors.blue.primary : Colors.gray[400]}
+            ios_backgroundColor={Colors.gray[300]}
+          />
+        </View>
+      </View>
 
       {/* Product List */}
       <View style={{ flex: 1 }}>
@@ -427,6 +610,31 @@ const renderProductItem = ({ item }: { item: any }) => {
           </Pressable>
         </Animated.View>
       </View>
+
+      {/* Modal de confirmação para desativar produto */}
+      <GenericConfirmationModal
+        visible={showDeactivateModal}
+        title="Desativar Produto"
+        message="Deseja realmente desativar esse produto?"
+        details={`Produto: ${productToDeactivate?.productName || ''}\n\nOs dados do produto não serão perdidos, mas ele não poderá ser usado para vendas até ser reativado. Você pode reativá-lo a qualquer momento clicando no botão de ativar.`}
+        confirmText="Desativar"
+        cancelText="Cancelar"
+        confirmButtonStyle="danger"
+        onConfirm={handleConfirmDeactivation}
+        onCancel={handleCancelDeactivation}
+      />
+
+      {/* Modal de confirmação para ativar produto */}
+      <GenericConfirmationModal
+        visible={showActivateModal}
+        title="Ativar Produto"
+        message="Você deseja realmente ativar esse produto?"
+        confirmText="Ativar"
+        cancelText="Cancelar"
+        confirmButtonStyle="success"
+        onConfirm={handleConfirmActivation}
+        onCancel={handleCancelActivation}
+      />
     </View>
   );
 }
