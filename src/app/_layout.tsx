@@ -1,6 +1,7 @@
 import FontsToLoad from "@/src/constants/Fonts";
 import { AuthProvider } from "@/src/context/AuthContext";
 import { CashProvider } from "@/src/context/CashContext";
+import { ProductCacheProvider } from "@/src/context/ProductCacheContext";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -34,7 +35,9 @@ export default function RootLayout() {
       <PaperProvider theme={theme}>
         <AuthProvider>
           <CashProvider>
-            <Stack screenOptions={{ headerShown: false }} />
+            <ProductCacheProvider>
+              <Stack screenOptions={{ headerShown: false }} />
+            </ProductCacheProvider>
           </CashProvider>
         </AuthProvider>
       </PaperProvider>
