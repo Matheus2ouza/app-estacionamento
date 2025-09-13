@@ -58,6 +58,38 @@ export const styles = StyleSheet.create({
     elevation: 3,
   },
 
+  // Toggle Container
+  toggleContainer: {
+    marginHorizontal: 16,
+    marginVertical: 8,
+  },
+  toggleContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    shadowColor: Colors.shadow.light,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: Colors.border.light,
+  },
+  toggleInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  toggleLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.text.primary,
+  },
+
   // Product List
   productList: {
     paddingHorizontal: 16,
@@ -77,19 +109,83 @@ export const styles = StyleSheet.create({
     elevation: 4,
     borderWidth: 1,
     borderColor: Colors.border.light,
+    position: "relative",
+  },
+  // Action Buttons
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  editButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: Colors.blue.light,
+  },
+  deleteButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: Colors.red[100],
+  },
+  deactivateButton: {
+    backgroundColor: Colors.red[100],
+  },
+  activateButton: {
+    backgroundColor: Colors.green[200],
+  },
+  // Estilos para produtos desativados
+  deactivatedCard: {
+    backgroundColor: Colors.red[50],
+    borderColor: Colors.red[200],
+    borderWidth: 2,
+    opacity: 0.8,
+    shadowColor: Colors.red[300],
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  deactivatedProductName: {
+    color: Colors.red[600],
+    textDecorationLine: 'line-through',
+    fontWeight: '500',
+  },
+  deactivatedMessageContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.orange[50],
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: Colors.orange[200],
+    gap: 6,
+  },
+  deactivatedMessage: {
+    fontSize: 12,
+    color: Colors.orange[700],
+    fontWeight: '500',
+    flex: 1,
+    lineHeight: 16,
   },
   productHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 16,
+  },
+  productTitleContainer: {
+    flex: 1,
+    marginRight: 12,
   },
   productName: {
     fontSize: 18,
     fontWeight: "600",
     color: Colors.text.primary,
-    flex: 1,
-    marginRight: 12,
+  },
+  headerRightContainer: {
+    alignItems: 'flex-end',
+    gap: 8,
   },
   statusBadge: {
     paddingHorizontal: 8,
