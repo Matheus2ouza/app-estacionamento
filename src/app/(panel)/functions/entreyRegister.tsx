@@ -592,14 +592,12 @@ export default function EntreyRegister() {
         message={modalMessage}
         type={modalIsSuccess ? 'success' : 'error'}
         onClose={() => setModalVisible(false)}
-        dismissible={!modalIsSuccess}
+        dismissible={true}
         onBackPress={() => {
           if (modalIsSuccess) {
             router.back();
           }
         }}
-        autoNavigateOnSuccess={modalIsSuccess}
-        navigateDelay={2000}
       />
       
       <PDFViewer
