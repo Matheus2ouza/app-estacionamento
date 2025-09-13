@@ -67,7 +67,10 @@ export default function ProductListModal({ visible, onClose, onProductSelect, se
   
   const filteredProducts = productsToFilter.filter((product) => {
     const searchTerm = searchQuery.toLowerCase();
-    return product.productName.toLowerCase().includes(searchTerm);
+    // Filtrar apenas produtos ativos (isActive !== false)
+    const isActive = product.isActive !== false;
+    const matchesSearch = product.productName.toLowerCase().includes(searchTerm);
+    return isActive && matchesSearch;
   }).sort((a, b) => {
     switch (selectedSort) {
       case "name":
