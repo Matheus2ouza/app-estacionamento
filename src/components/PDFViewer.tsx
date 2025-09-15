@@ -3,8 +3,10 @@ import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Pdf from 'react-native-pdf';
+import { getMaxPdfBytesToRender } from '../config/pdf';
 import { TypographyThemes } from '../constants/Fonts';
 import { usePdfActions } from '../hooks/vehicleFlow/usePdfActions';
+import FeedbackModal from './FeedbackModal';
 
 interface PDFViewerProps {
   base64: string;
@@ -13,6 +15,7 @@ interface PDFViewerProps {
   filename?: string;
   onSuccess?: (message: string) => void;
   onError?: (error: string) => void;
+  maxBytesToRender?: number; // limite para renderizar; acima disso só permite download
 }
 
 const PDFViewer: React.FC<PDFViewerProps> = ({
@@ -22,14 +25,29 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   filename = 'documento.pdf',
   onSuccess,
   onError,
+  maxBytesToRender = getMaxPdfBytesToRender(), // configurável via env
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [loadingDownload, setLoadingDownload] = useState(false);
   const [loadingPrint, setLoadingPrint] = useState(false);
+  const [feedbackVisible, setFeedbackVisible] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [feedbackType, setFeedbackType] = useState<'success' | 'error' | 'warning' | 'info'>('info');
   
   const { downloadPdf, printPdf } = usePdfActions();
+
+  // Estimar bytes a partir do base64 (ignora cabeçalhos e padding)
+  const estimateBytesFromBase64 = (b64: string): number => {
+    if (!b64) return 0;
+    const clean = b64.replace(/^data:application\/pdf;base64,/, '');
+    const len = clean.length;
+    const padding = (clean.endsWith('==') ? 2 : clean.endsWith('=') ? 1 : 0);
+    return Math.floor((len * 3) / 4) - padding;
+  };
+  const estimatedBytes = estimateBytesFromBase64(base64);
+  const isTooHeavy = estimatedBytes > maxBytesToRender;
 
   // Reset quando o modal abre
   React.useEffect(() => {
@@ -45,9 +63,15 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     setLoadingDownload(true);
     try {
       await downloadPdf(base64, filename);
+      setFeedbackType('success');
+      setFeedbackMessage('PDF baixado com sucesso!');
+      setFeedbackVisible(true);
       onSuccess?.('PDF baixado com sucesso!');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Erro desconhecido ao baixar o PDF";
+      setFeedbackType('error');
+      setFeedbackMessage(`Erro ao baixar PDF: ${errorMessage}`);
+      setFeedbackVisible(true);
       onError?.(`Erro ao baixar PDF: ${errorMessage}`);
     } finally {
       setLoadingDownload(false);
@@ -58,9 +82,15 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     setLoadingPrint(true);
     try {
       await printPdf(base64);
+      setFeedbackType('success');
+      setFeedbackMessage('Comando de impressão enviado com sucesso!');
+      setFeedbackVisible(true);
       onSuccess?.('Comando de impressão enviado com sucesso!');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Erro desconhecido ao imprimir o PDF";
+      setFeedbackType('error');
+      setFeedbackMessage(`Erro ao imprimir PDF: ${errorMessage}`);
+      setFeedbackVisible(true);
       onError?.(`Erro ao imprimir PDF: ${errorMessage}`);
     } finally {
       setLoadingPrint(false);
@@ -80,6 +110,9 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   const handleError = (error: any) => {
     console.error('Erro ao carregar PDF:', error);
     setError('Erro ao carregar o PDF');
+    setFeedbackType('error');
+    setFeedbackMessage('Erro ao carregar o PDF');
+    setFeedbackVisible(true);
   };
 
   const handleLoadProgress = (percent: number) => {
@@ -104,20 +137,25 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   };
 
   return (
-    <Modal visible={visible} animationType="slide">
-      <View style={styles.container}>
+    <>
+      <Modal visible={visible} animationType="slide">
+        <View style={styles.container}>
         {/* Header com informações da página */}
         <View style={styles.header}>
-          <Text style={styles.headerText}>
-            Página {currentPage} de {totalPages}
-          </Text>
+          {isTooHeavy ? (
+            <Text style={styles.headerText}>PDF pesado • somente download</Text>
+          ) : (
+            <Text style={styles.headerText}>
+              Página {currentPage} de {totalPages}
+            </Text>
+          )}
           <Pressable style={styles.closeButton} onPress={onClose}>
             <Ionicons name="close" size={32} color={Colors.white} />
           </Pressable>
         </View>
 
         {/* Controles de navegação */}
-        {totalPages > 1 && (
+        {!isTooHeavy && totalPages > 1 && (
           <View style={styles.navigationContainer}>
             <TouchableOpacity 
               style={[styles.navButton, currentPage === 1 && styles.navButtonDisabled]} 
@@ -147,7 +185,16 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
 
         {/* Área do PDF */}
         <View style={styles.pdfContainer}>
-          {error ? (
+          {isTooHeavy ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>
+                O PDF é muito pesado para exibir aqui. Toque em Download para visualizar no seu dispositivo.
+              </Text>
+              <Text style={[styles.errorText, { fontSize: 12, color: Colors.text.secondary }]}>
+                Tamanho estimado: {(estimatedBytes / (1024 * 1024)).toFixed(2)} MB
+              </Text>
+            </View>
+          ) : error ? (
             <View style={styles.errorContainer}>
               <Text style={styles.errorText}>{error}</Text>
               <TouchableOpacity style={styles.retryButton} onPress={() => setError(null)}>
@@ -195,23 +242,34 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.printButton]} 
-            onPress={handlePrint}
-            disabled={loadingPrint}
-          >
-            <FontAwesome 
-              name={loadingPrint ? "spinner" : "print"} 
-              size={18} 
-              color={Colors.white} 
-            />
-            <Text style={styles.actionButtonText}>
-              {loadingPrint ? 'Imprimindo...' : 'Imprimir'}
-            </Text>
-          </TouchableOpacity>
+          {!isTooHeavy && (
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.printButton]} 
+              onPress={handlePrint}
+              disabled={loadingPrint}
+            >
+              <FontAwesome 
+                name={loadingPrint ? "spinner" : "print"} 
+                size={18} 
+                color={Colors.white} 
+              />
+              <Text style={styles.actionButtonText}>
+                {loadingPrint ? 'Imprimindo...' : 'Imprimir'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
-      </View>
-    </Modal>
+        </View>
+      </Modal>
+      {/* Feedback */}
+      <FeedbackModal
+        visible={feedbackVisible}
+        message={feedbackMessage}
+        type={feedbackType}
+        onClose={() => setFeedbackVisible(false)}
+        dismissible={true}
+      />
+    </>
   );
 };
 
