@@ -6,9 +6,10 @@ import { styles } from "@/src/styles/functions/dashboardStyle";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import moment from "moment";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Alert, Modal, Pressable, ScrollView, Switch, Text, View } from "react-native";
 import { Calendar, DateData } from "react-native-calendars";
+import { ProgressBar } from 'react-native-paper';
 
 export default function Dashboard() {
   const dateLimit = '2025-08-04'
@@ -37,6 +38,8 @@ export default function Dashboard() {
   const [pdfData, setPdfData] = useState<string | null>(null);
   const [pdfFilename, setPdfFilename] = useState<string>("relatorio.pdf");
   const [isPdfLoading, setIsPdfLoading] = useState(false);
+  const [isLoadingReport, setIsLoadingReport] = useState(false);
+  const [loadingDots, setLoadingDots] = useState('');
 
   const reportTypes = [
     { 
@@ -442,6 +445,7 @@ export default function Dashboard() {
   };
 
   const handleGenerateReport = async () => {
+    setIsLoadingReport(true);
     const reportDates = getReportDates();
     
     // Validação: se período customizado está ativo, verificar se as datas foram preenchidas
@@ -471,10 +475,19 @@ export default function Dashboard() {
       selectedCharts: generateCharts ? selectedCharts : [],
     };
 
+    console.log("🔵 [Dashboard] Dados base preparados:", reportData);
+    console.log("🔵 [Dashboard] customPeriod:", customPeriod);
+    console.log("🔵 [Dashboard] reportType:", reportType);
+    console.log("🔵 [Dashboard] reportDates:", reportDates);
+
     // Adicionar tipo de relatório ou datas personalizadas
     if (customPeriod) {
       reportData.startDate = moment(reportDates.startDate).format('YYYY-MM-DD');
       reportData.endDate = moment(reportDates.endDate).format('YYYY-MM-DD');
+      console.log("🔵 [Dashboard] Datas personalizadas adicionadas:", {
+        startDate: reportData.startDate,
+        endDate: reportData.endDate
+      });
     } else {
       // Mapear tipos para os valores esperados pela API
       const typeMapping = {
@@ -484,14 +497,23 @@ export default function Dashboard() {
         full: 'full'
       };
       reportData.reportType = typeMapping[reportType!];
+      console.log("🔵 [Dashboard] Tipo de relatório adicionado:", reportData.reportType);
     }
+
+    console.log("🔵 [Dashboard] Dados finais para API:", reportData);
 
     try {
       const result = await generateDashboard(reportData);
       
-      if (success) {
+      console.log("🟢 [Dashboard] Resultado da API:", result);
+      console.log("🟢 [Dashboard] Success state:", success);
+      
+      if (result) {
         // Se foi gerado PDF, exibir o visualizador
         if (result?.pdf) {
+          // Reset defensivo antes de abrir novo PDF
+          setShowPdfViewer(false);
+          setPdfData(null);
           setIsPdfLoading(true);
           
           // Gerar nome do arquivo baseado no tipo de relatório e data
@@ -503,36 +525,92 @@ export default function Dashboard() {
           const typeStr = customPeriod ? 'personalizado' : (reportType || 'relatorio');
           setPdfFilename(`relatorio_${typeStr}_${dateStr}.pdf`);
           
-          // Aguardar um pouco antes de definir os dados e mostrar o PDF
+          // Aguardar mais tempo para garantir desmontagem completa antes de reabrir
           setTimeout(() => {
             setPdfData(result.pdf);
-            setShowPdfViewer(true);
-            setIsPdfLoading(false);
-          }, 500);
+            setTimeout(() => {
+              setShowPdfViewer(true);
+              setIsPdfLoading(false);
+            }, 200);
+          }, 600);
         }
         
         // Navegar para a tela de relatório com os dados
+        console.log("🟢 [Dashboard] Resultado recebido:", result);
+        console.log("🟢 [Dashboard] Result existe:", !!result);
+        console.log("🟢 [Dashboard] Result.report existe:", !!result?.report);
+        console.log("🟢 [Dashboard] Result.pdf existe:", !!result?.pdf);
+        
         if (result?.report) {
-          console.log("Dados do relatório:", result.report);
-          // Passar os dados do relatório para a tela de relatório
-          router.push({
-            pathname: "/(panel)/functionsAdmin/report",
-            params: {
-              reportData: JSON.stringify(result.report),
+          console.log("🟢 [Dashboard] Dados do relatório:", result.report);
+          console.log("🟢 [Dashboard] Tipo dos dados:", typeof result.report);
+          console.log("🟢 [Dashboard] Report type:", result.report.type);
+          console.log("🟢 [Dashboard] Report summary existe:", !!result.report.summary);
+          console.log("🟢 [Dashboard] Report cashRegisters length:", result.report.cashRegisters?.length);
+          
+          try {
+            // Limpar URLs dos gráficos para evitar problemas de serialização
+            const cleanedReport = JSON.parse(JSON.stringify(result.report));
+            
+            // Limpar URLs problemáticas nos gráficos
+            if (cleanedReport.charts) {
+              Object.keys(cleanedReport.charts).forEach(chartKey => {
+                if (cleanedReport.charts[chartKey] && cleanedReport.charts[chartKey].chartUrl) {
+                  // Encode da URL para evitar problemas de caracteres especiais
+                  cleanedReport.charts[chartKey].chartUrl = encodeURIComponent(cleanedReport.charts[chartKey].chartUrl);
+                }
+              });
+            }
+            
+            const reportDataString = JSON.stringify(cleanedReport);
+            console.log("🟢 [Dashboard] Dados serializados (primeiros 200 chars):", reportDataString.substring(0, 200) + "...");
+            console.log("🟢 [Dashboard] Tamanho dos dados serializados:", reportDataString.length);
+            
+            // Testar se o JSON é válido
+            JSON.parse(reportDataString);
+            console.log("🟢 [Dashboard] JSON válido - teste de parse bem-sucedido");
+            
+            const navigationParams = {
+              reportData: reportDataString,
               pdfData: result.pdf || "",
               pdfFilename: pdfFilename
-            }
-          });
+            };
+            
+            console.log("🟢 [Dashboard] Parâmetros de navegação:", {
+              reportDataLength: navigationParams.reportData.length,
+              pdfDataLength: navigationParams.pdfData.length,
+              pdfFilename: navigationParams.pdfFilename
+            });
+            
+            // Passar os dados do relatório para a tela de relatório
+            router.push({
+              pathname: "/(panel)/functionsAdmin/report",
+              params: navigationParams
+            });
+            
+            console.log("🟢 [Dashboard] Navegação executada com sucesso");
+          } catch (stringifyError) {
+            console.error("🔴 [Dashboard] Erro ao serializar dados do relatório:", stringifyError);
+            console.error("🔴 [Dashboard] Dados que causaram erro:", result.report);
+            Alert.alert("Erro", "Erro ao processar dados do relatório.");
+          }
+        } else {
+          console.log("🔴 [Dashboard] Resultado sem dados de relatório:", result);
+          console.log("🔴 [Dashboard] Result keys:", result ? Object.keys(result) : "result é null/undefined");
+          Alert.alert("Erro", "Dados do relatório não encontrados.");
         }
       } else if (error) {
         Alert.alert("Erro", error);
       }
     } catch (err) {
       Alert.alert("Erro", "Erro ao gerar relatório. Tente novamente.");
+    } finally {
+      setIsLoadingReport(false);
     }
   };
 
   // Funções de callback para o PDFViewer
+  const pdfClosingRef = React.useRef(false);
   const handlePdfSuccess = (message: string) => {
     Alert.alert("Sucesso", message);
   };
@@ -542,12 +620,15 @@ export default function Dashboard() {
   };
 
   const handlePdfClose = () => {
+    if (pdfClosingRef.current) return;
+    pdfClosingRef.current = true;
     setShowPdfViewer(false);
-    // Aguardar um pouco antes de limpar os dados para evitar conflitos
+    // Aguardar mais tempo antes de limpar os dados para evitar conflitos de renderização
     setTimeout(() => {
       setPdfData(null);
       setIsPdfLoading(false);
-    }, 300);
+      pdfClosingRef.current = false;
+    }, 800);
   };
 
   // Desabilitar gráficos automaticamente quando necessário
@@ -557,6 +638,20 @@ export default function Dashboard() {
       setSelectedCharts([]);
     }
   }, [reportType, customPeriod, startDate, endDate]);
+
+  // Efeito: animação de reticências durante o loading do relatório
+  useEffect(() => {
+    if (!isLoadingReport) {
+      setLoadingDots('');
+      return;
+    }
+    let step = 0;
+    const id = setInterval(() => {
+      step = (step + 1) % 4; // 0..3
+      setLoadingDots('.'.repeat(step));
+    }, 500);
+    return () => clearInterval(id);
+  }, [isLoadingReport]);
 
   // Limpeza quando o componente for desmontado
   useEffect(() => {
@@ -850,6 +945,15 @@ export default function Dashboard() {
           </Pressable>
       </View>
       </ScrollView>
+
+      {isLoadingReport && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingBox}>
+            <ProgressBar indeterminate color={Colors.blue.primary} style={{ width: 180, height: 6, borderRadius: 4 }} />
+            <Text style={styles.loadingText}>Gerando relatório, aguarde{loadingDots}</Text>
+          </View>
+        </View>
+      )}
 
       {/* Modal para Data Inicial */}
       <Modal

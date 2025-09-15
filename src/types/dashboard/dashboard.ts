@@ -79,11 +79,31 @@ export type CashRegister = {
   generalSaleTotal: number;
   vehicleEntryTotal: number;
   outgoingExpenseTotal: number;
+  openTime: {
+    minutes: number;
+    formatted: string;
+  };
   transactions: {
     vehicle: VehicleTransaction[] | number;
     product: ProductTransaction[] | number;
     outgoing: OutgoingExpense[] | number;
   };
+};
+
+// Tipos para análise de tempo
+export type TimeAnalysis = {
+  totalOpenTime: {
+    hours: number;
+    minutes: number;
+    totalMinutes: number;
+  };
+  averageOpenTime: {
+    hours: number;
+    minutes: number;
+    totalMinutes: number;
+  };
+  caixasComTempoCalculado: number;
+  caixasSemFechamento: number;
 };
 
 // Tipos para o resumo
@@ -99,6 +119,7 @@ export type ReportSummary = {
     productTransactions: number;
     outgoingExpenses: number;
   };
+  timeAnalysis: TimeAnalysis;
 };
 
 // Tipo principal do relatório
