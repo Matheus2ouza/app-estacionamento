@@ -123,7 +123,7 @@ export default function Admin() {
       title: "Relatório",
       description: "Visualizar relatórios e estatísticas de entradas e saídas de veículos e produtos",
       icon: { name: "bar-chart-outline", library: "Ionicons" },
-      onPress: () => {},
+      onPress: () => router.push("/functionsAdmin/dashboard"),
       adminOnly: true,
     },
     {
