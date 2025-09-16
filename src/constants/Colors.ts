@@ -5,7 +5,7 @@ const Colors = {
   backgroundQrCode: "#f1f4f5",
   transparent: "transparent",
   whiteSemiTransparent: "rgba(255, 255, 255, 0.9)",
-
+  whiteSemiTransparent2: "rgba(255, 255, 255, 0.8)",
   // ===== PALETA PRINCIPAL - AZUL =====
   blue: {
     50: "#eff6ff",
