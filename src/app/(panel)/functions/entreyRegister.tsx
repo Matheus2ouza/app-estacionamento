@@ -54,10 +54,6 @@ export default function EntreyRegister() {
   // Verificar se a tela deve ser bloqueada
   const isScreenBlocked = isCashNotCreated() || isCashClosed();
 
-  // Funções de callback para os botões do alerta
-  const handleBackPress = () => {
-    router.back();
-  };
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
@@ -353,7 +349,6 @@ export default function EntreyRegister() {
               <CashAvailabilityAlert 
                 mode="blocking" 
                 cashStatus={cashStatus} 
-                onBackPress={handleBackPress}
                 style={{
                   marginHorizontal: 0,
                   marginVertical: 0,
