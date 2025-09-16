@@ -317,8 +317,7 @@ export default function ListExit() {
         }}>
           <CashAvailabilityAlert 
             mode="blocking" 
-            cashStatus={cashStatus} 
-            onBackPress={handleBackPress}
+            cashStatus={cashStatus}
             style={{
               marginHorizontal: 0,
               marginVertical: 0,
