@@ -52,6 +52,13 @@ export default function AdminHome() {
   // Referência estável para evitar re-execuções
   const refreshAllDataRef = useRef(refreshAllData);
   refreshAllDataRef.current = refreshAllData;
+  const isCashNotCreatedRef = useRef(isCashNotCreated);
+  isCashNotCreatedRef.current = isCashNotCreated;
+
+  // Buscar dados ao montar a tela
+  useEffect(() => {
+    refreshAllDataRef.current();
+  }, []);
 
   // Função para converter dados do estacionamento para o formato esperado pelo ParkingBox
   const convertParkingData = () => {
@@ -67,43 +74,19 @@ export default function AdminHome() {
     };
   };
 
-  // Buscar dados quando a tela recebe foco
+  // Buscar dados quando a tela recebe foco e, se não houver caixa, solicitar abertura (sem dependências para evitar loop)
   useFocusEffect(
     useCallback(() => {
-      console.log('🔍 [AdminHome] useFocusEffect: Tela recebeu foco, verificando status do caixa');
-      
-      const fetchDataOnFocus = async () => {
-        try {
-          // Primeiro busca o status do caixa
-          const { status, cashId } = await fetchCashStatus();
-          console.log('🔍 [AdminHome] useFocusEffect: Status do caixa:', status, 'ID:', cashId);
-          
-          // Baseado no status, decide quais dados buscar
-          if (status === 'open') {
-            console.log('✅ [AdminHome] useFocusEffect: Caixa aberto - buscando dados do caixa e estacionamento');
-            // Buscar detalhes do caixa
-            if (cashId) {
-              await fetchCashDetails(cashId);
-              // Buscar dados do estacionamento
-              await fetchParkingDetails(cashId);
-            }
-          } else if (status === 'closed') {
-            console.log('🔒 [AdminHome] useFocusEffect: Caixa fechado - buscando apenas dados do caixa');
-            // Buscar apenas detalhes do caixa
-            if (cashId) {
-              await fetchCashDetails(cashId);
-            }
-          } else if (status === 'not_created') {
-            console.log('❌ [AdminHome] useFocusEffect: Caixa não criado - não buscando dados');
-            // Não busca nenhum dado quando o caixa não foi criado
-          }
-        } catch (error) {
-          console.error('❌ [AdminHome] useFocusEffect: Erro ao buscar dados:', error);
+      console.log('🔍 [AdminHome] useFocusEffect: Tela recebeu foco, atualizando todos os dados');
+      let cancelled = false;
+      (async () => {
+        await refreshAllDataRef.current();
+        if (!cancelled && isCashNotCreatedRef.current()) {
+          setMessage(true);
         }
-      };
-
-      fetchDataOnFocus();
-    }, []) // Remover dependências para evitar loop
+      })();
+      return () => { cancelled = true; };
+    }, [])
   );
 
 
@@ -208,11 +191,6 @@ export default function AdminHome() {
     setMessage(false);
     setShowCashClosed(false);
     setCashRegisterMode('open');
-    setShowCashRegister(true);
-  };
-
-  const handleReopenCash = () => {
-    setCashRegisterMode('reopen');
     setShowCashRegister(true);
   };
 
