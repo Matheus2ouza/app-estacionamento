@@ -7,6 +7,7 @@ import { getMaxPdfBytesToRender } from '../config/pdf';
 import { TypographyThemes } from '../constants/Fonts';
 import { usePdfActions } from '../hooks/vehicleFlow/usePdfActions';
 import FeedbackModal from './FeedbackModal';
+import FileSavedModal from './FileSavedModal';
 
 interface PDFViewerProps {
   base64: string;
@@ -32,11 +33,14 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [loadingDownload, setLoadingDownload] = useState(false);
   const [loadingPrint, setLoadingPrint] = useState(false);
+  const [loadingShare, setLoadingShare] = useState(false);
   const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState('');
   const [feedbackType, setFeedbackType] = useState<'success' | 'error' | 'warning' | 'info'>('info');
+  const [fileSavedVisible, setFileSavedVisible] = useState(false);
+  const [savedFilePath, setSavedFilePath] = useState('');
   
-  const { downloadPdf, printPdf } = usePdfActions();
+  const { downloadPdf, printPdf, sharePdf } = usePdfActions();
 
   // Estimar bytes a partir do base64 (ignora cabeçalhos e padding)
   const estimateBytesFromBase64 = (b64: string): number => {
@@ -56,18 +60,23 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
       setCurrentPage(1);
       setLoadingDownload(false);
       setLoadingPrint(false);
+      setLoadingShare(false);
+      setFileSavedVisible(false);
+      setSavedFilePath('');
     }
   }, [visible]);
 
   const handleDownload = async () => {
     setLoadingDownload(true);
     try {
-      await downloadPdf(base64, filename);
-      setFeedbackType('success');
-      setFeedbackMessage('PDF baixado com sucesso!');
-      setFeedbackVisible(true);
-      onSuccess?.('PDF baixado com sucesso!');
+      const filePath = await downloadPdf(base64, filename);
+      
+      // Mostrar modal com informações do arquivo salvo
+      setSavedFilePath(filePath);
+      setFileSavedVisible(true);
+      
     } catch (err) {
+      console.error('❌ [PDFViewer] handleDownload: Erro durante download:', err);
       const errorMessage = err instanceof Error ? err.message : "Erro desconhecido ao baixar o PDF";
       setFeedbackType('error');
       setFeedbackMessage(`Erro ao baixar PDF: ${errorMessage}`);
@@ -97,6 +106,25 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
     }
   };
 
+  const handleShare = async () => {
+    setLoadingShare(true);
+    try {
+      await sharePdf(base64, filename);
+      setFeedbackType('success');
+      setFeedbackMessage('PDF compartilhado com sucesso!');
+      setFeedbackVisible(true);
+      onSuccess?.('PDF compartilhado com sucesso!');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Erro desconhecido ao compartilhar o PDF";
+      setFeedbackType('error');
+      setFeedbackMessage(`Erro ao compartilhar PDF: ${errorMessage}`);
+      setFeedbackVisible(true);
+      onError?.(`Erro ao compartilhar PDF: ${errorMessage}`);
+    } finally {
+      setLoadingShare(false);
+    }
+  };
+
   const handleLoadComplete = (numberOfPages: number) => {
     setTotalPages(numberOfPages);
     setError(null);
@@ -117,7 +145,6 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
 
   const handleLoadProgress = (percent: number) => {
     // O loading será removido no handleLoadComplete
-    console.log('PDF loading progress:', percent + '%');
   };
 
   const goToPreviousPage = () => {
@@ -234,12 +261,27 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           >
             <FontAwesome 
               name={loadingDownload ? "spinner" : "download"} 
-              size={18} 
+              size={16} 
               color={Colors.white} 
             />
-            <Text style={styles.actionButtonText}>
-              {loadingDownload ? 'Baixando...' : 'Download'}
-            </Text>
+            {!loadingDownload && (
+              <Text style={styles.actionButtonText}>Download</Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.shareButton]} 
+            onPress={handleShare}
+            disabled={loadingShare}
+          >
+            <FontAwesome 
+              name={loadingShare ? "spinner" : "share"} 
+              size={16} 
+              color={Colors.white} 
+            />
+            {!loadingShare && (
+              <Text style={styles.actionButtonText}>Compartilhar</Text>
+            )}
           </TouchableOpacity>
 
           {!isTooHeavy && (
@@ -250,17 +292,26 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
             >
               <FontAwesome 
                 name={loadingPrint ? "spinner" : "print"} 
-                size={18} 
+                size={16} 
                 color={Colors.white} 
               />
-              <Text style={styles.actionButtonText}>
-                {loadingPrint ? 'Imprimindo...' : 'Imprimir'}
-              </Text>
+              {!loadingPrint && (
+                <Text style={styles.actionButtonText}>Imprimir</Text>
+              )}
             </TouchableOpacity>
           )}
         </View>
         </View>
       </Modal>
+      
+      {/* Modal de arquivo salvo */}
+      <FileSavedModal
+        visible={fileSavedVisible}
+        onClose={() => setFileSavedVisible(false)}
+        filePath={savedFilePath}
+        fileName={filename}
+      />
+      
       {/* Feedback */}
       <FeedbackModal
         visible={feedbackVisible}
@@ -378,31 +429,34 @@ const styles = StyleSheet.create({
   },
   buttonsContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingVertical: 16,
     backgroundColor: Colors.white,
     borderTopWidth: 1,
     borderTopColor: Colors.gray[200],
-    gap: 12,
+    gap: 8,
   },
   actionButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
     borderRadius: 8,
-    gap: 8,
+    gap: 4,
   },
   actionButtonText: {
     ...TypographyThemes.nunito.body,
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
     color: Colors.white,
   },
   downloadButton: {
     backgroundColor: Colors.green[500],
+  },
+  shareButton: {
+    backgroundColor: Colors.orange[500],
   },
   printButton: {
     backgroundColor: Colors.blue.primary,
