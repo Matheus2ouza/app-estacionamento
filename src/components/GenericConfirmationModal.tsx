@@ -76,9 +76,6 @@ export default function GenericConfirmationModal({
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>{title}</Text>
-            <TouchableOpacity onPress={onCancel} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color={Colors.gray[500]} />
-            </TouchableOpacity>
           </View>
 
           {/* Content */}

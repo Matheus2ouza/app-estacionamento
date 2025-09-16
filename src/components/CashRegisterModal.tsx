@@ -6,10 +6,11 @@ import Colors from '../constants/Colors';
 type Props = {
   visible: boolean;
   role: String | null;
-  mode?: 'open' | 'reopen'; // Novo: modo do modal
+  mode?: 'open' | 'reopen' | 'close'; // Suporta abrir, reabrir ou fechar
   onClose: () => void;
   onOpenCashRegister: (initialValue: string) => void;
-  onReopenCash?: () => void; // Novo: função para reabrir caixa
+  onReopenCash?: () => void; // Função para reabrir caixa
+  onCloseCash?: () => void; // Novo: função para fechar caixa sem valor
 };
 
 const CashRegisterModal = ({ 
@@ -18,7 +19,8 @@ const CashRegisterModal = ({
   mode = 'open',
   onClose, 
   onOpenCashRegister,
-  onReopenCash 
+  onReopenCash,
+  onCloseCash,
 }: Props) => {
   const [initialValue, setInitialValue] = useState('');
   const { handleLogout } = useLogout(); // Obtenha a função de logout
@@ -26,9 +28,14 @@ const CashRegisterModal = ({
   const handleOpenCash = () => {
     if (mode === 'reopen' && onReopenCash) {
       onReopenCash();
-    } else if (initialValue.trim()) {
+      return;
+    }
+    if (mode === 'close' && onCloseCash) {
+      onCloseCash();
+      return;
+    }
+    if (mode === 'open' && initialValue.trim()) {
       onOpenCashRegister(initialValue);
-      // Limpar o campo após enviar o valor
       setInitialValue('');
     }
   };
@@ -40,30 +47,26 @@ const CashRegisterModal = ({
   };
 
   const getTitle = () => {
-    if (mode === 'reopen') {
-      return 'Reabrir Caixa';
-    }
+    if (mode === 'reopen') return 'Reabrir Caixa';
+    if (mode === 'close') return 'Fechar Caixa';
     return 'Abrir Caixa';
   };
 
   const getMessage = () => {
-    if (mode === 'reopen') {
-      return 'Deseja reabrir o caixa?';
-    }
+    if (mode === 'reopen') return 'Deseja reabrir o caixa?';
+    if (mode === 'close') return 'Deseja fechar o caixa?';
     return 'Para abrir o caixa digite o valor em caixa';
   };
 
   const getButtonText = () => {
-    if (mode === 'reopen') {
-      return 'Reabrir caixa';
-    }
+    if (mode === 'reopen') return 'Reabrir caixa';
+    if (mode === 'close') return 'Fechar caixa';
     return 'Abrir caixa';
   };
 
   const getCancelButtonText = () => {
-    if (mode === 'reopen') {
-      return 'Cancelar';
-    }
+    if (mode === 'reopen') return 'Cancelar';
+    if (mode === 'close') return 'Cancelar';
     return 'Não abrir';
   };
 

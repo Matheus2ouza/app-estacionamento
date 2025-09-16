@@ -64,7 +64,7 @@ const CashClosedModal: React.FC<CashClosedModalProps> = ({
               onPress={onClose}
             >
               <Text style={styles.buttonText}>
-                Fechar
+                Não, obrigado
               </Text>
             </TouchableOpacity>
           </View>
