@@ -1,10 +1,14 @@
 import Colors from "@/src/constants/Colors";
 import { styles } from "@/src/styles/login/loginStyles";
+import Constants from "expo-constants";
 import { LinearGradient } from "expo-linear-gradient";
+import * as Notifications from "expo-notifications";
+import * as SecureStore from "expo-secure-store";
 import React from "react";
 import {
   ActivityIndicator,
   Image,
+  Platform,
   Text,
   TouchableOpacity,
   View,
@@ -22,15 +26,46 @@ export default function Login() {
   const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
+  const [pushToken, setPushToken] = React.useState<string | null>(null);
 
   const { login, loading, error, clearError } = useUserLogin();
   const auth = useAuth();
   const router = useRouter();
 
+  React.useEffect(() => {
+    async function requestAndroidNotificationsPermission() {
+      try {
+        if (Platform.OS !== "android") return;
+
+        const settings = await Notifications.getPermissionsAsync();
+        let granted = settings.granted || settings.ios?.status === Notifications.IosAuthorizationStatus.AUTHORIZED;
+
+        if (!granted) {
+          const ask = await Notifications.requestPermissionsAsync();
+          granted = ask.granted || ask.ios?.status === Notifications.IosAuthorizationStatus.AUTHORIZED;
+        }
+
+        if (!granted) {
+          return; // silencioso se negado
+        }
+
+        const projectId = Constants.expoConfig?.extra?.eas?.projectId || Constants.easConfig?.projectId;
+        const tokenResponse = await Notifications.getExpoPushTokenAsync({ projectId });
+        const token = tokenResponse.data;
+        setPushToken(token);
+        await SecureStore.setItemAsync("expoPushToken", token);
+      } catch (e) {
+        // silencioso em caso de erro
+      }
+    }
+
+    requestAndroidNotificationsPermission();
+  }, []);
+
   async function handleLogin() {
     try {
 
-      const { token, role } = await login({ username, password });
+      const { token, role } = await login({ username, password, pushToken: pushToken || undefined });
 
       await auth.login(token);
 
