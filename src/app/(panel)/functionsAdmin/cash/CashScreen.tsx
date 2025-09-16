@@ -1,15 +1,17 @@
+import CashAvailabilityAlert from '@/src/components/CashAvailabilityAlert';
 import Header from '@/src/components/Header';
 import Colors, { generateRandomColor } from '@/src/constants/Colors';
 import { useCashContext } from '@/src/context/CashContext';
 import { useCash } from '@/src/hooks/cash/useCash';
-import { styles } from '@/src/styles/functions/cashStyles';
+import { styles } from '@/src/styles/functions/cash/cashStyles';
 import { Entypo, MaterialIcons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
   Image,
+  Modal,
   RefreshControl,
   ScrollView,
   Text,
@@ -24,6 +26,7 @@ export default function CashIndex() {
     isCashOpen,
     isCashClosed,
     isCashNotCreated,
+    refreshAllData,
   } = useCashContext();
 
   // Hook useCash - fonte principal de dados
@@ -31,6 +34,15 @@ export default function CashIndex() {
 
   const [refreshing, setRefreshing] = useState(false);
   const [expandedCards, setExpandedCards] = useState<string[]>([]);
+  const [showWarning, setShowWarning] = useState(true);
+  
+  // Refs estáveis para evitar loops e dependências mutáveis no useFocusEffect
+  const refreshAllDataRef = useRef(refreshAllData);
+  refreshAllDataRef.current = refreshAllData;
+  const cashDataRef = useRef(cashData);
+  cashDataRef.current = cashData;
+  const cashStatusRef = useRef(cashStatus);
+  cashStatusRef.current = cashStatus;
   
   // Cores das bordas para cada card
   const [cardBorderColors] = useState({
@@ -93,45 +105,32 @@ export default function CashIndex() {
     }
   };
 
-  // Função para buscar dados quando a tela recebe foco
+  // Buscar dados quando a tela recebe foco: contexto + detalhes reais (sem exigir pull-to-refresh)
   useFocusEffect(
     useCallback(() => {
-      console.log('🔍 [CashScreen] useFocusEffect: Hook executado - tela em foco');
-      
-      const fetchData = async () => {
-        console.log('🔍 [CashScreen] useFocusEffect: Iniciando busca de dados');
-        console.log('🔍 [CashScreen] useFocusEffect: Status atual do contexto:', cashStatus);
-        console.log('🔍 [CashScreen] useFocusEffect: CashData do contexto:', cashData ? 'Presente' : 'Ausente');
-        
-        try {
-          // Só chama o hook useCash se o status for 'open' ou 'closed' e tiver cashId
-          if ((cashStatus === 'open' || cashStatus === 'closed') && cashData?.id) {
-            console.log('🔍 [CashScreen] useFocusEffect: Status válido, chamando hook useCash para detalhes gerais...');
-            console.log('🔍 [CashScreen] useFocusEffect: CashId:', cashData.id);
-            
-            const generalDetails = await cashHook.fetchGeneralDetailsCash(cashData.id);
-            
-            if (generalDetails) {
-              console.log('✅ [CashScreen] useFocusEffect: Detalhes gerais obtidos com sucesso');
-            } else {
-              console.log('❌ [CashScreen] useFocusEffect: Falha ao obter detalhes gerais');
-            }
-          } else {
-            console.log('🔍 [CashScreen] useFocusEffect: Status não válido ou sem cashId, pulando busca de detalhes');
-            console.log('🔍 [CashScreen] useFocusEffect: Status:', cashStatus, 'CashId:', cashData?.id);
-          }
-        } catch (error) {
-          console.error('❌ [CashScreen] useFocusEffect: Erro ao buscar dados do caixa:', error);
-        }
-      };
+      console.log('🔍 [CashScreen] useFocusEffect: Tela em foco, atualizando dados...');
+      let cancelled = false;
+      (async () => {
+        // Atualiza status/dados do contexto
+        await refreshAllDataRef.current();
+        if (cancelled) return;
 
-      fetchData();
-      
-      // Cleanup function
+        // Após atualizar o contexto, buscar detalhes reais se houver caixa válido
+        const status = cashStatusRef.current;
+        const ctxCash = cashDataRef.current;
+        if ((status === 'open' || status === 'closed') && ctxCash?.id) {
+          try {
+            await cashHook.fetchGeneralDetailsCash(ctxCash.id);
+          } catch (err) {
+            console.log('❌ [CashScreen] useFocusEffect: Erro ao buscar detalhes reais:', err);
+          }
+        }
+      })();
       return () => {
+        cancelled = true;
         console.log('🔍 [CashScreen] useFocusEffect: Cleanup - tela perdeu foco');
       };
-    }, [cashStatus, cashData?.id]) // Dependências do contexto
+    }, [])
   );
 
   // Função para refresh
@@ -224,6 +223,22 @@ export default function CashIndex() {
   console.log('🔍 [CashScreen] Render: CashHook error:', cashHook.error);
   console.log('🔍 [CashScreen] Render: CashHook success:', cashHook.success);
 
+  // Bloqueio/aviso conforme status do caixa
+  if (isCashNotCreated()) {
+    return (
+      <View style={styles.container}>
+        <Header title="Caixa" />
+        <CashAvailabilityAlert
+          mode="blocking"
+          cashStatus={cashStatus}
+          style={{ alignSelf: 'center', width: '92%' }}
+        />
+      </View>
+    );
+  }
+
+  // Não retornar antecipadamente quando estiver FECHADO; mostraremos um modal sobreposto
+
   if (cashHook.loading && !cashData) {
     console.log('🔍 [CashScreen] Render: Mostrando tela de loading');
     return (
@@ -255,36 +270,7 @@ export default function CashIndex() {
   const statusInfo = getCashStatusInfo();
   console.log('🔍 [CashScreen] Render: StatusInfo:', statusInfo);
 
-  // Dados fictícios para demonstração
-  const mockData = {
-    cashDetails: {
-      initialValue: 100.00,
-      totalCash: 450.00,
-      totalCredit: 120.00,
-      totalDebit: 80.00,
-      totalPix: 200.00,
-      outgoingExpenseTotal: 50.00,
-      finalValue: 500.00,
-    },
-    parkingDetails: {
-      data: {
-        quantityVehicles: 15,
-        quantityCars: 12,
-        quantityMotorcycles: 3,
-        capacityMax: 50,
-        percentage: 30,
-      }
-    },
-    cashData: {
-      id: "cash-001",
-      operator: "João Silva",
-      status: "open",
-      opening_date: "2024-01-15T08:00:00Z",
-      closing_date: isCashClosed() ? "2024-01-15T18:30:00Z" : undefined,
-    }
-  };
-
-  // Usar dados reais do hook ou dados fictícios como fallback
+  // Usar apenas dados reais do hook
   const displayCashDetails = cashHook.data ? {
     initialValue: cashHook.data.generalDetails.initialValue,
     totalCash: cashHook.data.vehicleDetails.amountCash + cashHook.data.productDetails.amountSoldInCash + cashHook.data.outgoingExpenseDetails.outputCash,
@@ -293,10 +279,17 @@ export default function CashIndex() {
     totalPix: cashHook.data.vehicleDetails.amountPix + cashHook.data.productDetails.amountSoldInPix + cashHook.data.outgoingExpenseDetails.outputPix,
     outgoingExpenseTotal: cashHook.data.outgoingExpenseDetails.amountTotal,
     finalValue: cashHook.data.generalDetails.finalValue,
-  } : mockData.cashDetails;
+  } : {
+    initialValue: 0,
+    totalCash: 0,
+    totalCredit: 0,
+    totalDebit: 0,
+    totalPix: 0,
+    outgoingExpenseTotal: 0,
+    finalValue: 0,
+  };
   
-  const displayParkingDetails = mockData.parkingDetails; // Dados do estacionamento vêm do contexto
-  const displayCashData = cashData || mockData.cashData; // Dados básicos do caixa vêm do contexto
+  const displayCashData = cashData; // Dados básicos do caixa vêm do contexto
   
   console.log('🔍 [CashScreen] Render: Usando dados reais:', cashHook.data ? 'Sim' : 'Não');
   console.log('🔍 [CashScreen] Render: CashData (contexto) real:', cashData ? 'Sim' : 'Não');
@@ -308,6 +301,18 @@ export default function CashIndex() {
         style={styles.heroImage}
       />
       <Header title="Caixa" />
+
+      {/* Modal de aviso quando o caixa está FECHADO */}
+      <Modal visible={showWarning && isCashClosed()} transparent animationType="fade">
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.25)', justifyContent: 'center', padding: 16 }}>
+          <CashAvailabilityAlert
+            mode="warning"
+            cashStatus={cashStatus}
+            style={{ alignSelf: 'center', width: '92%' }}
+            onClosePress={() => setShowWarning(false)}
+          />
+        </View>
+      </Modal>
       
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -331,7 +336,7 @@ export default function CashIndex() {
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Hora de Abertura:</Text>
             <Text style={styles.infoValue}>
-              {formatDateTime(displayCashData.opening_date)}
+              {displayCashData?.opening_date ? formatDateTime(displayCashData.opening_date) : 'N/A'}
             </Text>
           </View>
 
@@ -339,7 +344,7 @@ export default function CashIndex() {
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Hora de Fechamento:</Text>
               <Text style={styles.infoValue}>
-                {(displayCashData as any).closing_date ? formatDateTime((displayCashData as any).closing_date) : 'N/A'}
+                {displayCashData?.closing_date ? formatDateTime(displayCashData.closing_date) : 'N/A'}
               </Text>
             </View>
           )}
@@ -431,12 +436,12 @@ export default function CashIndex() {
                 
                 <View style={styles.detailRow}>
                   <Text style={styles.detailLabel}>Veículos que Saíram</Text>
-                  <Text style={styles.detailValue}>{cashHook.data?.vehicleDetails.exitVehicle || 8}</Text>
+                  <Text style={styles.detailValue}>{cashHook.data?.vehicleDetails.exitVehicle || 0}</Text>
                 </View>
                 
                 <View style={styles.detailRow}>
                   <Text style={styles.detailLabel}>Veículos no Pátio</Text>
-                  <Text style={styles.detailValue}>{cashHook.data?.vehicleDetails.inVehicle || displayParkingDetails.data.quantityVehicles}</Text>
+                  <Text style={styles.detailValue}>{cashHook.data?.vehicleDetails.inVehicle || 0}</Text>
                 </View>
                 
                 <View style={styles.detailRow}>
