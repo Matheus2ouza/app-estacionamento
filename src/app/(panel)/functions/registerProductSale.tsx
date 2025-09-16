@@ -1,10 +1,12 @@
 import CameraComponent from "@/src/components/CameraComponent";
+import CashAvailabilityAlert from "@/src/components/CashAvailabilityAlert";
 import FeedbackModal from "@/src/components/FeedbackModal";
 import Header from "@/src/components/Header";
 import ProductDetailModal from "@/src/components/ProductDetailModal";
 import ProductListModal from "@/src/components/ProductListModal";
 import Separator from "@/src/components/Separator";
 import Colors, { generateRandomColor } from "@/src/constants/Colors";
+import { useCashContext } from "@/src/context/CashContext";
 import { useProductCache } from "@/src/context/ProductCacheContext";
 import useBarcodeSearch from "@/src/hooks/products/useBarcodeSearch";
 import { styles } from "@/src/styles/functions/registerProductSaleStyle";
@@ -35,6 +37,11 @@ export default function RegisterProductSale() {
   // Animações para cada card de produto
   const [animations, setAnimations] = useState<{[key: string]: Animated.Value}>({});
   
+  // Contexto do caixa para verificar status
+  const { cashData, cashStatus, isCashNotCreated, isCashClosed } = useCashContext();
+  
+  // Verificar se a tela deve ser bloqueada
+  const isScreenBlocked = isCashNotCreated() || isCashClosed();
   
   // Estados para feedback
   const [feedbackVisible, setFeedbackVisible] = useState(false);
@@ -540,7 +547,30 @@ export default function RegisterProductSale() {
     <View style={styles.container}>
       <Header title="Lista de Produtos" titleStyle={{ fontSize: 24 }} />
 
-      <View style={styles.formContainer}>
+      {/* ALERTA DE TELA BLOQUEADA */}
+      {isScreenBlocked && (
+        <View style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingHorizontal: 20,
+          paddingVertical: 40,
+        }}>
+          <CashAvailabilityAlert 
+            mode="blocking" 
+            cashStatus={cashStatus} 
+            style={{
+              marginHorizontal: 0,
+              marginVertical: 0,
+            }}
+          />
+        </View>
+      )}
+
+      {/* CONTEÚDO PRINCIPAL - SÓ MOSTRA SE NÃO ESTIVER BLOQUEADO */}
+      {!isScreenBlocked && (
+        <>
+        <View style={styles.formContainer}>
         {/* Botões de Ação */}
         <View style={styles.actionButtonsContainer}>
           <Pressable
@@ -605,25 +635,27 @@ export default function RegisterProductSale() {
         </View>
       </View>
 
-      {/* Total e Botão Finalizar no fim da tela */}
-      <View style={styles.bottomContainer}>
-        <View style={styles.totalSection}>
-          <Text style={styles.totalLabel}>Total:</Text>
-          <Text style={styles.totalAmount}>R$ {totalAmount.toFixed(2)}</Text>
-        </View>
-        <TouchableOpacity
-          style={[
-            styles.finalizeButton,
-            (!isFormValid || loading) && styles.finalizeButtonDisabled,
-          ]}
-          onPress={handleRegisterSale}
-          disabled={!isFormValid || loading}
-        >
-          <Text style={styles.finalizeButtonText}>
-            {loading ? `Preparando${dotText}` : "Finalizar Lista"}
-          </Text>
-        </TouchableOpacity>
-      </View>
+          {/* Total e Botão Finalizar no fim da tela */}
+          <View style={styles.bottomContainer}>
+            <View style={styles.totalSection}>
+              <Text style={styles.totalLabel}>Total:</Text>
+              <Text style={styles.totalAmount}>R$ {totalAmount.toFixed(2)}</Text>
+            </View>
+            <TouchableOpacity
+              style={[
+                styles.finalizeButton,
+                (!isFormValid || loading) && styles.finalizeButtonDisabled,
+              ]}
+              onPress={handleRegisterSale}
+              disabled={!isFormValid || loading}
+            >
+              <Text style={styles.finalizeButtonText}>
+                {loading ? `Preparando${dotText}` : "Finalizar Lista"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
 
       {/* Modal de Código de Barras */}
       <Modal
