@@ -1,5 +1,5 @@
 import { cashApi } from "@/src/api/cashService";
-import { generalDetails, generalDetailsResponse, outgoingExpenseDetails, productDetails, vehicleDetails } from "@/src/types/cashTypes/cash";
+import { generalDetails, outgoingExpenseDetails, productDetails, vehicleDetails } from "@/src/types/cashTypes/cash";
 import { useState } from "react";
 
 export const useCash = () => {
@@ -21,8 +21,17 @@ export const useCash = () => {
     setMessage(null);
     
     try {
-      const response: generalDetailsResponse = await cashApi.generalDetailsCash(cashId);
-      console.log('🔍 [useCash] fetchGeneralDetailsCash: Resposta da API:', response);
+      // Tentar primeiro o endpoint general, se falhar, usar o details
+      let response: any;
+      try {
+        response = await cashApi.generalDetailsCash(cashId);
+        console.log('🔍 [useCash] fetchGeneralDetailsCash: Resposta da API (general):', response);
+      } catch (generalError) {
+        console.log('🔍 [useCash] fetchGeneralDetailsCash: Endpoint general falhou, tentando details:', generalError);
+        response = await cashApi.detailsCash(cashId);
+        console.log('🔍 [useCash] fetchGeneralDetailsCash: Resposta da API (details):', response);
+      }
+      
       if (response.success && response.data) {
         setSuccess(true);
         setMessage(response.message || 'Detalhes do caixa carregados com sucesso');
