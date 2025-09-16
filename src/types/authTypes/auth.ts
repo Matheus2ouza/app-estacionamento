@@ -2,6 +2,7 @@
 export type LoginData = {
   username: string;
   password: string;
+  pushToken?: string;
 };
 
 export interface AuthContextData {
