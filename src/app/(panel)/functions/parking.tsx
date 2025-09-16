@@ -421,7 +421,6 @@ export default function Parking() {
           <CashAvailabilityAlert 
             mode="blocking" 
             cashStatus={cashStatus} 
-            onBackPress={handleBackPress}
             style={{
               marginHorizontal: 0,
               marginVertical: 0,
