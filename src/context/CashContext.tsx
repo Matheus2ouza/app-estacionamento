@@ -21,7 +21,8 @@ interface CashContextType {
   fetchCashStatus: () => Promise<{ status: CashStatus; cashId?: string }>;
   openCash: (initialValue: number) => Promise<[boolean, string]>;
   reOpenCash: (cashId: string) => Promise<[boolean, string]>;
-  closeCash: (cashId: string, finalValue: number) => Promise<[boolean, string]>;
+  closeCash: (cashId: string) => Promise<[boolean, string]>;
+  updateInitialValue: (cashId: string, initialValue: number) => Promise<[boolean, string]>;
   
   // Funções de dados
   fetchCashDetails: (cashId?: string) => Promise<CashData | null>;
@@ -195,17 +196,20 @@ export function CashProvider({ children }: CashProviderProps) {
     // Primeiro busca o status
     const { status, cashId } = await fetchCashStatus();
     
-    // Aguarda um pouco para garantir que o estado foi atualizado
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Pequeno atraso apenas se necessário
+    await new Promise(resolve => setTimeout(resolve, 60));
     
     // Se o caixa existe, busca os detalhes usando o ID retornado
     if ((status === 'open' || status === 'closed') && cashId) {
-      await fetchCashDetails(cashId);
-    }
-    
-    // Se o caixa está aberto, busca dados do estacionamento usando o ID retornado
-    if (status === 'open' && cashId) {
-      await fetchParkingDetails(cashId);
+      // Executar em paralelo para reduzir latência
+      if (status === 'open') {
+        await Promise.all([
+          fetchCashDetails(cashId),
+          fetchParkingDetails(cashId),
+        ]);
+      } else {
+        await fetchCashDetails(cashId);
+      }
     }
   }, []);
 
@@ -226,7 +230,7 @@ export function CashProvider({ children }: CashProviderProps) {
         setCashStatus('open');
         setCashData(response.cash);
         
-        // Buscar dados atualizados
+        // Atualizar todo o estado (status, detalhes e estacionamento)
         await refreshAllData();
         
         return [true, response.message || 'Caixa aberto com sucesso!'];
@@ -263,7 +267,7 @@ export function CashProvider({ children }: CashProviderProps) {
         setCashStatus('open');
         setCashData(response.cash);
         
-        // Buscar dados atualizados
+        // Atualizar todo o estado (status, detalhes e estacionamento)
         await refreshAllData();
         
         return [true, response.message || 'Caixa reaberto com sucesso!'];
@@ -284,36 +288,79 @@ export function CashProvider({ children }: CashProviderProps) {
   };
 
   // Função para fechar caixa
-  const closeCash = async (cashId: string, finalValue: number): Promise<[boolean, string]> => {
-    console.log('🔍 [CashContext] closeCash: Fechando caixa, ID:', cashId, 'Valor:', finalValue);
+  const closeCash = async (cashId: string): Promise<[boolean, string]> => {
+    console.log('🔍 [CashContext] closeCash: Fechando caixa, ID:', cashId);
     setLoading(true);
     setError(null);
     setSuccess(false);
 
     try {
-      const response = await cashApi.closeCash(cashId, finalValue);
+      const response = await cashApi.closeCash(cashId);
       console.log('🔍 [CashContext] closeCash: Resposta da API:', response);
-
-      if (response.success && response.cash?.status === 'CLOSED') {
+      // Tratar sucesso baseado no campo success, independentemente do status retornado
+      if (response.success) {
         console.log('✅ [CashContext] closeCash: Caixa fechado com sucesso');
         setSuccess(true);
         setCashStatus('closed');
-        setCashData(response.cash);
+        if (response.cash) {
+          setCashData(response.cash);
+        }
         setParkingDetails(null); // Limpar dados do estacionamento
-        
-        // Buscar dados atualizados do caixa
-        await fetchCashDetails();
-        
+
+        // Atualizar todo o estado do contexto após fechamento
+        await refreshAllData();
+
         return [true, response.message || 'Caixa fechado com sucesso!'];
+      }
+
+      // Caso a API não sinalize sucesso
+      const errorMsg = response.message || 'Erro ao fechar caixa';
+      console.error('❌ [CashContext] closeCash: Erro:', errorMsg);
+      setError(errorMsg);
+      return [false, errorMsg];
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao fechar caixa';
+      console.error('❌ [CashContext] closeCash: Erro:', errorMessage, err);
+      setError(errorMessage);
+      return [false, errorMessage];
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Função para atualizar valor inicial
+  const updateInitialValue = async (cashId: string, initialValue: number): Promise<[boolean, string]> => {
+    console.log('🔍 [CashContext] updateInitialValue: Atualizando valor inicial, ID:', cashId, 'Valor:', initialValue);
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      const response = await cashApi.updateInitialValue(cashId, initialValue);
+      console.log('🔍 [CashContext] updateInitialValue: Resposta da API:', response);
+
+      if (response.success) {
+        console.log('✅ [CashContext] updateInitialValue: Valor inicial atualizado com sucesso');
+        setSuccess(true);
+        
+        // Atualizar dados do caixa se retornado
+        if (response.cash) {
+          setCashData(response.cash);
+        }
+        
+        // Atualizar todo o estado
+        await refreshAllData();
+        
+        return [true, response.message || 'Valor inicial atualizado com sucesso!'];
       } else {
-        const errorMsg = response.message || 'Erro ao fechar caixa';
-        console.error('❌ [CashContext] closeCash: Erro:', errorMsg);
+        const errorMsg = response.message || 'Erro ao atualizar valor inicial';
+        console.error('❌ [CashContext] updateInitialValue: Erro:', errorMsg);
         setError(errorMsg);
         return [false, errorMsg];
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao fechar caixa';
-      console.error('❌ [CashContext] closeCash: Erro:', errorMessage, err);
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao atualizar valor inicial';
+      console.error('❌ [CashContext] updateInitialValue: Erro:', errorMessage, err);
       setError(errorMessage);
       return [false, errorMessage];
     } finally {
@@ -361,6 +408,7 @@ export function CashProvider({ children }: CashProviderProps) {
     openCash,
     reOpenCash,
     closeCash,
+    updateInitialValue,
     
     // Funções de dados
     fetchCashDetails,
