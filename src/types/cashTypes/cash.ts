@@ -3,6 +3,7 @@ export type cash = {
   operator: string;
   status: string;
   opening_date: string;
+  closing_date: string;
 }
 
 export type CashStatus = 'not_created' | 'open' | 'closed';
@@ -11,6 +12,12 @@ export type cashResponse = {
   success: boolean;
   message?: string;
   cashStatus: CashStatus;
+  cash?: cash;
+}
+
+export type cashSettingsResponse = {
+  success: boolean;
+  message?: string;
   cash?: cash;
 }
 
@@ -116,4 +123,102 @@ export interface outgoingExpenseDetails {
   outputDebit: number; // valor total de despesas em débito
   outputPix: number; // valor total de despesas em pix
   outputCash: number; // valor total de despesas em dinheiro
+}
+
+// Tipos para o histórico do caixa
+export interface VehicleEntry {
+  plate: string;
+  category: string;
+  entryTime: string;
+  exitTime: string | null;
+  status: string;
+}
+
+export interface VehicleTransaction {
+  operator: string;
+  vehicleEntries: VehicleEntry[];
+  amountReceived: number;
+  changeGiven: number;
+  discountAmount: number;
+  finalAmount: number;
+  originalAmount: number;
+  method: string;
+}
+
+export interface SaleItem {
+  productName: string;
+  soldQuantity: number;
+  unitPrice: number;
+}
+
+export interface ProductTransaction {
+  operator: string;
+  saleItems: SaleItem[];
+  amountReceived: number;
+  changeGiven: number;
+  discountAmount: number;
+  finalAmount: number;
+  originalAmount: number;
+  method: string;
+}
+
+export interface OutgoingExpense {
+  description: string;
+  amount: number;
+  transactionDate: string;
+  operator: string;
+  method: string;
+}
+
+export interface CashHistoryCounts {
+  vehicleTransactions: number;
+  productTransactions: number;
+  expenseTransactions: number;
+}
+
+export interface CashHistoryData {
+  vehicleTransaction: VehicleTransactionHistory[];
+  productTransaction: ProductTransactionHistory[];
+  outgoingExpense: OutgoingExpenseHistory[];
+  counts: CashHistoryCounts;
+}
+
+export interface historyCashResponse {
+  success: boolean;
+  message?: string;
+  data?: CashHistoryData;
+}
+
+
+export interface VehicleTransactionHistory {
+  id: string;
+  operator: string;
+  vehicleEntries: VehicleEntry[];
+  amountReceived: number;
+  changeGiven: number;
+  discountAmount: number;
+  finalAmount: number;
+  originalAmount: number;
+  method: string;
+}
+
+export interface ProductTransactionHistory {
+  id: string;
+  operator: string;
+  saleItems: SaleItem[];
+  amountReceived: number;
+  changeGiven: number;
+  discountAmount: number;
+  finalAmount: number;
+  originalAmount: number;
+  method: string;
+}
+
+export interface OutgoingExpenseHistory {
+  id: string;
+  description: string;
+  amount: number;
+  transactionDate: string;
+  operator: string;
+  method: string;
 }
