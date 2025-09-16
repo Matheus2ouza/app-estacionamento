@@ -3,10 +3,11 @@ import Header from "@/src/components/Header";
 import { PrimaryButton } from "@/src/components/PrimaryButton";
 import Colors from "@/src/constants/Colors";
 import { useCashContext } from "@/src/context/CashContext";
+import { useExpenses } from "@/src/hooks/expense/useExpenses";
 import { styles } from "@/src/styles/functions/expenseRecordStyles";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import React, { useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -53,15 +54,56 @@ const PAYMENT_METHODS = [
 ];
 
 export default function ExpenseRecord() {
+  const params = useLocalSearchParams();
+  const isEditMode = params.expenseId && params.expenseData;
+  const expenseId = params.expenseId as string;
+  const expenseData = params.expenseData ? JSON.parse(params.expenseData as string) : null;
+
   const [description, setDescription] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
-  const [loading, setLoading] = useState(false);
   const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [feedbackType, setFeedbackType] = useState<'success' | 'error' | 'warning' | 'info'>('info');
 
   const { cashData } = useCashContext();
+  const { createExpense, updateExpense, loading, success, error, message } = useExpenses(cashData?.id || "");
+
+  // Pré-preencher formulário se estiver em modo de edição (apenas uma vez)
+  useEffect(() => {
+    if (isEditMode && expenseData) {
+      setDescription(expenseData.description || "");
+      setAmount(expenseData.amount ? expenseData.amount.toString().replace('.', ',') : "");
+      setSelectedPaymentMethod(expenseData.method?.toLowerCase() || "");
+    }
+  }, [isEditMode]); // Removido expenseData das dependências
+
+  // Monitorar mudanças no hook
+  useEffect(() => {
+    if (success && message) {
+      setFeedbackMessage(message);
+      setFeedbackType('success');
+      setFeedbackVisible(true);
+      
+      // Limpar formulário apenas se não estiver em modo de edição
+      if (!isEditMode) {
+        setDescription("");
+        setAmount("");
+        setSelectedPaymentMethod("");
+      }
+      
+      // Navegar de volta após 2 segundos
+      setTimeout(() => {
+        router.back();
+      }, 2000);
+    }
+    
+    if (error) {
+      setFeedbackMessage(error);
+      setFeedbackType('error');
+      setFeedbackVisible(true);
+    }
+  }, [success, error, message, isEditMode]);
 
   const showFeedback = (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
     setFeedbackMessage(message);
@@ -146,43 +188,21 @@ export default function ExpenseRecord() {
       return;
     }
 
+    // Preparar dados para a API
+    const expenseData = {
+      cashId: cashData?.id || "",
+      description: description.trim(),
+      amount: parseBrazilianNumber(amount),
+      method: selectedPaymentMethod.toUpperCase() as "DINHEIRO" | "PIX" | "CREDITO" | "DEBITO"
+    };
 
-    setLoading(true);
-
-    try {
-      // Preparar dados para a API
-      const expenseData = {
-        cashId: cashData?.id || "",
-        description: description.trim(),
-        amount: parseBrazilianNumber(amount),
-        method: selectedPaymentMethod.toUpperCase() as "DINHEIRO" | "PIX" | "CREDITO" | "DEBITO"
-      };
-
-      console.log("🚀 [ExpenseRecord] Dados da despesa para registro:", expenseData);
-      
-      // TODO: Implementar chamada para API de despesas
-      // const result = await registerExpense(expenseData);
-      
-      // Simulação de sucesso
-      setTimeout(() => {
-        setLoading(false);
-        showFeedback("Despesa registrada com sucesso!", "success");
-        
-        // Limpar formulário
-        setDescription("");
-        setAmount("");
-        setSelectedPaymentMethod("");
-        
-        // Navegar de volta após 2 segundos
-        setTimeout(() => {
-          router.back();
-        }, 2000);
-      }, 1500);
-      
-    } catch (error) {
-      setLoading(false);
-      console.error("Erro ao registrar despesa:", error);
-      showFeedback("Erro ao registrar despesa. Tente novamente.", "error");
+    console.log("🚀 [ExpenseRecord] Dados da despesa para", isEditMode ? "atualização" : "registro", ":", expenseData);
+    
+    // Chamar a função do hook para criar ou atualizar a despesa
+    if (isEditMode && expenseId) {
+      await updateExpense(expenseId, expenseData);
+    } else {
+      await createExpense(expenseData);
     }
   };
 
@@ -233,7 +253,7 @@ export default function ExpenseRecord() {
 
   return (
     <View style={styles.container}>
-      <Header title="Registro de Despesas" />
+      <Header title={isEditMode ? "Editar Despesa" : "Registro de Despesas"} />
       
       <KeyboardAvoidingView
         style={styles.keyboardContainer}
@@ -253,8 +273,10 @@ export default function ExpenseRecord() {
                 <MaterialIcons name="receipt-long" size={32} color={Colors.white} />
               </View>
               <View style={styles.expenseInfo}>
-                <Text style={styles.expenseTitle}>Nova Despesa</Text>
-                <Text style={styles.expenseSubtitle}>Registre uma nova despesa do caixa</Text>
+                <Text style={styles.expenseTitle}>{isEditMode ? "Editar Despesa" : "Nova Despesa"}</Text>
+                <Text style={styles.expenseSubtitle}>
+                  {isEditMode ? "Modifique os dados da despesa" : "Registre uma nova despesa do caixa"}
+                </Text>
               </View>
             </View>
           </View>
@@ -292,15 +314,18 @@ export default function ExpenseRecord() {
                   <MaterialIcons name="attach-money" size={18} color={Colors.gray[500]} />
                   <Text style={styles.inputLabel}>Valor</Text>
                 </View>
-                <TextInput
-                  style={styles.valueInput}
-                  value={amount}
-                  onChangeText={handleAmountChange}
-                  placeholder="0,00"
-                  placeholderTextColor={Colors.gray[400]}
-                  keyboardType="numeric"
-                  editable={!loading}
-                />
+                <View style={styles.valueInputWrapper}>
+                  <Text style={styles.currencySymbol}>R$</Text>
+                  <TextInput
+                    style={styles.valueInput}
+                    value={amount}
+                    onChangeText={handleAmountChange}
+                    placeholder="0,00"
+                    placeholderTextColor={Colors.gray[400]}
+                    keyboardType="numeric"
+                    editable={!loading}
+                  />
+                </View>
                 {amount && parseBrazilianNumber(amount) > 0 && (
                   <Text style={styles.valuePreview}>
                     {formatBrazilianCurrency(parseBrazilianNumber(amount))}
@@ -324,7 +349,7 @@ export default function ExpenseRecord() {
           {/* Botão de Confirmação */}
           <View style={styles.buttonContainer}>
             <PrimaryButton
-              title={loading ? "Registrando..." : "Registrar Despesa"}
+              title={loading ? (isEditMode ? "Atualizando..." : "Registrando...") : (isEditMode ? "Atualizar Despesa" : "Registrar Despesa")}
               onPress={handleConfirmExpense}
               style={styles.confirmButton}
               disabled={loading || !isFormValid()}
