@@ -6,9 +6,16 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
   content: {
     flex: 1,
     padding: 20,
+  },
+  scrollContent: {
+    paddingBottom: 30,
+    flexGrow: 1,
   },
   title: {
     fontSize: 24,
@@ -168,12 +175,17 @@ export const styles = StyleSheet.create({
   toggleThumbActive: {
     transform: [{ translateX: 20 }],
   },
+  buttonsContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 24,
+  },
   saveButton: {
+    flex: 1,
     backgroundColor: Colors.blue[500],
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
-    marginTop: 24,
     shadowColor: Colors.blue[500],
     shadowOffset: {
       width: 0,
@@ -195,6 +207,35 @@ export const styles = StyleSheet.create({
     elevation: 0,
   },
   saveButtonTextDisabled: {
+    color: Colors.gray[500],
+  },
+  deactivateButton: {
+    flex: 1,
+    backgroundColor: Colors.red[500],
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    shadowColor: Colors.red[500],
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  deactivateButtonText: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+    fontFamily: Fonts.Roboto_600SemiBold,
+  },
+  deactivateButtonDisabled: {
+    backgroundColor: Colors.gray[300],
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  deactivateButtonTextDisabled: {
     color: Colors.gray[500],
   },
   infoCard: {

@@ -1,12 +1,18 @@
 import FeedbackModal from '@/src/components/FeedbackModal';
+import GenericConfirmationModal from '@/src/components/GenericConfirmationModal';
 import Header from '@/src/components/Header';
 import Colors from '@/src/constants/Colors';
 import useGoals from '@/src/hooks/goals/useGoals';
 import { styles } from '@/src/styles/functions/goalsConfigurationStyles';
-import { GoalFormData, GoalType } from '@/src/types/goalsTypes/goals';
+import { GoalFormData, GoalType, Period } from '@/src/types/goalsTypes/goals';
+import { formatToBrazilianCurrency, parseBrazilianCurrency } from '@/src/utils/dateUtils';
 import { AntDesign, Entypo, Feather, FontAwesome, FontAwesome5, Ionicons, MaterialIcons, SimpleLineIcons } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  Animated,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -23,6 +29,7 @@ const goalTypes: GoalType[] = [
     icon: 'today',
     iconFamily: 'Ionicons',
     period: 'por dia',
+    periodEnum: Period.DIARIA,
   },
   {
     key: 'weekly',
@@ -31,6 +38,7 @@ const goalTypes: GoalType[] = [
     icon: 'date-range',
     iconFamily: 'MaterialIcons',
     period: 'por semana',
+    periodEnum: Period.SEMANAL,
   },
   {
     key: 'monthly',
@@ -39,18 +47,26 @@ const goalTypes: GoalType[] = [
     icon: 'calendar',
     iconFamily: 'AntDesign',
     period: 'por mês',
+    periodEnum: Period.MENSAL,
   },
 ];
 
 export default function GoalsConfiguration() {
-  const { goals, loading, error, saving, saveGoal, updateGoal } = useGoals();
+  const { goals, loading, error, saving, saveGoal, updateGoal, deleteGoal, loadGoals } = useGoals();
   const [formData, setFormData] = useState<Record<string, GoalFormData>>({});
   const [focusedInputs, setFocusedInputs] = useState<Record<string, boolean>>({});
+  
+  // Refs para animações de cada meta
+  const animationRefs = useRef<Record<string, Animated.Value>>({});
 
   // Estados para feedback modal
   const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [feedbackType, setFeedbackType] = useState<'success' | 'error' | 'warning' | 'info'>('info');
+
+  // Estados para modal de confirmação
+  const [confirmationVisible, setConfirmationVisible] = useState(false);
+  const [goalToDeactivate, setGoalToDeactivate] = useState<string | null>(null);
 
   const showFeedback = (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
     setFeedbackMessage(message);
@@ -60,6 +76,32 @@ export default function GoalsConfiguration() {
 
   const handleFeedbackClose = () => {
     setFeedbackVisible(false);
+  };
+
+  // Funções para modal de confirmação
+  const handleDeactivateGoal = (goalType: string) => {
+    setGoalToDeactivate(goalType);
+    setConfirmationVisible(true);
+  };
+
+  const handleConfirmDeactivate = async () => {
+    if (!goalToDeactivate) return;
+
+    const success = await deleteGoal(goalToDeactivate as 'daily' | 'weekly' | 'monthly');
+
+    if (success) {
+      showFeedback('Meta desativada com sucesso!', 'success');
+    } else {
+      showFeedback('Erro ao desativar meta. Tente novamente.', 'error');
+    }
+
+    setConfirmationVisible(false);
+    setGoalToDeactivate(null);
+  };
+
+  const handleCancelDeactivate = () => {
+    setConfirmationVisible(false);
+    setGoalToDeactivate(null);
   };
 
   // Função para renderizar ícone baseado na família
@@ -86,64 +128,103 @@ export default function GoalsConfiguration() {
     }
   };
 
+  // Carregar metas ao entrar em foco
+  useFocusEffect(
+    React.useCallback(() => {
+      loadGoals();
+    }, [loadGoals])
+  );
+
+  // Inicializar animações
+  useEffect(() => {
+    goalTypes.forEach(goalType => {
+      if (!animationRefs.current[goalType.key]) {
+        animationRefs.current[goalType.key] = new Animated.Value(0);
+      }
+    });
+  }, []);
+
   // Inicializar dados do formulário
   useEffect(() => {
     const initialFormData: Record<string, GoalFormData> = {};
     
     goalTypes.forEach(goalType => {
       const goal = goals[`${goalType.key}Goal` as keyof typeof goals];
+      const isActive = goal ? goal.isActive : false;
+      
+      // Se existe meta no banco, usar os dados dela, senão deixar desativado
       initialFormData[goalType.key] = {
-        targetValue: goal ? goal.targetValue.toLocaleString('pt-BR', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }) : '',
-        isActive: goal ? goal.isActive : false,
+        targetValue: goal && goal.isActive ? formatToBrazilianCurrency(goal.goalValue) : '',
+        isActive: isActive, // Só ativo se existe meta no banco
       };
+      
+      // Configurar animação inicial baseada no estado ativo
+      const animationValue = animationRefs.current[goalType.key];
+      if (animationValue) {
+        animationValue.setValue(isActive ? 1 : 0);
+      }
     });
     
     setFormData(initialFormData);
   }, [goals]);
 
-  // Formatar valor monetário
-  const formatCurrency = (value: string) => {
-    const numericValue = value.replace(/[^\d]/g, '');
-    if (!numericValue) return '';
-    
-    const formattedValue = (parseInt(numericValue) / 100).toLocaleString('pt-BR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-    
-    return formattedValue;
-  };
-
   // Atualizar valor do input
   const updateValue = (goalType: string, value: string) => {
-    const formattedValue = formatCurrency(value);
     setFormData(prev => ({
       ...prev,
       [goalType]: {
         ...prev[goalType],
-        targetValue: formattedValue,
+        targetValue: value,
       },
     }));
   };
 
-  // Toggle ativo/inativo
+  // Toggle ativo/inativo com animação
   const toggleActive = (goalType: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [goalType]: {
-        ...prev[goalType],
-        isActive: !prev[goalType].isActive,
-      },
-    }));
+    const isCurrentlyActive = formData[goalType].isActive;
+    const animationValue = animationRefs.current[goalType];
+    
+    if (!isCurrentlyActive) {
+      // Ativando - primeiro muda o estado, depois anima
+      setFormData(prev => ({
+        ...prev,
+        [goalType]: {
+          ...prev[goalType],
+          isActive: true,
+        },
+      }));
+      
+      // Animar para aparecer
+      Animated.timing(animationValue, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      // Desativando - primeiro anima, depois muda o estado
+      Animated.timing(animationValue, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        // Só muda o estado após a animação terminar
+        setFormData(prev => ({
+          ...prev,
+          [goalType]: {
+            ...prev[goalType],
+            isActive: false,
+          },
+        }));
+      });
+    }
   };
 
   // Salvar meta
   const handleSaveGoal = async (goalType: string) => {
     const data = formData[goalType];
-    if (!data.targetValue || parseFloat(data.targetValue.replace(/[^\d,]/g, '').replace(',', '.')) <= 0) {
+    const numericValue = parseBrazilianCurrency(data.targetValue);
+    
+    if (!data.targetValue || numericValue <= 0) {
       showFeedback('Por favor, insira um valor válido para a meta.', 'error');
       return;
     }
@@ -173,6 +254,8 @@ export default function GoalsConfiguration() {
   const renderGoalCard = (goalType: GoalType) => {
     const data = formData[goalType.key];
     const isFocused = focusedInputs[goalType.key];
+    const goalFromDB = goals[`${goalType.key}Goal` as keyof typeof goals];
+    const hasActiveGoalFromDB = goalFromDB && goalFromDB.isActive;
     
     if (!data) return null;
 
@@ -193,41 +276,79 @@ export default function GoalsConfiguration() {
           {renderToggle(goalType.key, data.isActive)}
         </View>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Valor da meta ({goalType.period})</Text>
-          <View style={styles.currencyInput}>
-            <Text style={styles.currencySymbol}>R$</Text>
-            <TextInput
-              style={[
-                styles.currencyInputField,
-                isFocused && styles.currencyInputFocused,
-              ]}
-              value={data.targetValue}
-              onChangeText={(value) => updateValue(goalType.key, value)}
-              onFocus={() => setFocusedInputs(prev => ({ ...prev, [goalType.key]: true }))}
-              onBlur={() => setFocusedInputs(prev => ({ ...prev, [goalType.key]: false }))}
-              placeholder="0,00"
-              keyboardType="numeric"
-              editable={data.isActive}
-            />
-          </View>
-        </View>
-
-        <TouchableOpacity
-          style={[
-            styles.saveButton,
-            (!data.isActive || saving) && styles.saveButtonDisabled,
-          ]}
-          onPress={() => handleSaveGoal(goalType.key)}
-          disabled={!data.isActive || saving}
+        <Animated.View
+          style={{
+            opacity: animationRefs.current[goalType.key] || 0,
+            transform: [
+              {
+                translateY: (animationRefs.current[goalType.key] || new Animated.Value(0)).interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [-20, 0],
+                }),
+              },
+            ],
+          }}
         >
-          <Text style={[
-            styles.saveButtonText,
-            (!data.isActive || saving) && styles.saveButtonTextDisabled,
-          ]}>
-            Salvar Meta
-          </Text>
-        </TouchableOpacity>
+          {data.isActive && (
+            <>
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Valor da meta ({goalType.period})</Text>
+                <View style={styles.currencyInput}>
+                  <Text style={styles.currencySymbol}>R$</Text>
+                  <TextInput
+                    style={[
+                      styles.currencyInputField,
+                      isFocused && styles.currencyInputFocused,
+                    ]}
+                    value={data.targetValue}
+                    onChangeText={(value) => updateValue(goalType.key, value)}
+                    onFocus={() => setFocusedInputs(prev => ({ ...prev, [goalType.key]: true }))}
+                    onBlur={() => setFocusedInputs(prev => ({ ...prev, [goalType.key]: false }))}
+                    placeholder="0,00"
+                    keyboardType="numeric"
+                    editable={data.isActive}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.buttonsContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.saveButton,
+                    saving && styles.saveButtonDisabled,
+                  ]}
+                  onPress={() => handleSaveGoal(goalType.key)}
+                  disabled={saving}
+                >
+                  <Text style={[
+                    styles.saveButtonText,
+                    saving && styles.saveButtonTextDisabled,
+                  ]}>
+                    Salvar Meta
+                  </Text>
+                </TouchableOpacity>
+
+                {hasActiveGoalFromDB && (
+                  <TouchableOpacity
+                    style={[
+                      styles.deactivateButton,
+                      saving && styles.deactivateButtonDisabled,
+                    ]}
+                    onPress={() => handleDeactivateGoal(goalType.key)}
+                    disabled={saving}
+                  >
+                    <Text style={[
+                      styles.deactivateButtonText,
+                      saving && styles.deactivateButtonTextDisabled,
+                    ]}>
+                      Desativar
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </>
+          )}
+        </Animated.View>
       </View>
     );
   };
@@ -235,7 +356,7 @@ export default function GoalsConfiguration() {
   if (loading) {
     return (
       <View style={styles.container}>
-        <Header title="Configurações de Metas" />
+        <Header title="Configurações de Metas" titleStyle={{ fontSize: 25 }}/>
         <Spinner
           visible={loading}
           textContent="Carregando metas..."
@@ -255,7 +376,7 @@ export default function GoalsConfiguration() {
 
   return (
     <View style={styles.container}>
-      <Header title="Configurações de Metas" />
+      <Header title="Configurações de Metas" titleStyle={{ fontSize: 25 }}/>
       
       <Spinner
         visible={saving}
@@ -271,7 +392,23 @@ export default function GoalsConfiguration() {
         animation="fade"
       />
       
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <KeyboardAvoidingView 
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <ScrollView 
+          style={styles.content} 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          bounces={true}
+          scrollEventThrottle={16}
+          decelerationRate="normal"
+          overScrollMode="auto"
+          nestedScrollEnabled={true}
+          keyboardDismissMode="on-drag"
+        >
         <View style={styles.infoCard}>
           <View style={styles.infoHeader}>
             <View style={styles.infoIconContainer}>
@@ -285,22 +422,11 @@ export default function GoalsConfiguration() {
           </Text>
         </View>
 
-        {error && (
-          <View style={[styles.infoCard, { backgroundColor: Colors.red[500], borderColor: Colors.red[600] }]}>
-            <View style={styles.infoHeader}>
-              <View style={styles.infoIconContainer}>
-                <FontAwesome name="exclamation-triangle" size={20} color="white" />
-              </View>
-              <Text style={styles.infoTitle}>Erro</Text>
-            </View>
-            <Text style={styles.infoText}>{error}</Text>
-          </View>
-        )}
-
         <View style={styles.goalsContainer}>
           {goalTypes.map(renderGoalCard)}
         </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       <FeedbackModal
         visible={feedbackVisible}
@@ -309,6 +435,18 @@ export default function GoalsConfiguration() {
         onClose={handleFeedbackClose}
         dismissible={true}
         timeClose={3000}
+      />
+
+      <GenericConfirmationModal
+        visible={confirmationVisible}
+        title="Desativar Meta"
+        message="Tem certeza que deseja desativar esta meta?"
+        details="Ao desativar, a meta não será mais considerada nos relatórios e análises. Você pode reativá-la a qualquer momento ou trocar o valor."
+        confirmText="Desativar"
+        cancelText="Cancelar"
+        confirmButtonStyle="danger"
+        onConfirm={handleConfirmDeactivate}
+        onCancel={handleCancelDeactivate}
       />
     </View>
   );

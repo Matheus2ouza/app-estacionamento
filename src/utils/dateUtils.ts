@@ -40,3 +40,16 @@ export const parseMMYYYYToDate = (mmYYYY: string): Date => {
     return new Date();
   }
 };
+
+// Funções para conversão de valores monetários
+export const formatToBrazilianCurrency = (value: number): string => {
+  return value.toFixed(2).replace('.', ',');
+};
+
+export const parseBrazilianCurrency = (value: string): number => {
+  // Remove tudo exceto números, vírgula e ponto
+  const cleanValue = value.replace(/[^\d,]/g, '');
+  // Substitui vírgula por ponto para conversão
+  const numericValue = cleanValue.replace(',', '.');
+  return parseFloat(numericValue) || 0;
+};
