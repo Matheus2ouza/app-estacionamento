@@ -8,13 +8,11 @@
     "scheme": "leaoestacionamento",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "cli": {
-      "appVersionSource": "project"
-    },
     "ios": {
       "supportsTablet": true
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/images/adaptive-icon-white.png",
         "backgroundColor": "#003153",
@@ -23,8 +21,6 @@
       "edgeToEdgeEnabled": true,
       "package": "com.anonymous.leaoestacionamento",
       "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO",
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
         "android.permission.READ_EXTERNAL_STORAGE",
@@ -38,6 +34,9 @@
     },
     "plugins": [
       "expo-router",
+      "expo-font",
+      "expo-web-browser",
+      "expo-secure-store",
       "expo-notifications",
       [
         "expo-splash-screen",
@@ -55,10 +54,7 @@
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
           "recordAudioAndroid": true
         }
-      ],
-      "expo-font",
-      "expo-web-browser",
-      "expo-secure-store"
+      ]
     ],
     "experiments": {
       "typedRoutes": true
