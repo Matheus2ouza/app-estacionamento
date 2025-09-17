@@ -35,27 +35,53 @@ export default function Login() {
   React.useEffect(() => {
     async function requestAndroidNotificationsPermission() {
       try {
-        if (Platform.OS !== "android") return;
+        console.log("[Push] useEffect mounted - starting permission flow");
+        console.log("[Push] Platform:", Platform.OS, "Version:", Platform.Version);
+        if (Platform.OS !== "android") {
+          console.log("[Push] Not Android. Skipping permission request.");
+          return;
+        }
+
+        // Cria canal de notificação (Android)
+        try {
+          console.log("[Push] Creating Android notification channel 'default'");
+          await Notifications.setNotificationChannelAsync("default", {
+            name: "default",
+            importance: Notifications.AndroidImportance.DEFAULT,
+          });
+          console.log("[Push] Notification channel 'default' created/ensured");
+        } catch (channelErr) {
+          console.log("[Push] Error creating notification channel:", channelErr);
+        }
 
         const settings = await Notifications.getPermissionsAsync();
+        console.log("[Push] Current permissions:", settings);
         let granted = settings.granted || settings.ios?.status === Notifications.IosAuthorizationStatus.AUTHORIZED;
+        console.log("[Push] Granted before request?", granted);
 
         if (!granted) {
+          console.log("[Push] Requesting permissions...");
           const ask = await Notifications.requestPermissionsAsync();
+          console.log("[Push] Permissions after request:", ask);
           granted = ask.granted || ask.ios?.status === Notifications.IosAuthorizationStatus.AUTHORIZED;
+          console.log("[Push] Granted after request?", granted);
         }
 
         if (!granted) {
+          console.log("[Push] Permission denied. Exiting silently.");
           return; // silencioso se negado
         }
 
         const projectId = Constants.expoConfig?.extra?.eas?.projectId || Constants.easConfig?.projectId;
+        console.log("[Push] Using projectId:", projectId);
         const tokenResponse = await Notifications.getExpoPushTokenAsync({ projectId });
+        console.log("[Push] Token response:", tokenResponse);
         const token = tokenResponse.data;
         setPushToken(token);
         await SecureStore.setItemAsync("expoPushToken", token);
+        console.log("[Push] Token stored and state updated:", token);
       } catch (e) {
-        // silencioso em caso de erro
+        console.log("[Push] Error while requesting notifications permission or fetching token:", e);
       }
     }
 
@@ -64,8 +90,11 @@ export default function Login() {
 
   async function handleLogin() {
     try {
-
-      const { token, role } = await login({ username, password, pushToken: pushToken || undefined });
+      console.log("[Push] Starting login...");
+      console.log("[Push] Pushing token:", pushToken);
+      console.log("[Push] Username:", username);
+      console.log("[Push] Password:", password);
+      const { token, role } = await login({ username, password, expoPushToken: pushToken || undefined });
 
       await auth.login(token);
 
