@@ -18,6 +18,7 @@ interface HeaderProps {
   rowStyle?: StyleProp<ViewStyle>;       // headerRow
   iconStyle?: StyleProp<TextStyle>;      // ícone -> tipo correto!
   titleStyle?: StyleProp<TextStyle>;     // texto
+  onBackPress?: () => void;              // ação customizada para o botão voltar
 }
 
 export default function Header({
@@ -26,6 +27,7 @@ export default function Header({
   rowStyle,
   iconStyle,
   titleStyle,
+  onBackPress,
 }: HeaderProps) {
   return (
     <LinearGradient
@@ -35,7 +37,7 @@ export default function Header({
       style={[styles.header, containerStyle]}
     >
       <View style={[styles.headerRow, rowStyle]}>
-        <Pressable onPress={() => router.back()}>
+        <Pressable onPress={onBackPress || (() => router.back())}>
           <AntDesign
             name="left"
             size={24}
