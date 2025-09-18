@@ -1,4 +1,4 @@
-import Colors from "@/src/constants/Colors";
+import Colors from "@/constants/Colors";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
@@ -151,13 +151,13 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-around",
     borderTopWidth: 1,
-    borderTopColor: Colors.gray.light,
+    borderTopColor: Colors.border.medium,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderTopRightRadius: 42,
     borderTopLeftRadius: 42,
     elevation: 8,
-    shadowColor: "#000",
+    shadowColor: Colors.shadow.light,
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
@@ -168,7 +168,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 5,
-    backgroundColor: Colors.green.dark,
+    backgroundColor: Colors.button.success,
   },
   buttonExit: {
     width: 50,
@@ -176,7 +176,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 5,
-    backgroundColor: Colors.red.dark,
+    backgroundColor: Colors.button.danger,
   },
   buttonPatio: {
     width: 50,
@@ -184,6 +184,14 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 5,
-    backgroundColor: Colors.blue.dark,
+    backgroundColor: Colors.button.primary,
+  },
+  buttonDashboard: {
+    width: 50,
+    height: 60,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 5,
+    backgroundColor: Colors.button.warning,
   },
 });

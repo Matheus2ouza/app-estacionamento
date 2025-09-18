@@ -1,5 +1,5 @@
-import Colors from "@/src/constants/Colors";
-import { styles } from "@/src/styles/login/loginStyles";
+import Colors from "@/constants/Colors";
+import { styles } from "@/styles/login/loginStyles";
 import Constants from "expo-constants";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Notifications from "expo-notifications";
@@ -17,9 +17,9 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import { TextInput } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import FeedbackModal from "@/src/components/FeedbackModal";
-import { useAuth } from "@/src/context/AuthContext";
-import { useUserLogin } from "@/src/hooks/auth/useLogin";
+import FeedbackModal from "@/components/FeedbackModal";
+import { useAuth } from "@/context/AuthContext";
+import { useUserLogin } from "@/hooks/auth/useLogin";
 import { useRouter } from "expo-router";
 
 export default function Login() {

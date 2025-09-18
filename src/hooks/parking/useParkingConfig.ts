@@ -1,5 +1,5 @@
-import { ParkingApi } from "@/src/api/parkingService";
-import { Spots } from "@/src/types/parkingTypes/parking";
+import { ParkingApi } from "@/api/parkingService";
+import { Spots } from "@/types/parkingTypes/parking";
 import { useEffect, useState } from "react";
 
 export function useParkingConfig() {

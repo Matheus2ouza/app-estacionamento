@@ -1,5 +1,5 @@
-import { VehicleApi } from "@/src/api/vehicleFlowService";
-import { UpdateVehicleData, UpdateVehicleResponse } from "@/src/types/vehicleTypes/vehicles";
+import { VehicleApi } from "@/api/vehicleFlowService";
+import { UpdateVehicleData, UpdateVehicleResponse } from "@/types/vehicleTypes/vehicles";
 import { useState } from "react";
 
 const useEditVehicle = () => {

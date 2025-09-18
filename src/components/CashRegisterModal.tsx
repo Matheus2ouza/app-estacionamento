@@ -1,4 +1,4 @@
-import { useLogout } from '@/src/hooks/auth/useLogout'; // Importe o hook de logout
+import { useLogout } from '@/hooks/auth/useLogout';
 import React, { useState } from 'react';
 import { Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Colors from '../constants/Colors';

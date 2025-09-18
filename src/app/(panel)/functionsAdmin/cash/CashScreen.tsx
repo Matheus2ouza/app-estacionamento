@@ -1,11 +1,11 @@
-import CashAvailabilityAlert from '@/src/components/CashAvailabilityAlert';
-import Header from '@/src/components/Header';
-import Colors, { generateRandomColor } from '@/src/constants/Colors';
-import { useCashContext } from '@/src/context/CashContext';
-import { useCash } from '@/src/hooks/cash/useCash';
-import { styles } from '@/src/styles/functions/cash/cashStyles';
+import CashAvailabilityAlert from '@/components/CashAvailabilityAlert';
+import Header from '@/components/Header';
+import Colors, { generateRandomColor } from '@/constants/Colors';
+import { useCashContext } from '@/context/CashContext';
+import { useCash } from '@/hooks/cash/useCash';
+import { styles } from '@/styles/functions/cash/cashStyles';
 import { Entypo, MaterialIcons } from '@expo/vector-icons';
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -88,27 +88,26 @@ export default function CashIndex() {
         textStyle: styles.statusTextOpen,
         icon: 'check-circle',
       };
-    } else if (isCashClosed()) {
+    }
+    if (isCashClosed()) {
       return {
         text: 'FECHADO',
         style: styles.statusClosed,
         textStyle: styles.statusTextClosed,
         icon: 'lock',
       };
-    } else {
-      return {
-        text: 'NÃO CRIADO',
-        style: styles.statusNotCreated,
-        textStyle: styles.statusTextNotCreated,
-        icon: 'error',
-      };
     }
+    return {
+      text: 'NÃO CRIADO',
+      style: styles.statusNotCreated,
+      textStyle: styles.statusTextNotCreated,
+      icon: 'error',
+    };
   };
 
   // Buscar dados quando a tela recebe foco: contexto + detalhes reais (sem exigir pull-to-refresh)
   useFocusEffect(
     useCallback(() => {
-      console.log('🔍 [CashScreen] useFocusEffect: Tela em foco, atualizando dados...');
       let cancelled = false;
       (async () => {
         // Atualiza status/dados do contexto
@@ -128,65 +127,30 @@ export default function CashIndex() {
       })();
       return () => {
         cancelled = true;
-        console.log('🔍 [CashScreen] useFocusEffect: Cleanup - tela perdeu foco');
       };
     }, [])
   );
 
   // Função para refresh
   const onRefresh = async () => {
-    console.log('🔄 [CashScreen] onRefresh: Iniciando refresh manual');
     setRefreshing(true);
     
     try {
-      console.log('🔄 [CashScreen] onRefresh: Status atual do contexto:', cashStatus);
-      console.log('🔄 [CashScreen] onRefresh: CashData do contexto:', cashData ? 'Presente' : 'Ausente');
-      
       if ((cashStatus === 'open' || cashStatus === 'closed') && cashData?.id) {
-        console.log('🔄 [CashScreen] onRefresh: Status válido, chamando hook useCash...');
-        console.log('🔄 [CashScreen] onRefresh: CashId:', cashData.id);
-        
-        const generalDetails = await cashHook.fetchGeneralDetailsCash(cashData.id);
-        
-        if (generalDetails) {
-          console.log('✅ [CashScreen] onRefresh: Detalhes gerais obtidos com sucesso');
-        } else {
-          console.log('❌ [CashScreen] onRefresh: Falha ao obter detalhes gerais');
-        }
-      } else {
-        console.log('🔄 [CashScreen] onRefresh: Status não válido, pulando busca de detalhes');
-        console.log('🔄 [CashScreen] onRefresh: Status:', cashStatus, 'CashId:', cashData?.id);
+        await cashHook.fetchGeneralDetailsCash(cashData.id);
       }
     } catch (error) {
       console.error('❌ [CashScreen] onRefresh: Erro ao atualizar dados:', error);
     } finally {
       setRefreshing(false);
-      console.log('🔄 [CashScreen] onRefresh: Refresh finalizado');
     }
   };
 
   // Função para tentar novamente
   const handleRetry = async () => {
-    console.log('🔄 [CashScreen] handleRetry: Iniciando retry');
-    
     try {
-      console.log('🔄 [CashScreen] handleRetry: Status atual do contexto:', cashStatus);
-      console.log('🔄 [CashScreen] handleRetry: CashData do contexto:', cashData ? 'Presente' : 'Ausente');
-      
       if ((cashStatus === 'open' || cashStatus === 'closed') && cashData?.id) {
-        console.log('🔄 [CashScreen] handleRetry: Status válido, chamando hook useCash...');
-        console.log('🔄 [CashScreen] handleRetry: CashId:', cashData.id);
-        
-        const generalDetails = await cashHook.fetchGeneralDetailsCash(cashData.id);
-        
-        if (generalDetails) {
-          console.log('✅ [CashScreen] handleRetry: Detalhes gerais obtidos com sucesso');
-        } else {
-          console.log('❌ [CashScreen] handleRetry: Falha ao obter detalhes gerais');
-        }
-      } else {
-        console.log('🔄 [CashScreen] handleRetry: Status não válido, pulando busca de detalhes');
-        console.log('🔄 [CashScreen] handleRetry: Status:', cashStatus, 'CashId:', cashData?.id);
+        await cashHook.fetchGeneralDetailsCash(cashData.id);
       }
     } catch (error) {
       console.error('❌ [CashScreen] handleRetry: Erro ao tentar novamente:', error);
@@ -205,29 +169,18 @@ export default function CashIndex() {
       useNativeDriver: false,
     }).start();
     
-    setExpandedCards(prev => {
-      if (prev.includes(cardType)) {
-        // Remove o card se já estiver expandido
-        return prev.filter(card => card !== cardType);
-      } else {
-        // Adiciona o card se não estiver expandido
-        return [...prev, cardType];
-      }
-    });
+    setExpandedCards(prev => (
+      prev.includes(cardType)
+        ? prev.filter(card => card !== cardType)
+        : [...prev, cardType]
+    ));
   };
-
-  // Log do status atual do caixa
-  console.log('🔍 [CashScreen] Render: Status atual do caixa:', cashStatus);
-  console.log('🔍 [CashScreen] Render: CashData (contexto):', cashData ? 'Presente' : 'Ausente');
-  console.log('🔍 [CashScreen] Render: CashHook loading:', cashHook.loading);
-  console.log('🔍 [CashScreen] Render: CashHook error:', cashHook.error);
-  console.log('🔍 [CashScreen] Render: CashHook success:', cashHook.success);
 
   // Bloqueio/aviso conforme status do caixa
   if (isCashNotCreated()) {
     return (
       <View style={styles.container}>
-        <Header title="Caixa" />
+        <Header title="Caixa" onBackPress={()=> router.replace('/config/admin')}/>
         <CashAvailabilityAlert
           mode="blocking"
           cashStatus={cashStatus}
@@ -240,10 +193,9 @@ export default function CashIndex() {
   // Não retornar antecipadamente quando estiver FECHADO; mostraremos um modal sobreposto
 
   if (cashHook.loading && !cashData) {
-    console.log('🔍 [CashScreen] Render: Mostrando tela de loading');
     return (
       <View style={styles.container}>
-        <Header title="Caixa" />
+        <Header title="Caixa" onBackPress={()=> router.replace('/config/admin')}/>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.blue.logo} />
           <Text style={styles.loadingText}>Carregando dados do caixa...</Text>
@@ -253,10 +205,9 @@ export default function CashIndex() {
   }
 
   if (cashHook.error && !cashData) {
-    console.log('🔍 [CashScreen] Render: Mostrando tela de erro:', cashHook.error);
     return (
       <View style={styles.container}>
-        <Header title="Caixa" />
+        <Header title="Caixa" onBackPress={()=> router.replace('/config/admin')}/>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{cashHook.error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
@@ -268,7 +219,6 @@ export default function CashIndex() {
   }
 
   const statusInfo = getCashStatusInfo();
-  console.log('🔍 [CashScreen] Render: StatusInfo:', statusInfo);
 
   // Usar apenas dados reais do hook
   const displayCashDetails = cashHook.data ? {
@@ -291,16 +241,13 @@ export default function CashIndex() {
   
   const displayCashData = cashData; // Dados básicos do caixa vêm do contexto
   
-  console.log('🔍 [CashScreen] Render: Usando dados reais:', cashHook.data ? 'Sim' : 'Não');
-  console.log('🔍 [CashScreen] Render: CashData (contexto) real:', cashData ? 'Sim' : 'Não');
-
   return (
     <View style={styles.container}>
       <Image
         source={require("@/src/assets/images/splash-icon-blue.png")}
         style={styles.heroImage}
       />
-      <Header title="Caixa" />
+      <Header title="Caixa" onBackPress={()=> router.replace('/config/admin')}/>
 
       {/* Modal de aviso quando o caixa está FECHADO */}
       <Modal visible={showWarning && isCashClosed()} transparent animationType="fade">

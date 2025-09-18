@@ -1,9 +1,16 @@
-import Header from "@/src/components/Header";
-import Colors from "@/src/constants/Colors";
-import { useLogout } from "@/src/hooks/auth/useLogout";
-import { styles } from "@/src/styles/config/ConfigStyle";
+import Header from "@/components/Header";
+import Colors from "@/constants/Colors";
+import { useLogout } from "@/hooks/auth/useLogout";
+import { styles } from "@/styles/config/ConfigStyle";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import Entypo from "@expo/vector-icons/Entypo";
+import Feather from "@expo/vector-icons/Feather";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
 import { router } from "expo-router";
 import React from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
@@ -12,7 +19,10 @@ interface OptionItem {
   id: string;
   title: string;
   description: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: {
+    name: string;
+    library: 'Ionicons' | 'AntDesign' | 'MaterialIcons' | 'MaterialCommunityIcons' | 'Feather' | 'FontAwesome' | 'FontAwesome5' | 'Entypo' | 'SimpleLineIcons';
+  };
   onPress: () => void;
   isExit?: boolean;
 }
@@ -20,40 +30,94 @@ interface OptionItem {
 export default function Normal() {
   const { handleLogout } = useLogout();
 
+  const renderIcon = (icon: OptionItem['icon'], color: string, size: number = 20) => {
+    const iconProps = { name: icon.name as any, size, color };
+    switch (icon.library) {
+      case 'Ionicons':
+        return <Ionicons {...iconProps} />;
+      case 'AntDesign':
+        return <AntDesign {...iconProps} />;
+      case 'MaterialIcons':
+        return <MaterialIcons {...iconProps} />;
+      case 'MaterialCommunityIcons':
+        return <MaterialCommunityIcons {...iconProps} />;
+      case 'Feather':
+        return <Feather {...iconProps} />;
+      case 'FontAwesome':
+        return <FontAwesome {...iconProps} />;
+      case 'FontAwesome5':
+        return <FontAwesome5 {...iconProps} />;
+      case 'Entypo':
+        return <Entypo {...iconProps} />;
+      case 'SimpleLineIcons':
+        return <SimpleLineIcons {...iconProps} />;
+      default:
+        return <Ionicons name="help-outline" size={size} color={color} />;
+    }
+  };
+
   const options: OptionItem[] = [
+    {
+      id: "entrada",
+      title: "Registrar entrada",
+      description: "Registrar entrada de veículos",
+      icon: { name: "car-outline", library: "Ionicons" },
+      onPress: () => router.push("/functions/entreyRegister"),
+    },
+    {
+      id: "saida-scan",
+      title: "Registrar saída",
+      description: "Registrar saída de veículos com leitor de código de barras",
+      icon: { name: "exit-outline", library: "Ionicons" },
+      onPress: () => router.push("/functions/scanExit"),
+    },
+    {
+      id: "saida-manual",
+      title: "Registrar saída manualmente",
+      description: "Registrar saída de veículos manualmente",
+      icon: { name: "exit-outline", library: "Ionicons" },
+      onPress: () => router.push("/functions/listExit"),
+    },
+    {
+      id: "saida-produto",
+      title: "Registrar venda de produto",
+      description: "Registrar venda de produtos manualmente",
+      icon: { name: "shopping-cart", library: "Feather" },
+      onPress: () => router.push("/functions/registerProductSale"),
+    },
+    {
+      id: "parking",
+      title: "Estacionamento",
+      description: "Visualizar veículos no estacionamento e capacidade",
+      icon: { name: "grid-outline", library: "Ionicons" },
+      onPress: () => router.push("/functions/parking"),
+    },
     {
       id: "historico",
       title: "Histórico",
       description: "Visualizar histórico de operações",
-      icon: "time-outline",
+      icon: { name: "time-outline", library: "Ionicons" },
       onPress: () => router.push("/functions/history"),
     },
     {
       id: "pagamentos",
       title: "Formas de Cobrança",
       description: "Visualizar métodos de cobrança",
-      icon: "card-outline",
+      icon: { name: "card-outline", library: "Ionicons" },
       onPress: () => router.push("/functions/methodPayment"),
-    },
-    {
-      id: "despesas",
-      title: "Despesas",
-      description: "Visualizar e registrar despesas",
-      icon: "receipt-outline",
-      onPress: () => {},
     },
     {
       id: "estoque",
       title: "Estoque",
       description: "Visualizar produtos",
-      icon: "cube-outline",
+      icon: { name: "cube-outline", library: "Ionicons" },
       onPress: () => router.push("/functions/inventory"),
     },
     {
       id: "sair",
       title: "Sair",
       description: "Fazer logout do app",
-      icon: "log-out-outline",
+      icon: { name: "log-out-outline", library: "Ionicons" },
       onPress: handleLogout,
       isExit: true,
     },
@@ -74,11 +138,11 @@ export default function Normal() {
             styles.optionIcon,
             option.isExit && styles.exitIcon,
           ]}>
-            <Ionicons
-              name={option.icon}
-              size={20}
-              color={option.isExit ? Colors.red[600] : Colors.blue[600]}
-            />
+            {renderIcon(
+              option.icon,
+              option.isExit ? Colors.red[600] : Colors.blue[600],
+              20
+            )}
           </View>
           <View style={styles.optionContent}>
             <Text style={[

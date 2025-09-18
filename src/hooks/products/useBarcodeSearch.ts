@@ -1,6 +1,6 @@
-import { ProductApi } from "@/src/api/productsService";
-import { useProductCache } from "@/src/context/ProductCacheContext";
-import { BarcodeSearchResponse } from "@/src/types/productsTypes/products";
+import { ProductApi } from "@/api/productsService";
+import { useProductCache } from "@/context/ProductCacheContext";
+import { BarcodeSearchResponse } from "@/types/productsTypes/products";
 import { useState } from "react";
 
 interface BarcodeSearchResult {

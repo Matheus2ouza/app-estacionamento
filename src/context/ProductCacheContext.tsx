@@ -1,5 +1,5 @@
-import { ProductApi } from '@/src/api/productsService';
-import { BarcodeSearchResponse, Product, Responselist } from '@/src/types/productsTypes/products';
+import { ProductApi } from '@/api/productsService';
+import { BarcodeSearchResponse, Product, Responselist } from '@/types/productsTypes/products';
 import React, { createContext, ReactNode, useCallback, useContext, useState } from 'react';
 
 interface CachedProduct extends Product {

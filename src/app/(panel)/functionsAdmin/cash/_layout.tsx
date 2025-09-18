@@ -1,4 +1,4 @@
-import Colors from '@/src/constants/Colors';
+import Colors from '@/constants/Colors';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Tabs } from 'expo-router';

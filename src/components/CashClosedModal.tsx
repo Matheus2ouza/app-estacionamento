@@ -1,5 +1,4 @@
-// CashClosedModal.tsx
-import Colors from '@/src/constants/Colors';
+import Colors from '@/constants/Colors';
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import React from 'react';
 import {

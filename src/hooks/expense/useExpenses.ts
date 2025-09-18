@@ -1,5 +1,5 @@
-import { ExpenseApi } from '@/src/api/expense';
-import { Expense, ExpenseData, ExpenseResponse } from '@/src/types/expenseTypes/expense';
+import { ExpenseApi } from '@/api/expense';
+import { Expense, ExpenseData, ExpenseResponse } from '@/types/expenseTypes/expense';
 import { useEffect, useState } from 'react';
 
 export const useExpenses = (cashId: string) => {

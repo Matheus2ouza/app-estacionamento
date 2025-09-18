@@ -1,4 +1,4 @@
-import { PrimaryButtonProps } from "@/src/types/components";
+import { PrimaryButtonProps } from "@/types/components";
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 

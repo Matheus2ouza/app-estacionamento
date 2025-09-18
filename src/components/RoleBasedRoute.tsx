@@ -1,4 +1,4 @@
-import { useRoleNavigation } from "@/src/hooks/auth/useRoleNavigation";
+import { useRoleNavigation } from "@/hooks/auth/useRoleNavigation";
 import { useRouter } from "expo-router";
 import React from "react";
 

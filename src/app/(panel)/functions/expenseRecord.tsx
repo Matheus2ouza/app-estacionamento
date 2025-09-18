@@ -1,10 +1,10 @@
-import FeedbackModal from "@/src/components/FeedbackModal";
-import Header from "@/src/components/Header";
-import { PrimaryButton } from "@/src/components/PrimaryButton";
-import Colors from "@/src/constants/Colors";
-import { useCashContext } from "@/src/context/CashContext";
-import { useExpenses } from "@/src/hooks/expense/useExpenses";
-import { styles } from "@/src/styles/functions/expenseRecordStyles";
+import FeedbackModal from "@/components/FeedbackModal";
+import Header from "@/components/Header";
+import { PrimaryButton } from "@/components/PrimaryButton";
+import Colors from "@/constants/Colors";
+import { useCashContext } from "@/context/CashContext";
+import { useExpenses } from "@/hooks/expense/useExpenses";
+import { styles } from "@/styles/functions/expenseRecordStyles";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";

@@ -1,4 +1,4 @@
-import { cashApi } from "@/src/api/cashService";
+import { cashApi } from "@/api/cashService";
 import { useCallback, useRef, useState } from "react";
 
 interface PhotoCacheItem {

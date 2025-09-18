@@ -1,4 +1,4 @@
-import { photoData } from '@/src/types/vehicleTypes/vehicles';
+import { photoData } from '@/types/vehicleTypes/vehicles';
 import { useState } from 'react';
 import { VehicleApi } from '../../api/vehicleFlowService';
 

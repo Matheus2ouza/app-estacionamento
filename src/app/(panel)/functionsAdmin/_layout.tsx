@@ -1,4 +1,4 @@
-import { SelectedUserProvider } from "@/src/context/SelectedUser";
+import { SelectedUserProvider } from "@/context/SelectedUser";
 import { Slot } from "expo-router";
 import React from "react";
 import { Image, StyleSheet } from "react-native";

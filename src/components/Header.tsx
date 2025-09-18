@@ -1,4 +1,4 @@
-import Colors from "@/src/constants/Colors";
+import Colors from "@/constants/Colors";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";

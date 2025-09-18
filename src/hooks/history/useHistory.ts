@@ -1,5 +1,5 @@
-import { cashApi } from "@/src/api/cashService";
-import { HistoryResponse } from "@/src/types/historyTypes/history";
+import { cashApi } from "@/api/cashService";
+import { HistoryResponse } from "@/types/historyTypes/history";
 import { useCallback, useState } from "react";
 
 export default function useHistory() {

@@ -1,13 +1,13 @@
-import CashAvailabilityAlert from "@/src/components/CashAvailabilityAlert";
-import GenericConfirmationModal from "@/src/components/GenericConfirmationModal";
-import Header from "@/src/components/Header";
-import SearchInput from "@/src/components/SearchInput";
-import Colors from "@/src/constants/Colors";
-import { useCashContext } from "@/src/context/CashContext";
-import { useProductStatus } from "@/src/hooks/products/useProductStatus";
-import { useProductsPagination } from "@/src/hooks/products/useSearchProduc";
-import { styles } from "@/src/styles/functions/inventoryStyles";
-import { formatDateToMMYYYY } from "@/src/utils/dateUtils";
+import CashAvailabilityAlert from "@/components/CashAvailabilityAlert";
+import GenericConfirmationModal from "@/components/GenericConfirmationModal";
+import Header from "@/components/Header";
+import SearchInput from "@/components/SearchInput";
+import Colors from "@/constants/Colors";
+import { useCashContext } from "@/context/CashContext";
+import { useProductStatus } from "@/hooks/products/useProductStatus";
+import { useProductsPagination } from "@/hooks/products/useSearchProduc";
+import { styles } from "@/styles/functions/inventoryStyles";
+import { formatDateToMMYYYY } from "@/utils/dateUtils";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Feather from "@expo/vector-icons/Feather";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
@@ -438,7 +438,7 @@ const renderProductItem = ({ item }: { item: any }) => {
           mode="warning" 
           cashStatus={cashStatus} 
           onClosePress={handleCloseCashAlert}
-          style={styles.cashAlert}
+          overlay
         />
       )}
 

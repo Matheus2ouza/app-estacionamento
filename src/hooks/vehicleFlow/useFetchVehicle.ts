@@ -1,5 +1,5 @@
-import { VehicleApi } from "@/src/api/vehicleFlowService";
-import { ScanVehicleResponse } from "@/src/types/vehicleTypes/vehicles";
+import { VehicleApi } from "@/api/vehicleFlowService";
+import { ScanVehicleResponse } from "@/types/vehicleTypes/vehicles";
 import { useState } from "react";
 
 export const useFetchVehicle = () => {

@@ -20,8 +20,8 @@
       "distribution": "internal",
       "channel": "preview",
       "env": {
-        "API_URL": "https://api-estacionamento.vercel.app",
-        "NODE_ENV": "staging"
+        "PUBLIC_API_URL": "https://api-estacionamento.vercel.app",
+        "NODE_ENV": "production"
       },
       "android": {
         "buildType": "apk",
@@ -29,22 +29,22 @@
       }
     },
     "production": {
-      "distribution": "store",
+      "distribution": "internal",
       "channel": "production",
       "env": {
-        "API_URL": "https://api-estacionamento.vercel.app",
+        "PUBLIC_API_URL": "https://api-estacionamento.vercel.app",
         "NODE_ENV": "production"
       },
       "android": {
-        "buildType": "app-bundle",
-        "gradleCommand": ":app:bundleRelease"
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease"
       }
     },
     "internal": {
       "distribution": "internal",
       "channel": "internal",
       "env": {
-        "API_URL": "https://api-estacionamento.vercel.app",
+        "PUBLIC_API_URL": "https://api-estacionamento.vercel.app",
         "NODE_ENV": "production"
       },
       "android": {

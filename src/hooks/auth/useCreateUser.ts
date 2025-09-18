@@ -1,4 +1,4 @@
-import { AuthApi } from "@/src/api/userService";
+import { AuthApi } from "@/api/userService";
 import { useState } from "react";
 
 interface CreateUserData {

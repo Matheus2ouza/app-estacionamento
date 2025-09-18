@@ -1,8 +1,8 @@
-import Header from "@/src/components/Header";
-import PDFViewer from "@/src/components/PDFViewer";
-import Colors from "@/src/constants/Colors";
-import { useGeranateDashboard } from "@/src/hooks/dashboard/useGerenateDashoard";
-import { styles } from "@/src/styles/functions/dashboardStyle";
+import Header from "@/components/Header";
+import PDFViewer from "@/components/PDFViewer";
+import Colors from "@/constants/Colors";
+import { useGeranateDashboard } from "@/hooks/dashboard/useGerenateDashoard";
+import { styles } from "@/styles/functions/dashboardStyle";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import moment from "moment";

@@ -1,5 +1,5 @@
-import { cashApi } from "@/src/api/cashService";
-import { generalDetails, outgoingExpenseDetails, productDetails, vehicleDetails } from "@/src/types/cashTypes/cash";
+import { cashApi } from "@/api/cashService";
+import { generalDetails, outgoingExpenseDetails, productDetails, vehicleDetails } from "@/types/cashTypes/cash";
 import { useState } from "react";
 
 export const useCash = () => {

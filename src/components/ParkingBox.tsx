@@ -1,4 +1,4 @@
-import Colors from '@/src/constants/Colors';
+import Colors from '@/constants/Colors';
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import React from 'react';

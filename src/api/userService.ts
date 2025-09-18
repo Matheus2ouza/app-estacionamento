@@ -1,4 +1,4 @@
-import { API_URL } from '@/src/config/api';
+import { API_URL } from '@/config/constants';
 import axios from 'axios';
 import type { DataUser, ListUsers, LoginData, UserData } from '../types/authTypes/auth';
 import axiosInstance from './axiosInstance';

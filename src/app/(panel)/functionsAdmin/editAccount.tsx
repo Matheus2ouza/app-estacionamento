@@ -1,10 +1,10 @@
-import FeedbackModal from "@/src/components/FeedbackModal";
-import Header from "@/src/components/Header";
-import { PrimaryButton } from "@/src/components/PrimaryButton";
-import { SecondaryButton } from "@/src/components/SecondaryButton";
-import Colors from "@/src/constants/Colors";
-import { useUserActions } from "@/src/hooks/auth/useUserActions";
-import { styles } from "@/src/styles/functions/editAcccontStyle";
+import FeedbackModal from "@/components/FeedbackModal";
+import Header from "@/components/Header";
+import { PrimaryButton } from "@/components/PrimaryButton";
+import { SecondaryButton } from "@/components/SecondaryButton";
+import Colors from "@/constants/Colors";
+import { useUserActions } from "@/hooks/auth/useUserActions";
+import { styles } from "@/styles/functions/editAcccontStyle";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";

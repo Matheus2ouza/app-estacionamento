@@ -1,12 +1,12 @@
-import FeedbackModal from "@/src/components/FeedbackModal";
-import GenericConfirmationModal from "@/src/components/GenericConfirmationModal";
-import Header from "@/src/components/Header";
-import PermissionDeniedModal from "@/src/components/PermissionDeniedModal";
-import Colors from "@/src/constants/Colors";
-import { useAuth } from "@/src/context/AuthContext";
-import { useBillingMethod } from "@/src/hooks/cash/useBillingMethod";
-import { activeMethodStyles, containerStyles, disabledMethodStyles, styles } from "@/src/styles/functions/methodPaymentStyle";
-import { BillingMethodList, changeOptions } from "@/src/types/billingMethodTypes/billingMethod";
+import FeedbackModal from "@/components/FeedbackModal";
+import GenericConfirmationModal from "@/components/GenericConfirmationModal";
+import Header from "@/components/Header";
+import PermissionDeniedModal from "@/components/PermissionDeniedModal";
+import Colors from "@/constants/Colors";
+import { useAuth } from "@/context/AuthContext";
+import { useBillingMethod } from "@/hooks/cash/useBillingMethod";
+import { activeMethodStyles, containerStyles, disabledMethodStyles, styles } from "@/styles/functions/methodPaymentStyle";
+import { BillingMethodList, changeOptions } from "@/types/billingMethodTypes/billingMethod";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
@@ -482,7 +482,7 @@ export default function MethodPayment() {
   
   return (
     <View style={containerStyles.mainContainer}>
-      <Header title="Formas de Pagamento e preço" titleStyle={styles.header} />
+      <Header title="Formas de Cobrança" titleStyle={{ fontSize: 25 }} />
 
       <View style={styles.container}>
 
@@ -529,7 +529,7 @@ export default function MethodPayment() {
         action={permissionAction}
         currentRole={role || undefined}
         onClose={() => setShowPermissionDenied(false)}
-        message="Você precisa não term a permissão mínima para ter acesso a esta função."
+        message="Você não tem a permissão mínima para ter acesso a esta função."
       />
 
       <GenericConfirmationModal

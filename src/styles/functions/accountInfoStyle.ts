@@ -1,5 +1,5 @@
-import Colors from "@/src/constants/Colors";
-import { TypographyThemes } from "@/src/constants/Fonts";
+import Colors from "@/constants/Colors";
+import { TypographyThemes } from "@/constants/Fonts";
 import { StyleSheet } from "react-native";
 
 // Estilos para o container principal

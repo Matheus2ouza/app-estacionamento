@@ -1,5 +1,4 @@
-// MessageModal.tsx
-import Colors from '@/src/constants/Colors';
+import Colors from '@/constants/Colors';
 import React from 'react';
 import {
   Dimensions,

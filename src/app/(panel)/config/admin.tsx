@@ -1,8 +1,8 @@
-import Header from "@/src/components/Header";
-import Colors from "@/src/constants/Colors";
-import { useAuth } from "@/src/context/AuthContext";
-import { useLogout } from "@/src/hooks/auth/useLogout";
-import { styles } from "@/src/styles/config/ConfigStyle";
+import Header from "@/components/Header";
+import Colors from "@/constants/Colors";
+import { useAuth } from "@/context/AuthContext";
+import { useLogout } from "@/hooks/auth/useLogout";
+import { styles } from "@/styles/config/ConfigStyle";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Entypo from "@expo/vector-icons/Entypo";
 import Feather from "@expo/vector-icons/Feather";

@@ -1,7 +1,7 @@
-import Header from '@/src/components/Header';
-import Colors from '@/src/constants/Colors';
-import { useAuth } from '@/src/context/AuthContext';
-import { styles } from '@/src/styles/functions/cash/settingStyles';
+import Header from '@/components/Header';
+import Colors from '@/constants/Colors';
+import { useAuth } from '@/context/AuthContext';
+import { styles } from '@/styles/functions/cash/settingStyles';
 import { AntDesign, Entypo, Feather, FontAwesome, FontAwesome5, Ionicons, MaterialCommunityIcons, MaterialIcons, SimpleLineIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';

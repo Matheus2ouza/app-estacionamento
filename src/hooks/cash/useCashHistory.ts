@@ -1,5 +1,5 @@
-import { cashApi } from '@/src/api/cashService';
-import { CashHistoryData } from '@/src/types/cashTypes/cash';
+import { cashApi } from '@/api/cashService';
+import { CashHistoryData } from '@/types/cashTypes/cash';
 import { useCallback, useRef, useState } from 'react';
 
 export const useCashHistory = () => {

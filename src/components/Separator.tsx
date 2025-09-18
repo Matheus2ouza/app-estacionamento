@@ -1,4 +1,4 @@
-import Colors from "@/src/constants/Colors";
+import Colors from "@/constants/Colors";
 import { DimensionValue, StyleSheet, View, ViewStyle } from "react-native";
 
 type SeparatorProps = {

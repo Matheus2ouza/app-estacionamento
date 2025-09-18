@@ -1,5 +1,5 @@
-import Colors from '@/src/constants/Colors';
-import { TypographyThemes } from '@/src/constants/Fonts';
+import Colors from '@/constants/Colors';
+import { TypographyThemes } from '@/constants/Fonts';
 import { MaterialIcons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { Dimensions, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';

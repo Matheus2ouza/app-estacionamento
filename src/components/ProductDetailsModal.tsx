@@ -1,5 +1,5 @@
-import Colors from "@/src/constants/Colors";
-import { styles } from "@/src/styles/components/ProductDetailsModalStyles";
+import Colors from "@/constants/Colors";
+import { styles } from "@/styles/components/ProductDetailsModalStyles";
 import { FontAwesome, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import React from "react";
 import {

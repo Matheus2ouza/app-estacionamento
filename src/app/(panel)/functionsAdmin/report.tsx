@@ -1,9 +1,9 @@
-import CashRegisterDetailsModal from "@/src/components/CashRegisterDetailsModal";
-import Header from "@/src/components/Header";
-import PDFViewer from "@/src/components/PDFViewer";
-import Colors from "@/src/constants/Colors";
-import { styles } from "@/src/styles/functions/reportStyle";
-import { CashRegister, ReportData } from "@/src/types/dashboard/dashboard";
+import CashRegisterDetailsModal from "@/components/CashRegisterDetailsModal";
+import Header from "@/components/Header";
+import PDFViewer from "@/components/PDFViewer";
+import Colors from "@/constants/Colors";
+import { styles } from "@/styles/functions/reportStyle";
+import { CashRegister, ReportData } from "@/types/dashboard/dashboard";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import moment from "moment";

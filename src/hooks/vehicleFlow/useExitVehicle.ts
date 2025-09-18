@@ -1,5 +1,5 @@
-import { VehicleApi } from "@/src/api/vehicleFlowService";
-import { CalculateExitResponse, RegisterExitData, RegisterExitResponse } from "@/src/types/vehicleTypes/vehicles";
+import { VehicleApi } from "@/api/vehicleFlowService";
+import { CalculateExitResponse, RegisterExitData, RegisterExitResponse } from "@/types/vehicleTypes/vehicles";
 import { useState } from "react";
 
 export const useExitVehicle = () => {

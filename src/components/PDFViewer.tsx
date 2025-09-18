@@ -1,4 +1,4 @@
-import Colors from '@/src/constants/Colors';
+import Colors from '@/constants/Colors';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';

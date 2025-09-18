@@ -1,5 +1,5 @@
-import { cashApi } from "@/src/api/cashService";
-import { BillingMethod, BillingMethodListResponse, BillingMethodResponse, CategoryType } from "@/src/types/billingMethodTypes/billingMethod";
+import { cashApi } from "@/api/cashService";
+import { BillingMethod, BillingMethodListResponse, BillingMethodResponse, CategoryType } from "@/types/billingMethodTypes/billingMethod";
 import { useState } from "react";
 
 // Tipo para os dados do formulário

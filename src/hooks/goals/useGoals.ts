@@ -1,5 +1,7 @@
-import { Goal, GoalFormData, GoalsConfiguration } from '@/src/types/goalsTypes/goals';
-import { useCallback, useEffect, useState } from 'react';
+import { DashboardApi } from '@/api/dashboard';
+import { CreateGoalData, GoalApiData, GoalFormData, GoalsConfiguration, Period } from '@/types/goalsTypes/goals';
+import { parseBrazilianCurrency } from '@/utils/dateUtils';
+import { useCallback, useState } from 'react';
 
 export default function useGoals() {
   const [goals, setGoals] = useState<GoalsConfiguration>({
@@ -11,44 +13,48 @@ export default function useGoals() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Carregar metas do storage local (simulado)
+  // Carregar metas da API
   const loadGoals = useCallback(async () => {
     setLoading(true);
     setError(null);
     
     try {
-      // Simular carregamento de dados
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const response = await DashboardApi.listGoals();
       
-      // Dados simulados - em produção viria do storage/API
-      const mockGoals: GoalsConfiguration = {
-        dailyGoal: {
-          id: 'daily-1',
-          type: 'daily',
-          targetValue: 1000,
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        weeklyGoal: {
-          id: 'weekly-1',
-          type: 'weekly',
-          targetValue: 7000,
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        monthlyGoal: {
-          id: 'monthly-1',
-          type: 'monthly',
-          targetValue: 30000,
-          isActive: false,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
+      // A API retorna {data: [...], message: "...", success: true}
+      const goalsArray = response.data || [];
+      
+      // Converter array para GoalsConfiguration
+      const goalsConfig: GoalsConfiguration = {
+        dailyGoal: null,
+        weeklyGoal: null,
+        monthlyGoal: null,
       };
       
-      setGoals(mockGoals);
+      goalsArray.forEach((goal: GoalApiData) => {
+        const goalData = {
+          id: goal.id,
+          goalPeriod: goal.goalPeriod,
+          goalValue: parseFloat(goal.goalValue),
+          isActive: goal.isActive,
+          createdAt: goal.createdAt ? new Date(goal.createdAt) : new Date(),
+          updatedAt: goal.updatedAt ? new Date(goal.updatedAt) : new Date(),
+        };
+        
+        switch (goal.goalPeriod) {
+          case 'DIARIA':
+            goalsConfig.dailyGoal = goalData;
+            break;
+          case 'SEMANAL':
+            goalsConfig.weeklyGoal = goalData;
+            break;
+          case 'MENSAL':
+            goalsConfig.monthlyGoal = goalData;
+            break;
+        }
+      });
+      
+      setGoals(goalsConfig);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar metas');
     } finally {
@@ -62,106 +68,80 @@ export default function useGoals() {
     setError(null);
     
     try {
-      // Simular salvamento
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
       const targetValue = parseFloat(formData.targetValue.replace(/[^\d,]/g, '').replace(',', '.'));
       
       if (isNaN(targetValue) || targetValue <= 0) {
         throw new Error('Valor deve ser maior que zero');
       }
-      
-      const newGoal: Goal = {
-        id: `${type}-${Date.now()}`,
-        type,
-        targetValue,
-        isActive: formData.isActive,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+
+      // Mapear tipo para enum Period
+      const periodMap: Record<string, Period> = {
+        daily: Period.DIARIA,
+        weekly: Period.SEMANAL,
+        monthly: Period.MENSAL,
       };
+
+      const createGoalData: CreateGoalData = {
+        goalPeriod: periodMap[type],
+        goalValue: parseBrazilianCurrency(formData.targetValue).toString(),
+        isActive: formData.isActive,
+      };
+
+      const result = await DashboardApi.createGoal(createGoalData);
       
-      setGoals(prev => ({
-        ...prev,
-        [`${type}Goal`]: newGoal,
-      }));
-      
-      return true;
+      if (result.success) {
+        // Recarregar metas após salvar
+        await loadGoals();
+        // Pequeno delay para renderizar as mudanças na tela
+        await new Promise(resolve => setTimeout(resolve, 300));
+        return true;
+      } else {
+        throw new Error(result.message || 'Erro ao salvar meta');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao salvar meta');
       return false;
     } finally {
       setSaving(false);
     }
-  }, []);
+  }, [loadGoals]);
 
-  // Atualizar meta existente
+  // Atualizar meta existente (mesmo comportamento que salvar, pois a API cria/atualiza)
   const updateGoal = useCallback(async (type: 'daily' | 'weekly' | 'monthly', formData: GoalFormData) => {
-    setSaving(true);
-    setError(null);
-    
-    try {
-      // Simular atualização
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      const targetValue = parseFloat(formData.targetValue.replace(/[^\d,]/g, '').replace(',', '.'));
-      
-      if (isNaN(targetValue) || targetValue <= 0) {
-        throw new Error('Valor deve ser maior que zero');
-      }
-      
-      const currentGoal = goals[`${type}Goal` as keyof GoalsConfiguration];
-      if (!currentGoal) {
-        throw new Error('Meta não encontrada');
-      }
-      
-      const updatedGoal: Goal = {
-        ...currentGoal,
-        targetValue,
-        isActive: formData.isActive,
-        updatedAt: new Date(),
-      };
-      
-      setGoals(prev => ({
-        ...prev,
-        [`${type}Goal`]: updatedGoal,
-      }));
-      
-      return true;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao atualizar meta');
-      return false;
-    } finally {
-      setSaving(false);
-    }
-  }, [goals]);
+    // Para simplificar, usar a mesma lógica de saveGoal
+    return await saveGoal(type, formData);
+  }, [saveGoal]);
 
-  // Deletar meta
+  // Desativar meta usando rota específica
   const deleteGoal = useCallback(async (type: 'daily' | 'weekly' | 'monthly') => {
     setSaving(true);
     setError(null);
     
     try {
-      // Simular exclusão
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const periodMap: Record<string, Period> = {
+        daily: Period.DIARIA,
+        weekly: Period.SEMANAL,
+        monthly: Period.MENSAL,
+      };
+
+      const result = await DashboardApi.desactivateGoal(periodMap[type]);
       
-      setGoals(prev => ({
-        ...prev,
-        [`${type}Goal`]: null,
-      }));
-      
-      return true;
+      if (result.success) {
+        await loadGoals();
+        // Pequeno delay para renderizar as mudanças na tela
+        await new Promise(resolve => setTimeout(resolve, 300));
+        return true;
+      } else {
+        throw new Error(result.message || 'Erro ao desativar meta');
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao deletar meta');
+      setError(err instanceof Error ? err.message : 'Erro ao desativar meta');
       return false;
     } finally {
       setSaving(false);
     }
-  }, []);
-
-  // Carregar metas ao inicializar
-  useEffect(() => {
-    loadGoals();
   }, [loadGoals]);
+
 
   return {
     goals,

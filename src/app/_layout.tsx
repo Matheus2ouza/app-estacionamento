@@ -1,7 +1,7 @@
-import FontsToLoad from "@/src/constants/Fonts";
-import { AuthProvider } from "@/src/context/AuthContext";
-import { CashProvider } from "@/src/context/CashContext";
-import { ProductCacheProvider } from "@/src/context/ProductCacheContext";
+import FontsToLoad from "@/constants/Fonts";
+import { AuthProvider } from "@/context/AuthContext";
+import { CashProvider } from "@/context/CashContext";
+import { ProductCacheProvider } from "@/context/ProductCacheContext";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";

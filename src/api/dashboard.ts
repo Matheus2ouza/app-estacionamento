@@ -57,4 +57,13 @@ export const DashboardApi = {
     const response = await axiosInstance.put('/dashboard/goals', null, { params });
     return response.data;
   },
+
+  getCharts: async (goalPeriod: Period, charts: string[]): Promise<any> => {
+    const params = new URLSearchParams();
+    params.append('goalPeriod', goalPeriod);
+    params.append('charts', charts.join(','));
+    
+    const response = await axiosInstance.get(`/dashboard/goals/charts?${params.toString()}`);
+    return response.data;
+  },
 }

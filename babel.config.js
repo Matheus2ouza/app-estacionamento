@@ -3,7 +3,15 @@ module.exports = function(api) {
   return {
     presets: ['babel-preset-expo'],
     plugins: [
-      'react-native-worklets/plugin' // substitui o antigo react-native-reanimated/plugin
+      [
+        'module-resolver',
+        {
+          root: ['./src'],
+          alias: {
+            '@': './src'
+          },
+        },
+      ],
     ],
   };
 };

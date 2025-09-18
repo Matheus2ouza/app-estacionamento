@@ -1,17 +1,17 @@
-import CameraComponent from "@/src/components/CameraComponent";
-import FeedbackModal from "@/src/components/FeedbackModal";
-import GenericConfirmationModal from "@/src/components/GenericConfirmationModal";
-import Header from "@/src/components/Header";
-import PDFViewer from "@/src/components/PDFViewer";
-import PhotoViewerModal from "@/src/components/PhotoViewerModal";
-import { PrimaryButton } from "@/src/components/PrimaryButton";
-import { SecondaryButton } from "@/src/components/SecondaryButton";
-import Colors from "@/src/constants/Colors";
-import { useBillingMethod } from "@/src/hooks/cash/useBillingMethod";
-import useEditVehicle from "@/src/hooks/vehicleFlow/useEditVehicle";
-import { useVehiclePhoto } from "@/src/hooks/vehicleFlow/useVehiclePhoto";
-import { styles } from "@/src/styles/functions/editStyle";
-import { BillingMethodList } from "@/src/types/billingMethodTypes/billingMethod";
+import CameraComponent from "@/components/CameraComponent";
+import FeedbackModal from "@/components/FeedbackModal";
+import GenericConfirmationModal from "@/components/GenericConfirmationModal";
+import Header from "@/components/Header";
+import PDFViewer from "@/components/PDFViewer";
+import PhotoViewerModal from "@/components/PhotoViewerModal";
+import { PrimaryButton } from "@/components/PrimaryButton";
+import { SecondaryButton } from "@/components/SecondaryButton";
+import Colors from "@/constants/Colors";
+import { useBillingMethod } from "@/hooks/cash/useBillingMethod";
+import useEditVehicle from "@/hooks/vehicleFlow/useEditVehicle";
+import { useVehiclePhoto } from "@/hooks/vehicleFlow/useVehiclePhoto";
+import { styles } from "@/styles/functions/editStyle";
+import { BillingMethodList } from "@/types/billingMethodTypes/billingMethod";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -120,7 +120,7 @@ export default function EditRegister() {
         
         // Preencher método de cobrança selecionado se passado por parâmetro
         if (params.billingMethodId || params.billingMethodTitle) {
-          const method = result.methods.find(m => 
+          const method = result.methods.find((m: BillingMethodList) => 
             m.id === params.billingMethodId || m.title === params.billingMethodTitle
           );
           if (method) {

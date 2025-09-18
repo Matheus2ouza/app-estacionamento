@@ -1,10 +1,10 @@
-import FeedbackModal from "@/src/components/FeedbackModal";
-import Header from "@/src/components/Header";
-import { PrimaryButton } from "@/src/components/PrimaryButton";
-import Separator from "@/src/components/Separator";
-import Colors from "@/src/constants/Colors";
-import { useParkingConfig } from "@/src/hooks/parking/useParkingConfig";
-import { styles } from "@/src/styles/functions/patioConfigStyle";
+import FeedbackModal from "@/components/FeedbackModal";
+import Header from "@/components/Header";
+import { PrimaryButton } from "@/components/PrimaryButton";
+import Separator from "@/components/Separator";
+import Colors from "@/constants/Colors";
+import { useParkingConfig } from "@/hooks/parking/useParkingConfig";
+import { styles } from "@/styles/functions/patioConfigStyle";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useState } from "react";
 import { RefreshControl, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -118,7 +118,7 @@ export default function ParkingConfig() {
   if (error && !initialLoading) {
     return (
       <View style={{ flex: 1, backgroundColor: 'transparent' }}>
-        <Header title="Configurações do Pátio" titleStyle={styles.header} />
+        <Header title="Configurações do Estacionamento" titleStyle={styles.header} />
         
         <View style={styles.errorContainer}>
           <View style={styles.errorIconContainer}>
@@ -150,7 +150,7 @@ export default function ParkingConfig() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Header title="Configurações do Pátio" titleStyle={styles.header} />
+      <Header title="Configurações do Estacionamento" titleStyle={styles.header} />
 
       <ScrollView 
         style={styles.container}

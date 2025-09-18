@@ -1,15 +1,15 @@
-import CameraComponent from "@/src/components/CameraComponent";
-import CashAvailabilityAlert from "@/src/components/CashAvailabilityAlert";
-import FeedbackModal from "@/src/components/FeedbackModal";
-import Header from "@/src/components/Header";
-import ProductDetailModal from "@/src/components/ProductDetailModal";
-import ProductListModal from "@/src/components/ProductListModal";
-import Separator from "@/src/components/Separator";
-import Colors, { generateRandomColor } from "@/src/constants/Colors";
-import { useCashContext } from "@/src/context/CashContext";
-import { useProductCache } from "@/src/context/ProductCacheContext";
-import useBarcodeSearch from "@/src/hooks/products/useBarcodeSearch";
-import { styles } from "@/src/styles/functions/registerProductSaleStyle";
+import CameraComponent from "@/components/CameraComponent";
+import CashAvailabilityAlert from "@/components/CashAvailabilityAlert";
+import FeedbackModal from "@/components/FeedbackModal";
+import Header from "@/components/Header";
+import ProductDetailModal from "@/components/ProductDetailModal";
+import ProductListModal from "@/components/ProductListModal";
+import Separator from "@/components/Separator";
+import Colors, { generateRandomColor } from "@/constants/Colors";
+import { useCashContext } from "@/context/CashContext";
+import { useProductCache } from "@/context/ProductCacheContext";
+import useBarcodeSearch from "@/hooks/products/useBarcodeSearch";
+import { styles } from "@/styles/functions/registerProductSaleStyle";
 import { Entypo, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
@@ -93,7 +93,6 @@ export default function RegisterProductSale() {
         const cachedProduct = getFromCache(productName);
         
         if (cachedProduct) {
-          console.log('🛒 Produto no cache:', cachedProduct.productName);
           
           // Mostrar modal de detalhes do produto encontrado
           setSelectedProductForDetail({

@@ -1,6 +1,6 @@
-import Colors from "@/src/constants/Colors";
-import { styles } from "@/src/styles/components/ProductDetailModalStyle";
-import { Product } from "@/src/types/productsTypes/products";
+import Colors from "@/constants/Colors";
+import { styles } from "@/styles/components/ProductDetailModalStyle";
+import { Product } from "@/types/productsTypes/products";
 import { FontAwesome, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useState } from "react";
 import {

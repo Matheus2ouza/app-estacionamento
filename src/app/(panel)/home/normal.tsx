@@ -1,62 +1,83 @@
-import CashRegisterModal from "@/src/components/CashRegisterModal"; // Adicionado
-import FeedbackModal from "@/src/components/FeedbackModal";
-import Separator from "@/src/components/Separator";
-import Colors from "@/src/constants/Colors";
-import { useAuth } from "@/src/context/AuthContext"; // Adicionado
-import { useCashContext } from "@/src/context/CashContext";
-import { styles } from "@/src/styles/home/normalHomeStyles";
+import MessageModal from "@/components/MessageModal";
+import ParkingBox from "@/components/ParkingBox";
+import Colors from "@/constants/Colors";
+import { useAuth } from "@/context/AuthContext"; // Adicionado
+import { useCashContext } from "@/context/CashContext";
+import { styles } from "@/styles/home/normalHomeStyles";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
-import { useEffect, useState } from "react"; // Adicionado
-import { Alert, Pressable, Text, TouchableOpacity, View } from "react-native"; // Adicionado Alert
-
-const parkingNumbers = {
-  free: 23,
-  used: 99,
-  details: [99, 99, 99],
-};
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useState } from "react"; // Adicionado
+import { Pressable, Text, TouchableOpacity, View } from "react-native"; // Adicionado Alert
 
 export default function NormalHome() {
   const { role } = useAuth(); // Obtém o role do usuário
-  const { loading, error, cashStatus, fetchStatus } = useCashContext();
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [cashStatusLoaded, setCashStatusLoaded] = useState(false);
-  const [feedbackModal, setFeedbackModal] = useState({
-    visible: false,
-    message: "",
-    isSuccess: false,
-  });
+  const { 
+    cashStatus,
+    cashData,
+    parkingDetails,
+    refreshAllData,
+    fetchParkingDetails,
+    isCashNotCreated,
+  } = useCashContext();
 
-  // Verifica o status do caixa ao carregar a tela
+  const [showMessage, setShowMessage] = useState(false);
+
+  // Buscar dados ao montar a tela
   useEffect(() => {
-    fetchCashStatus();
+    refreshAllData();
   }, []);
 
-  // Controla a exibição do modal
-  useEffect(() => {
-    if (cashStatusLoaded && cashStatus === 'closed') {
-      setIsModalVisible(true);
-    } else {
-      setIsModalVisible(false);
-    }
-  }, [cashStatus, cashStatusLoaded]);
+  // Atualizar dados quando a tela entra em foco
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      (async () => {
+        await refreshAllData();
+        if (!cancelled && isCashNotCreated()) {
+          setShowMessage(true);
+        }
+      })();
+      return () => { cancelled = true };
+    }, [])
+  );
 
-  const fetchCashStatus = async () => {
-    await fetchStatus();
-    setCashStatusLoaded(true);
+  // Monitorar mudanças no status do caixa para exibir/ocultar mensagem
+  useEffect(() => {
+    if (isCashNotCreated()) {
+      setShowMessage(true);
+    } else {
+      setShowMessage(false);
+    }
+  }, [cashStatus]);
+
+  // Função para converter dados do estacionamento para o formato esperado pelo ParkingBox
+  const convertParkingData = () => {
+    if (!parkingDetails?.data) return undefined;
+    
+    const { data } = parkingDetails;
+    const free = data.capacityMax - data.quantityVehicles;
+    
+    return {
+      free,
+      used: data.quantityVehicles,
+      details: [data.quantityCars, data.quantityMotorcycles]
+    };
   };
 
-  const handleOpenCash = (initialValue: string) => {
-    setFeedbackModal({
-      visible: true,
-      message: "Somente administradores podem abrir o caixa",
-      isSuccess: false
-    })
-    setIsModalVisible(true)
+  // Refresh específico do ParkingBox
+  const handleParkingBoxRefresh = async () => {
+    if (isCashNotCreated()) {
+      console.log('❌ [NormalHome] handleParkingBoxRefresh: Caixa não criado, mostrando mensagem');
+      setShowMessage(true);
+      return;
+    }
+    if (cashData?.id) {
+      await fetchParkingDetails(cashData.id);
+    }
   };
 
   return (
@@ -79,81 +100,20 @@ export default function NormalHome() {
         </TouchableOpacity>
       </LinearGradient>
 
-      {/* Modal para controle de caixa */}
-      <CashRegisterModal
-        visible={isModalVisible}
-        role={role}
-        onClose={() => setIsModalVisible(false)}
-        onOpenCashRegister={handleOpenCash}
-      />
-
-      <FeedbackModal
-        visible={feedbackModal.visible}
-        message={feedbackModal.message}
-        type={feedbackModal.isSuccess ? 'success' : 'error'}
-        onClose={() => setFeedbackModal({ ...feedbackModal, visible: false })}
-      />
-
       <View style={styles.body}>
-        <View style={styles.parkingStatus}>
-          <View style={styles.BoxHeader}>
-            <Text style={styles.title}>Vagas</Text>
-            <Pressable onPress={fetchCashStatus}>
-              <View style={styles.refreshIcon}>
-                <FontAwesome name="refresh" size={24} color={Colors.white} />
-              </View>
-            </Pressable>
-          </View>
+        <MessageModal 
+          visible={showMessage}
+          onClose={() => setShowMessage(false)}
+          title="Caixa não encontrado"
+          message="O administrador ainda não criou nenhum caixa, aguarde ele criar para liberar todas as funções do app."
+          closeButtonText="OK"
+        />
 
-          <Separator style={{ width: "90%" }} />
-
-          <View style={styles.parkingContent}>
-            <View style={styles.statusParking}>
-              <View style={styles.freeParking}>
-                <Text style={styles.numberFree}>{parkingNumbers.free}</Text>
-                <Text style={styles.labelFree}>Livres</Text>
-              </View>
-
-              <View style={styles.dividerVertical} />
-
-              <View style={styles.usedParking}>
-                <Text style={styles.numberUsed}>{parkingNumbers.used}</Text>
-                <Text style={styles.labelUsed}>Em uso</Text>
-              </View>
-            </View>
-
-            <Separator style={{ width: "90%", alignSelf: "center" }} />
-
-            <View style={styles.detailsParking}>
-              <View style={styles.iconDescriptionRow}>
-                <MaterialCommunityIcons
-                  name="car-hatchback"
-                  size={22}
-                  color="black"
-                />
-                <Text style={styles.iconText}>{parkingNumbers.details[0]}</Text>
-              </View>
-
-              <View style={styles.dividerVertical} />
-
-              <View style={styles.iconDescriptionRow}>
-                <FontAwesome name="motorcycle" size={18} color="black" />
-                <Text style={styles.iconText}>{parkingNumbers.details[1]}</Text>
-              </View>
-
-              <View style={styles.dividerVertical} />
-
-              <View style={styles.iconDescriptionRow}>
-                <MaterialCommunityIcons
-                  name="car-estate"
-                  size={22}
-                  color="black"
-                />
-                <Text style={styles.iconText}>{parkingNumbers.details[2]}</Text>
-              </View>
-            </View>
-          </View>
-        </View>
+        <ParkingBox 
+          cashStatus={cashStatus}
+          onRefresh={handleParkingBoxRefresh}
+          parkingData={convertParkingData()}
+        />
 
         <LinearGradient
           colors={[Colors.gray.zinc, Colors.blue.light]}
@@ -163,43 +123,40 @@ export default function NormalHome() {
         >
           <Pressable
             onPress={() => {
-              // Bloqueia acesso se o caixa não estiver aberto
-              if (cashStatus === 'open') {
-                router.push("/functions/entreyRegister");
-              } else {
-                Alert.alert(
-                  "Caixa fechado",
-                  "O caixa não está aberto. Contate o administrador."
-                );
-              }
+              router.push("/functions/entreyRegister");
             }}
           >
             <View style={styles.buttonEntry}>
-              <Entypo name="login" size={40} color={Colors.white} />
+              <Entypo name="login" size={40} color={Colors.text.inverse} />
             </View>
           </Pressable>
 
           <Pressable
             onPress={() => {
-              // Bloqueia acesso se o caixa não estiver aberto
-              if (cashStatus === 'open') {
-                router.push("/functions/exitRegister");
-              } else {
-                Alert.alert(
-                  "Caixa fechado",
-                  "O caixa não está aberto. Contate o administrador."
-                );
-              }
+              router.push("/functions/scanExit");
             }}
           >
             <View style={styles.buttonExit}>
-              <Entypo name="log-out" size={40} color={Colors.white} />
+              <Entypo name="log-out" size={40} color={Colors.text.inverse} />
             </View>
           </Pressable>
 
-          <Pressable onPress={() => router.push("/functions/parking")}>
+          <Pressable
+            onPress={() => {
+              router.push("/functions/parking");
+            }}
+          >
             <View style={styles.buttonPatio}>
-              <FontAwesome name="product-hunt" size={40} color={Colors.white} />
+              <FontAwesome name="product-hunt" size={40} color={Colors.text.inverse} />
+            </View>
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              router.push("/functions/registerProductSale");
+            }}
+          >
+            <View style={styles.buttonDashboard}>
+              <MaterialCommunityIcons name="food-fork-drink" size={40} color={Colors.text.inverse} />
             </View>
           </Pressable>
         </LinearGradient>

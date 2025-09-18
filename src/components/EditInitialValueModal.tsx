@@ -1,5 +1,5 @@
-import Colors from '@/src/constants/Colors';
-import { TypographyThemes } from '@/src/constants/Fonts';
+import Colors from '@/constants/Colors';
+import { TypographyThemes } from '@/constants/Fonts';
 import { AntDesign, Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';

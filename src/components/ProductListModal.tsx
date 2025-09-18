@@ -1,8 +1,8 @@
-import Colors from "@/src/constants/Colors";
-import { useProductCache } from "@/src/context/ProductCacheContext";
-import { useProductsPagination } from "@/src/hooks/products/useSearchProduc";
-import { styles } from "@/src/styles/components/ProductListModalStyle";
-import { Product } from "@/src/types/productsTypes/products";
+import Colors from "@/constants/Colors";
+import { useProductCache } from "@/context/ProductCacheContext";
+import { useProductsPagination } from "@/hooks/products/useSearchProduc";
+import { styles } from "@/styles/components/ProductListModalStyle";
+import { Product } from "@/types/productsTypes/products";
 import { FontAwesome, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {

@@ -1,4 +1,4 @@
-import Colors from '@/src/constants/Colors';
+import Colors from '@/constants/Colors';
 import { AntDesign, FontAwesome } from '@expo/vector-icons';
 import React from 'react';
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -66,7 +66,7 @@ const FileSavedModal: React.FC<FileSavedModalProps> = ({
             </View>
 
             <View style={styles.noteContainer}>
-              <AntDesign name="infocirlceo" size={16} color={Colors.blue[500]} />
+              <AntDesign name="exclamationcircleo" size={16} color={Colors.blue[500]} />
               <Text style={styles.noteText}>
                 Você pode acessar este arquivo através do gerenciador de arquivos do seu dispositivo.
               </Text>

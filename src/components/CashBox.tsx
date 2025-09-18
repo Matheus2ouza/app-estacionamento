@@ -1,4 +1,4 @@
-import Colors from '@/src/constants/Colors';
+import Colors from '@/constants/Colors';
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';

@@ -1,6 +1,6 @@
-import Colors from '@/src/constants/Colors';
-import { Fonts } from '@/src/constants/Fonts';
-import { CashStatus } from '@/src/types/cashTypes/cash';
+import Colors from '@/constants/Colors';
+import { Fonts } from '@/constants/Fonts';
+import { CashStatus } from '@/types/cashTypes/cash';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { router } from 'expo-router';
 import React from 'react';
@@ -25,6 +25,7 @@ interface CashAvailabilityAlertProps {
   messageStyle?: TextStyle;
   iconStyle?: TextStyle;
   onClosePress?: () => void; // Apenas para warning mode
+  overlay?: boolean; // Renderiza centralizado acima de tudo
 }
 
 const CashAvailabilityAlert: React.FC<CashAvailabilityAlertProps> = ({
@@ -35,6 +36,7 @@ const CashAvailabilityAlert: React.FC<CashAvailabilityAlertProps> = ({
   messageStyle,
   iconStyle,
   onClosePress,
+  overlay = false,
 }) => {
   // Funções internas para os botões
   const handleBackPress = () => {
@@ -49,7 +51,7 @@ const CashAvailabilityAlert: React.FC<CashAvailabilityAlertProps> = ({
   const getAlertConfig = () => {
     if (mode === 'blocking') {
       return {
-        icon: 'errorcircleo',
+        icon: 'closecircleo',
         iconColor: Colors.red[500],
         bgColor: Colors.red[50],
         borderColor: Colors.red[200],
@@ -61,13 +63,13 @@ const CashAvailabilityAlert: React.FC<CashAvailabilityAlertProps> = ({
     }
     // warning
     return {
-      icon: 'infocirlceo',
+      icon: 'exclamationcircleo',
       iconColor: Colors.blue[500],
       bgColor: Colors.blue[50],
       borderColor: Colors.blue[200],
       glowColor: Colors.blue[100],
       title: 'Aviso',
-      message: 'O caixa já foi fechado. Você pode continuar usando o sistema, mas as funções que requerem um caixa aberto não estarão disponíveis.',
+      message: 'O caixa já foi fechado. Você pode continuar usando o sistema normalmente, mas recomendamos abrir o caixa novamente para não ocorrer erros inesperados.',
     };
   };
 
@@ -92,7 +94,7 @@ const CashAvailabilityAlert: React.FC<CashAvailabilityAlertProps> = ({
     );
   };
 
-  return (
+  const Card = (
     <View
       style={[
         styles.container,
@@ -155,6 +157,19 @@ const CashAvailabilityAlert: React.FC<CashAvailabilityAlertProps> = ({
       )}
     </View>
   );
+
+  if (!overlay) {
+    return Card;
+  }
+
+  return (
+    <View style={styles.overlayRoot} pointerEvents="box-none">
+      <View style={styles.overlayBackdrop} />
+      <View style={styles.overlayCenter} pointerEvents="box-none">
+        {Card}
+      </View>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -170,6 +185,28 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 10,
     elevation: 6,
+  },
+  overlayRoot: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 999,
+  },
+  overlayBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.15)',
+  },
+  overlayCenter: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
   },
   header: {
     flexDirection: 'row',

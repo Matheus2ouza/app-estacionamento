@@ -1,5 +1,5 @@
-import { ProductApi } from '@/src/api/productsService';
-import { Product } from '@/src/types/productsTypes/products';
+import { ProductApi } from '@/api/productsService';
+import { Product } from '@/types/productsTypes/products';
 import { useState } from 'react';
 
 interface UpdateProductData {

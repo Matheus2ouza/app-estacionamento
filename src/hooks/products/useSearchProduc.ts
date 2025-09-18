@@ -1,5 +1,5 @@
-import { useProductCache } from "@/src/context/ProductCacheContext";
-import { Product } from "@/src/types/productsTypes/products";
+import { useProductCache } from "@/context/ProductCacheContext";
+import { Product } from "@/types/productsTypes/products";
 import { useState } from "react";
 
 // Hook para produtos com paginação
