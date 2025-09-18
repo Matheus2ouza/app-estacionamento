@@ -32,6 +32,12 @@ yarn-error.*
 
 # local env files
 .env.development.local
+.env.production.local
+.env.test.local
+.env.development
+.env.production
+.env.test
+.env
 
 # typescript
 *.tsbuildinfo

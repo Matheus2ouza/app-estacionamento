@@ -20,7 +20,7 @@
       "distribution": "internal",
       "channel": "preview",
       "env": {
-        "PUBLIC_API_URL": "https://api-estacionamento.vercel.app",
+        "EXPO_PUBLIC_API_URL": "https://api-estacionamento.vercel.app",
         "NODE_ENV": "production"
       },
       "android": {
@@ -32,7 +32,7 @@
       "distribution": "internal",
       "channel": "production",
       "env": {
-        "PUBLIC_API_URL": "https://api-estacionamento.vercel.app",
+        "EXPO_PUBLIC_API_URL": "https://api-estacionamento.vercel.app",
         "NODE_ENV": "production"
       },
       "android": {
@@ -44,7 +44,7 @@
       "distribution": "internal",
       "channel": "internal",
       "env": {
-        "PUBLIC_API_URL": "https://api-estacionamento.vercel.app",
+        "EXPO_PUBLIC_API_URL": "https://api-estacionamento.vercel.app",
         "NODE_ENV": "production"
       },
       "android": {
