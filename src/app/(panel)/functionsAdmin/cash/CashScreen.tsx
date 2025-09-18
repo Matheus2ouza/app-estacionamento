@@ -244,7 +244,7 @@ export default function CashIndex() {
   return (
     <View style={styles.container}>
       <Image
-        source={require("@/src/assets/images/splash-icon-blue.png")}
+        source={require("../../../../assets/images/splash-icon-blue.png")}
         style={styles.heroImage}
       />
       <Header title="Caixa" onBackPress={()=> router.replace('/config/admin')}/>

@@ -92,7 +92,7 @@ export default function Login() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.background.primary }}>
       <Image
-        source={require("@/src/assets/images/splash-icon-blue.png")}
+        source={require("../../assets/images/splash-icon-blue.png")}
         style={styles.heroImage}
       />
 

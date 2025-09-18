@@ -820,7 +820,7 @@ export default function TransactionDetailsModal({
       <View style={styles.container}>
         {/* Imagem de fundo */}
         <Image
-          source={require("@/src/assets/images/splash-icon-blue.png")}
+          source={require("../assets/images/splash-icon-blue.png")}
           style={styles.backgroundImage}
         />
         

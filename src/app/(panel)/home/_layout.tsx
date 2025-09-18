@@ -7,7 +7,7 @@ export default function HomeLayout() {
   return (
     <SafeAreaView style={styles.container}>
       <Image
-        source={require("@/src/assets/images/splash-icon-blue.png")}
+        source={require("../../../assets/images/splash-icon-blue.png")}
         style={styles.heroImage}
       />
       <Slot />
