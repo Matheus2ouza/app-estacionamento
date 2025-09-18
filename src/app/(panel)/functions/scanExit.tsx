@@ -1,9 +1,9 @@
-import CashAvailabilityAlert from "@/src/components/CashAvailabilityAlert";
-import FeedbackModal from "@/src/components/FeedbackModal";
-import Colors from "@/src/constants/Colors";
-import { useCashContext } from "@/src/context/CashContext";
-import { useFetchVehicle } from "@/src/hooks/vehicleFlow/useFetchVehicle";
-import { styles } from "@/src/styles/functions/scanExit";
+import CashAvailabilityAlert from "@/components/CashAvailabilityAlert";
+import FeedbackModal from "@/components/FeedbackModal";
+import Colors from "@/constants/Colors";
+import { useCashContext } from "@/context/CashContext";
+import { useFetchVehicle } from "@/hooks/vehicleFlow/useFetchVehicle";
+import { styles } from "@/styles/functions/scanExit";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { router } from "expo-router";
@@ -208,7 +208,6 @@ export default function ScanExit() {
           <CashAvailabilityAlert 
             mode="blocking" 
             cashStatus={cashStatus} 
-            onBackPress={handleBackPress}
             style={{
               marginHorizontal: 0,
               marginVertical: 0,

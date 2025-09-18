@@ -113,7 +113,7 @@ export default function WeeklyProfitChart({
   // Configurar domínio do eixo X para mostrar de segunda (1) a domingo (7)
   const xDomain: [number, number] = [1, 7];
 
-  const font = useFont(require('@/src/assets/fonts/Inter_18pt-Medium.ttf'), 12);
+  const font = useFont(require('../../assets/fonts/Inter_18pt-Medium.ttf'), 12);
   const { state, isActive } = useChartPressState({ x: 0, y: { profit: 0 } });
 
   return (
