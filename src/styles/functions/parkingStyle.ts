@@ -1,129 +1,357 @@
-import Colors from "@/src/constants/Colors";
+import Colors from "@/constants/Colors";
+import { Fonts, TypographyThemes } from "@/constants/Fonts";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
+    paddingTop: 10,
+    paddingHorizontal: 16,
   },
-  header: {
-    height: "22%",
-    width: "100%",
+  // Estilos da bateria
+  batteryContainer: {
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 5,
+    shadowColor: Colors.shadow.light,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  statusPatio: {
-    width: "100%",
-    padding: 10,
-    alignItems: "center",
-  },
-  percentage: {
-    fontSize: 60,
-    fontFamily: "Montserrat_700Bold",
-    color: Colors.red,
-  },
-  separator: {
-    width: "90%",
-    height: 2,
-    backgroundColor: Colors.zincLight,
-  },
-  body: {
-    height: "78%",
-    width: "100%",
-    paddingHorizontal: 10,
-  },
-  searchContainer: {
-    flexDirection: "column",
-    gap: 10,
-  },
-  searchInput: {
-    width: "100%",
-  },
-  filterRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  batteryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 10,
   },
-  filterGroup: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: 12,
-    marginLeft: 5,
+  batteryTitle: {
+    ...TypographyThemes.poppins.subtitle,
+    color: Colors.text.primary,
+    fontSize: 16,
+    fontWeight: '600',
   },
-  radioItem: {
-    flexDirection: "row",
-    alignItems: "center",
+  batteryPercentage: {
+    ...TypographyThemes.poppins.subtitle,
+    color: Colors.text.primary,
+    fontSize: 17,
+    fontWeight: '700',
   },
-  radioOuter: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+  batteryBody: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  batteryOuter: {
+    flex: 1,
+    height: 24,
+    backgroundColor: Colors.gray[200],
+    borderRadius: 12,
+    overflow: 'hidden',
     borderWidth: 2,
-    borderColor: Colors.zinc,
+    borderColor: Colors.gray[300],
+  },
+  batteryInner: {
+    height: '100%',
+    borderRadius: 8,
+    minWidth: 4,
+  },
+  batteryLoading: {
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 4,
+  },
+  batteryInfo: {
+    alignItems: 'center',
+  },
+  batteryText: {
+    ...TypographyThemes.nunito.body,
+    color: Colors.text.secondary,
+    fontSize: 12,
+  },
+  batteryErrorContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 20,
+  },
+  batteryErrorText: {
+    ...TypographyThemes.nunito.body,
+    color: Colors.red[500],
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 12,
+    marginBottom: 16,
+    paddingHorizontal: 16,
+  },
+  batteryRetryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.blue.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  batteryRetryText: {
+    ...TypographyThemes.nunito.body,
+    color: Colors.white,
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  searchContainer: {
+    marginBottom: 16,
+  },
+  loadingMore: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  loadingMoreText: {
+    ...TypographyThemes.nunito.body,
+    color: Colors.text.secondary,
+    marginLeft: 8,
+    fontSize: 14,
+  },
+  loadMoreButton: {
+    backgroundColor: Colors.blue.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+    gap: 8,
+  },
+  loadMoreButtonText: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  loadMoreButtonDisabled: {
+    backgroundColor: Colors.gray[300],
+    opacity: 0.6,
+  },
+  loadMoreButtonTextDisabled: {
+    color: Colors.gray[500],
+  },
+  contentWrapper: {
+    margin: 10,
+    flexGrow: 1,
+    paddingBottom: 10,
+  },
+  unifiedSection: {
+    backgroundColor: Colors.whiteSemiTransparent,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: Colors.shadow.light,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 3,
+    flex: 1,
+  },
+  statusContainer: {
+    paddingBottom: 15,
+  },
+  statusTitle: {
+    ...TypographyThemes.poppins.subtitle,
+    color: Colors.text.primary,
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  percentageContainer: {
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 4,
   },
-  radioOuterSelected: {
-    borderColor: Colors.blueLogo,
+  percentage: {
+    fontSize: 64,
+    fontFamily: Fonts.MontserratBold,
+    fontWeight: "700",
+    marginTop: -10,
   },
-  radioInner: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.blueLogo,
+  statusLabel: {
+    ...TypographyThemes.nunito.body,
+    color: Colors.text.secondary,
+    fontSize: 16,
   },
-  radioLabel: {
-    fontSize: 14,
-    color: Colors.zinc,
+  separator: {
+    width: "100%",
+    height: 2,
+    backgroundColor: Colors.gray.light,
+    marginVertical: 20,
   },
-  refreshButton: {
-    backgroundColor: Colors.blueLogo,
-    padding: 8,
-    borderRadius: 8,
-    marginLeft: 10,
+  listContainer: {
+    flex: 1,
   },
   list: {
-    marginTop: 5,
+    flex: 1,
     backgroundColor: "transparent",
+    minHeight: 200,
   },
   listContent: {
-    paddingBottom: 20,
+    flexGrow: 1,
   },
   listItem: {
     flexDirection: "row",
     alignItems: "flex-start",
-    backgroundColor: Colors.zincLight,
-    borderRadius: 10,
-    padding: 15,
+    backgroundColor: Colors.whiteSemiTransparent,
+    borderRadius: 12,
+    padding: 12,
     marginBottom: 10,
+    shadowColor: Colors.shadow.light,
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
     elevation: 2,
-    position: "relative",
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.blue.primary,
   },
   itemNumber: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: Colors.blueLogo,
-    marginRight: 15,
-    minWidth: 30,
+    fontSize: 24,
+    fontFamily: Fonts.MontserratBold,
+    fontWeight: "700",
+    color: Colors.gray[100],
+    marginRight: 16,
+    minWidth: 40,
     textAlign: "center",
+    backgroundColor: Colors.blue.light,
+    borderRadius: 6,
+    paddingVertical: 2,
+    paddingHorizontal: 12,
+    alignSelf: "flex-start",
+    marginTop: 2,
   },
   itemData: {
     flex: 1,
   },
-  itemPlate: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: Colors.darkGray,
-    marginBottom: 5,
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
   },
-  itemDetails: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
+  mainDataContainer: {
+    flex: 1,
+    marginRight: 16,
   },
-  detailText: {
+  mainDataLabel: {
+    ...TypographyThemes.nunito.caption,
+    color: Colors.text.secondary,
+    fontSize: 11,
+    marginBottom: 1,
+  },
+  mainDataValue: {
+    fontSize: 16,
+    fontFamily: Fonts.PoppinsSemiBold,
+    fontWeight: "600",
+    color: Colors.text.primary,
+  },
+  timeContainer: {
+    alignItems: 'flex-end',
+  },
+  timeLabel: {
+    ...TypographyThemes.nunito.caption,
+    color: Colors.text.secondary,
+    fontSize: 11,
+    marginBottom: 1,
+  },
+  timeValue: {
+    ...TypographyThemes.openSans.bodySmall,
+    color: Colors.blue.primary,
     fontSize: 13,
-    color: Colors.darkGray,
+    fontWeight: "600",
+  },
+  detailsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.blue.light,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.blue.primary,
+  },
+  detailsButtonText: {
+    ...TypographyThemes.nunito.body,
+    color: Colors.white,
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  emptyStateContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+  emptyState: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+  },
+  emptyStateText: {
+    ...TypographyThemes.nunito.body,
+    color: Colors.text.secondary,
+    textAlign: "center",
+    marginTop: 12,
+    fontSize: 16,
+  },
+  emptyStateSubtext: {
+    ...TypographyThemes.nunito.body,
+    color: Colors.text.secondary,
+    textAlign: "center",
+    marginTop: 8,
+    fontSize: 14,
+    opacity: 0.7,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+  },
+  loadingText: {
+    ...TypographyThemes.nunito.body,
+    color: Colors.text.secondary,
+    marginTop: 12,
+  },
+  // Estilos para veículos deletados
+  listItemDeleted: {
+    backgroundColor: Colors.gray[50],
+    borderLeftColor: Colors.gray[400],
+    opacity: 0.7,
+  },
+  itemNumberDeleted: {
+    backgroundColor: Colors.gray[300],
+    color: Colors.gray[600],
+  },
+  mainDataLabelDeleted: {
+    color: Colors.gray[500],
+  },
+  mainDataValueDeleted: {
+    color: Colors.gray[600],
+  },
+  timeLabelDeleted: {
+    color: Colors.gray[500],
+  },
+  timeValueDeleted: {
+    color: Colors.red[500],
+  },
+  detailsButtonDeleted: {
+    backgroundColor: Colors.gray[200],
+    borderColor: Colors.gray[400],
+  },
+  detailsButtonTextDeleted: {
+    color: Colors.gray[600],
   },
 });

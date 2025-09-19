@@ -1,5 +1,5 @@
-import { AuthApi } from "@/src/api/userService";
-import type { DecodedToken, LoginData } from "@/src/types/auth";
+import { AuthApi } from "@/api/userService";
+import type { DecodedToken, LoginData } from "@/types/authTypes/auth";
 import * as SecureStore from "expo-secure-store";
 import { jwtDecode } from "jwt-decode";
 import { useState } from "react";
@@ -32,7 +32,7 @@ export function useUserLogin() {
       };
     } catch (err: any) {
       setLoading(false);
-      const message = err.response?.data?.message || "Erro desconhecido";
+      const message = err.response?.data?.error || err.response?.data?.message || "Erro desconhecido";
       setError(message);
       throw new Error(message); // importante para os modais também
     }

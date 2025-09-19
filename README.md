@@ -1,50 +1,275 @@
-# Welcome to your Expo app 👋
+# Sistema de Hierarquia de Roles - App Estacionamento
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Este documento explica como funciona o sistema de hierarquia de roles implementado no frontend React Native do aplicativo.
 
-## Get started
+## 📋 Índice
 
-1. Install dependencies
+- [Visão Geral](#visão-geral)
+- [Hierarquia de Roles](#hierarquia-de-roles)
+- [Implementação no Frontend](#implementação-no-frontend)
+- [Como Usar](#como-usar)
+- [Exemplos Práticos](#exemplos-práticos)
+- [Benefícios](#benefícios)
 
-   ```bash
-   npm install
-   ```
+## 🎯 Visão Geral
 
-2. Start the app
+O sistema implementa uma hierarquia de permissões baseada em níveis numéricos, onde cada role tem um valor específico que determina seu nível de acesso. Isso permite verificações flexíveis de permissão no frontend React Native.
 
-   ```bash
-   npx expo start
-   ```
+## 🔐 Hierarquia de Roles
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```typescript
+const ROLE_HIERARCHY = {
+  NORMAL: 1,    // Nível básico - Acesso limitado
+  MANAGER: 2,   // Nível intermediário - Acesso moderado
+  ADMIN: 3,     // Nível máximo - Acesso total
+}
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Características:
 
-## Learn more
+- **NORMAL (1)**: Usuário básico com acesso limitado
+- **MANAGER (2)**: Gerente com permissões intermediárias
+- **ADMIN (3)**: Administrador com acesso total
 
-To learn more about developing your project with Expo, look at the following resources:
+## 📱 Implementação no Frontend
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### AuthContext
 
-## Join the community
+```typescript
+// Hierarquia de roles
+const ROLE_HIERARCHY = {
+  NORMAL: 1,
+  MANAGER: 2,
+  ADMIN: 3,
+} as const;
 
-Join our community of developers creating universal apps.
+type RoleType = keyof typeof ROLE_HIERARCHY;
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+// Função para verificar se o usuário tem permissão mínima
+const hasPermission = (minRole: RoleType): boolean => {
+  if (!role) return false;
+  const userRoleLevel = ROLE_HIERARCHY[role];
+  const requiredRoleLevel = ROLE_HIERARCHY[minRole];
+  return userRoleLevel >= requiredRoleLevel;
+};
+
+// Função para verificar se o usuário tem exatamente um role específico
+const hasExactRole = (exactRole: RoleType): boolean => {
+  return role === exactRole;
+};
+
+// Funções de conveniência
+const hasManagerPermission = (): boolean => {
+  return hasPermission('MANAGER');
+};
+
+const hasAdminPermission = (): boolean => {
+  return hasExactRole('ADMIN');
+};
+```
+
+### Interface TypeScript
+
+```typescript
+export interface AuthContextData {
+  token: string | null;
+  userId: string | null;
+  role: "ADMIN" | "NORMAL" | "MANAGER" | null;
+  login: (token: string) => Promise<void>;
+  logout: () => Promise<void>;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  hasPermission: (minRole: "ADMIN" | "NORMAL" | "MANAGER") => boolean;
+  hasExactRole: (exactRole: "ADMIN" | "NORMAL" | "MANAGER") => boolean;
+  hasManagerPermission: () => boolean;
+  hasAdminPermission: () => boolean;
+}
+```
+
+## 🚀 Como Usar
+
+### 1. Importar o Hook
+
+```typescript
+import { useAuth } from '@/src/context/AuthContext';
+```
+
+### 2. Usar as Funções de Permissão
+
+```typescript
+function MyComponent() {
+  const { 
+    hasPermission, 
+    hasExactRole, 
+    hasManagerPermission, 
+    hasAdminPermission 
+  } = useAuth();
+
+  // Verificar permissão mínima
+  if (hasPermission('MANAGER')) {
+    // Usuário é MANAGER ou ADMIN
+  }
+
+  // Verificar role exato
+  if (hasExactRole('ADMIN')) {
+    // Usuário é exatamente ADMIN
+  }
+
+  // Usar funções de conveniência
+  if (hasManagerPermission()) {
+    // Usuário é MANAGER ou ADMIN
+  }
+
+  if (hasAdminPermission()) {
+    // Usuário é ADMIN
+  }
+}
+```
+
+### 3. Renderização Condicional
+
+```typescript
+function VehicleDetailsModal() {
+  const { hasManagerPermission } = useAuth();
+
+  return (
+    <Modal>
+      {/* Seção visível apenas para MANAGER e ADMIN */}
+      {hasManagerPermission() && (
+        <View>
+          <Text>Informações do Sistema</Text>
+          {/* Conteúdo sensível */}
+        </View>
+      )}
+
+      {/* Botão visível apenas para MANAGER e ADMIN */}
+      {hasManagerPermission() && (
+        <Pressable onPress={handleDelete}>
+          <Text>Desativar Veículo</Text>
+        </Pressable>
+      )}
+    </Modal>
+  );
+}
+```
+
+### 4. Verificação de Ação
+
+```typescript
+function handleDeleteVehicle() {
+  const { hasManagerPermission } = useAuth();
+
+  if (!hasManagerPermission()) {
+    setPermissionDeniedVisible(true);
+    return;
+  }
+
+  // Proceder com a ação
+  deleteVehicle();
+}
+```
+
+## 💡 Exemplos Práticos
+
+### Exemplo 1: Botão de Edição
+
+```typescript
+// ✅ Usuário NORMAL pode editar
+if (hasPermission('NORMAL')) {
+  return <EditButton />;
+}
+```
+
+### Exemplo 2: Seção de Administração
+
+```typescript
+// ✅ Apenas MANAGER e ADMIN veem esta seção
+{hasManagerPermission() && (
+  <AdminSection />
+)}
+```
+
+### Exemplo 3: Ação Crítica
+
+```typescript
+// ✅ Apenas ADMIN pode executar
+if (hasAdminPermission()) {
+  return <CriticalActionButton />;
+}
+```
+
+### Exemplo 4: Verificação Específica
+
+```typescript
+// ✅ Apenas MANAGER (não ADMIN) pode executar
+if (hasExactRole('MANAGER')) {
+  return <ManagerOnlyAction />;
+}
+```
+
+## 🎨 Modal de Permissão Negada
+
+O sistema inclui um modal personalizado para informar o usuário sobre permissões insuficientes:
+
+```typescript
+<PermissionDeniedModal
+  visible={permissionDeniedVisible}
+  onClose={handleClosePermissionDenied}
+  action="desativar ou ativar veículos"
+  requiredRole="MANAGER"
+  currentRole={hasManagerPermission() ? 'MANAGER' : 'NORMAL'}
+  message="Você precisa ter permissão de Gerente ou Administrador para desativar ou ativar veículos."
+/>
+```
+
+## ✅ Benefícios
+
+### 1. **Consistência**
+- Mesma lógica no frontend e backend
+- Reduz bugs de permissão
+- Facilita manutenção
+
+### 2. **Flexibilidade**
+- Verificações de permissão mínima
+- Verificações de role exato
+- Funções de conveniência
+
+### 3. **TypeScript**
+- Tipagem completa
+- IntelliSense
+- Detecção de erros em tempo de compilação
+
+### 4. **Reutilização**
+- Funções disponíveis em toda a aplicação
+- Código DRY (Don't Repeat Yourself)
+- Centralização da lógica de permissão
+
+### 5. **UX Melhorada**
+- Interface adaptada ao role do usuário
+- Feedback claro sobre permissões
+- Prevenção de ações não autorizadas
+
+## 🔧 Manutenção
+
+### Adicionando Novos Roles
+
+1. **Frontend**: Adicionar no `ROLE_HIERARCHY` do AuthContext
+2. **Tipos**: Atualizar interfaces TypeScript
+3. **Testes**: Verificar todas as verificações de permissão
+
+### Modificando Hierarquia
+
+1. Ajustar valores numéricos no `ROLE_HIERARCHY`
+2. Atualizar documentação
+3. Testar todas as verificações de permissão
+4. Comunicar mudanças à equipe
+
+## 📝 Notas Importantes
+
+- **Segurança**: As verificações no frontend são para UX e controle de interface. A segurança real deve ser implementada no backend.
+- **Performance**: As funções são otimizadas e não causam re-renders desnecessários.
+- **Compatibilidade**: O sistema é compatível com React Native e funciona em todas as plataformas.
+
+---
+
+**Desenvolvido para o App Estacionamento** 🚗

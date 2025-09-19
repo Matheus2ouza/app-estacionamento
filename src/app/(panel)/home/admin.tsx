@@ -1,22 +1,20 @@
-import CashBox from "@/src/components/CashBox";
-import CashClosedModal from "@/src/components/CashClosedModal";
-import CashRegisterModal from "@/src/components/CashRegisterModal";
-import FeedbackModal from "@/src/components/FeedbackModal";
-import MessageModal from "@/src/components/MessageModal";
-import ParkingBox from "@/src/components/ParkingBox";
-import Colors from "@/src/constants/Colors";
-import { useAuth } from "@/src/context/AuthContext";
-import { useCashContext } from "@/src/context/CashContext";
-import { useCash } from "@/src/hooks/cash/useCash";
-import { styles } from "@/src/styles/home/adminHomeStyles";
-import { CashData } from "@/src/types/cash";
+import CashBox from "@/components/CashBox";
+import CashClosedModal from "@/components/CashClosedModal";
+import CashRegisterModal from "@/components/CashRegisterModal";
+import FeedbackModal from "@/components/FeedbackModal";
+import MessageModal from "@/components/MessageModal";
+import ParkingBox from "@/components/ParkingBox";
+import Colors from "@/constants/Colors";
+import { useAuth } from "@/context/AuthContext";
+import { useCashContext } from "@/context/CashContext";
+import { styles } from "@/styles/home/adminHomeStyles";
 import { Feather } from "@expo/vector-icons";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, Text, TouchableOpacity, View } from "react-native";
 import Spinner from "react-native-loading-spinner-overlay";
 
@@ -30,118 +28,164 @@ export default function AdminHome() {
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [feedbackSuccess, setFeedbackSuccess] = useState(false)
   const [timeCloseFeedback, setTimeCloseFeedback] = useState(5000)
-  const [cashDetails, setCashDetails] = useState<CashData | null>(null)
   const { role, userId } = useAuth();
   const { 
     loading: cashLoading, 
     error, 
     cashStatus, 
     cashData, 
-    fetchStatus, 
+    cashDetails,
+    parkingDetails,
     openCash,
     reOpenCash,
     closeCash,
+    refreshAllData,
+    fetchCashStatus,
+    fetchCashDetails,
+    fetchParkingDetails,
+    isCashOpen,
+    isCashClosed,
+    isCashNotCreated,
   } = useCashContext();
 
-  const { detailsCash } = useCash();
 
-  // Função para buscar detalhes do caixa
-  const fetchCashDetails = async () => {
-    if (cashData?.id && !cashDetails) {
-      const details = await detailsCash(cashData.id);
-      console.log("o details logo abaixo")
-      console.log(details)
-      if (details) {
-        setCashDetails(details);
-      }
-    }
-  };
+  // Referência estável para evitar re-execuções
+  const refreshAllDataRef = useRef(refreshAllData);
+  refreshAllDataRef.current = refreshAllData;
+  const isCashNotCreatedRef = useRef(isCashNotCreated);
+  isCashNotCreatedRef.current = isCashNotCreated;
 
-  // Função para atualizar dados do caixa (usada no refresh)
-  const updateCashDetails = async () => {
-    // Primeiro verifica o status do caixa
-    const status = await fetchStatus();
-    
-    // Depois busca os detalhes se o caixa existir
-    if (cashData?.id && (status === 'open' || status === 'closed')) {
-      const details = await detailsCash(cashData.id);
-      console.log("o details logo abaixo")
-      console.log(details)
-      if (details) {
-        setCashDetails(details);
-      }
-    }
-  };
-
-  // Buscar status do caixa quando a tela for montada
+  // Buscar dados ao montar a tela
   useEffect(() => {
-    checkCashStatus();
+    refreshAllDataRef.current();
   }, []);
 
-  // Monitorar mudanças no status do caixa
-  useEffect(() => {
-    if (cashStatus === 'open') {
-      setMessage(false);
-      setShowCashClosed(false);
-      // Buscar detalhes do caixa quando estiver aberto
-      fetchCashDetails();
-    }
+  // Função para converter dados do estacionamento para o formato esperado pelo ParkingBox
+  const convertParkingData = () => {
+    if (!parkingDetails?.data) return undefined;
     
-    if (cashStatus === 'closed') {
-      setMessage(false);
-      setShowCashClosed(true);
-      // Manter detalhes do caixa mesmo quando fechado
-      if (!cashDetails && cashData?.id) {
-        fetchCashDetails();
-      }
-    }
+    const { data } = parkingDetails;
+    const free = data.capacityMax - data.quantityVehicles;
     
-    if (cashStatus === 'not_created') {
-      setMessage(true);
-      setShowCashClosed(false);
-      setCashDetails(null); // Limpar detalhes apenas quando não há caixa
-    }
-  }, [cashStatus, cashData?.id]);
+    return {
+      free,
+      used: data.quantityVehicles,
+      details: [data.quantityCars, data.quantityMotorcycles]
+    };
+  };
 
-  const checkCashStatus = async () => {
+  // Buscar dados quando a tela recebe foco e, se não houver caixa, solicitar abertura (sem dependências para evitar loop)
+  useFocusEffect(
+    useCallback(() => {
+      console.log('🔍 [AdminHome] useFocusEffect: Tela recebeu foco, atualizando todos os dados');
+      let cancelled = false;
+      (async () => {
+        await refreshAllDataRef.current();
+        if (!cancelled && isCashNotCreatedRef.current()) {
+          setMessage(true);
+        }
+      })();
+      return () => { cancelled = true; };
+    }, [])
+  );
+
+
+
+  // Função específica para refresh do CashBox
+  const handleCashBoxRefresh = async () => {
+    console.log('🔍 [AdminHome] handleCashBoxRefresh: Iniciando refresh do CashBox');
+    
+    // Verificar se o caixa não foi criado antes de fazer refresh
+    if (isCashNotCreated()) {
+      console.log('❌ [AdminHome] handleCashBoxRefresh: Caixa não criado, mostrando modal');
+      setMessage(true);
+      return;
+    }
+    
     setShowLoader(true);
     const startTime = Date.now();
     
     try {
-      const status = await fetchStatus();
+      // Buscar apenas o status e detalhes do caixa
+      const { status, cashId } = await fetchCashStatus();
+      console.log('🔍 [AdminHome] handleCashBoxRefresh: Status atualizado:', status, 'ID:', cashId);
       
-      if(status === 'not_created') {
-        setMessage(true);
-        setShowCashClosed(false);
-        setCashDetails(null);
+      // Se o caixa existe, buscar detalhes do caixa
+      if ((status === 'open' || status === 'closed') && cashId) {
+        await fetchCashDetails(cashId);
+        console.log('✅ [AdminHome] handleCashBoxRefresh: Detalhes do caixa atualizados');
       }
-      
-      if(status === 'closed') {
-        setMessage(false);
-        setShowCashClosed(true);
-        // Buscar detalhes se não tiver ainda
-        if (!cashDetails && cashData?.id) {
-          await fetchCashDetails();
-        }
-      }
-      
-      if(status === 'open') {
-        setMessage(false);
-        setShowCashClosed(false);
-        // Buscar detalhes se não tiver ainda
-        if (!cashDetails && cashData?.id) {
-          await fetchCashDetails();
-        }
-      }
+    } catch (error) {
+      console.error('❌ [AdminHome] handleCashBoxRefresh: Erro ao atualizar dados do caixa:', error);
     } finally {
       const elapsedTime = Date.now() - startTime;
-      const remainingTime = Math.max(0, 2000 - elapsedTime);
+      const remainingTime = Math.max(0, 1000 - elapsedTime);
       
       setTimeout(() => {
         setShowLoader(false);
+        console.log('🔍 [AdminHome] handleCashBoxRefresh: Finalizando refresh');
       }, remainingTime);
     }
   };
+
+  // Função específica para refresh do ParkingBox
+  const handleParkingBoxRefresh = async () => {
+    console.log('🔍 [AdminHome] handleParkingBoxRefresh: Iniciando refresh do ParkingBox');
+    
+    // Verificar se o caixa não foi criado antes de fazer refresh
+    if (isCashNotCreated()) {
+      console.log('❌ [AdminHome] handleParkingBoxRefresh: Caixa não criado, mostrando modal');
+      setMessage(true);
+      return;
+    }
+    
+    setShowLoader(true);
+    const startTime = Date.now();
+    
+    try {
+      // Buscar apenas dados do estacionamento
+      if (cashData?.id) {
+        await fetchParkingDetails(cashData.id);
+        console.log('✅ [AdminHome] handleParkingBoxRefresh: Dados do estacionamento atualizados');
+      } else {
+        console.log('❌ [AdminHome] handleParkingBoxRefresh: ID do caixa não disponível');
+      }
+    } catch (error) {
+      console.error('❌ [AdminHome] handleParkingBoxRefresh: Erro ao atualizar dados do estacionamento:', error);
+    } finally {
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, 1000 - elapsedTime);
+      
+      setTimeout(() => {
+        setShowLoader(false);
+        console.log('🔍 [AdminHome] handleParkingBoxRefresh: Finalizando refresh');
+      }, remainingTime);
+    }
+  };
+
+  // Monitorar mudanças no status do caixa
+  useEffect(() => {
+    console.log('🔍 [AdminHome] useEffect cashStatus: Status mudou para:', cashStatus);
+    
+    if (isCashOpen()) {
+      console.log('✅ [AdminHome] useEffect cashStatus: Caixa aberto');
+      setMessage(false);
+      setShowCashClosed(false);
+    }
+    
+    if (isCashClosed()) {
+      console.log('🔒 [AdminHome] useEffect cashStatus: Caixa fechado');
+      setMessage(false);
+      setShowCashClosed(true);
+    }
+    
+    if (isCashNotCreated()) {
+      console.log('❌ [AdminHome] useEffect cashStatus: Caixa não criado');
+      setMessage(true);
+      setShowCashClosed(false);
+    }
+  }, [cashStatus]);
+
 
   const handleOpenCash = () => {
     setMessage(false);
@@ -150,17 +194,30 @@ export default function AdminHome() {
     setShowCashRegister(true);
   };
 
-  const handleReopenCash = () => {
-    setCashRegisterMode('reopen');
-    setShowCashRegister(true);
-  };
-
   const handleOpenCashRegister = async (initialValue: string) => {
     setShowLoader(true);
     const startTime = Date.now();
     
     try {
-      const numericValue = parseFloat(initialValue);
+      // Função para converter valor monetário brasileiro para número
+      const convertBrazilianCurrency = (value: string): number => {
+        if (!value || value.trim() === '') return 0;
+        
+        // Remove espaços e caracteres não numéricos exceto vírgula e ponto
+        let cleanValue = value.replace(/\s/g, '').replace(/[^\d,.-]/g, '');
+        
+        // Se tem vírgula, assume formato brasileiro (17,50)
+        if (cleanValue.includes(',')) {
+          // Substitui vírgula por ponto para parseFloat
+          cleanValue = cleanValue.replace(',', '.');
+        }
+        
+        const result = parseFloat(cleanValue);
+        return isNaN(result) ? 0 : result;
+      };
+
+      const numericValue = convertBrazilianCurrency(initialValue);
+      
       const [success, message] = await openCash(numericValue);
       
       if (success) {
@@ -251,7 +308,7 @@ export default function AdminHome() {
 
         <TouchableOpacity
           onPress={() => {
-            router.push("/Config/config");
+            router.push("/config/admin");
           }}
         >
           <View style={styles.iconCircle}>
@@ -292,7 +349,7 @@ export default function AdminHome() {
       <FeedbackModal
         visible={showFeedback}
         message={feedbackMessage}
-        isSuccess={feedbackSuccess}
+        type={feedbackSuccess ? 'success' : 'error'}
         onClose={() => setShowFeedback(false)}
         dismissible={true}
         timeClose={timeCloseFeedback}
@@ -315,7 +372,7 @@ export default function AdminHome() {
       <View style={styles.body}>
         <CashBox 
           cashStatus={cashStatus}
-          onRefresh={updateCashDetails}
+          onRefresh={handleCashBoxRefresh}
           cashData={cashDetails ? {
             "Valor Inicial": cashDetails.initialValue,
             Dinheiro: cashDetails.totalCash,
@@ -329,7 +386,8 @@ export default function AdminHome() {
 
         <ParkingBox 
           cashStatus={cashStatus}
-          onRefresh={checkCashStatus}
+          onRefresh={handleParkingBoxRefresh}
+          parkingData={convertParkingData()}
         />
 
         <LinearGradient
@@ -369,7 +427,7 @@ export default function AdminHome() {
           </Pressable>
           <Pressable
             onPress={() => {
-              router.push("/functions/inventory");
+              router.push("/functions/registerProductSale");
             }}
           >
             <View style={styles.buttonDashboard}>

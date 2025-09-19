@@ -1,128 +1,125 @@
-import { ParkingApi } from '@/src/api/parkingService';
-import { VehicleApi } from '@/src/api/vehicleFlowService';
-import { formatTime } from '@/src/utils/dateUtils';
-import { useEffect, useState } from 'react';
+import { ParkingApi } from "@/api/parkingService";
+import { CapacityParkingResponse, ParkedVehicle } from "@/types/parkingTypes/parking";
+import { useState } from "react";
 
-interface Car {
-  id: number,
-  plate: string;
-  entryTime: string;
-  operator: string;
-  category: string;
-}
+export function useParking() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<boolean>(false);
+  const [message, setMessage] = useState<string | null>(null);
 
-interface CarWithElapsedTime extends Car {
-  elapsedTime: string;
-  formattedEntryTime: string;
-}
+  const getCapacityParking = async (cashId: string): Promise<CapacityParkingResponse> => {
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
+    setMessage(null);
 
-interface ParkingConfig {
-  maxCars: number;
-  maxMotorcycles: number;
-  maxLargeVehicles: number;
-}
-
-const useParking = () => {
-  const [cars, setCars] = useState<CarWithElapsedTime[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [parkingCapacity, setParkingCapacity] = useState<number | null>(null);
-
-  // Função para calcular tempo decorrido
-  const calculateElapsedTime = (entryTime: Date): string => {
-    const now = new Date();
-    const diffInSeconds = Math.floor((now.getTime() - entryTime.getTime()) / 1000);
-
-    const hours = Math.floor(diffInSeconds / 3600);
-    const minutes = Math.floor((diffInSeconds % 3600) / 60);
-    const seconds = diffInSeconds % 60;
-
-    return `${hours.toString().padStart(2, '0')}:${minutes
-      .toString()
-      .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  };
-
-  // Buscar configuração do pátio
-  const fetchParkingConfig = async () => {
     try {
-      const configData = await ParkingApi.getConfigParking();
-      if (configData.success) {
-        const config: ParkingConfig = configData.config;
-        const totalCapacity =
-          config.maxCars + config.maxMotorcycles + config.maxLargeVehicles;
-        setParkingCapacity(totalCapacity);
-      }
-    } catch (error) {
-      console.error('Erro ao buscar configuração do pátio:', error);
-    }
-  };
-
-  // Buscar veículos do pátio
-  const fetchCars = async () => {
-    try {
-      setLoading(true);
-      const data = await VehicleApi.getParked();
-
-      if (data.success) {
-        const carsWithElapsedTime = data.data.map((car: Car) => {
-          const parsedEntryTime = new Date(car.entryTime);
-
-          return {
-            ...car,
-            elapsedTime: calculateElapsedTime(parsedEntryTime),
-            formattedEntryTime: formatTime(parsedEntryTime),
-          };
-        });
-
-        setCars(carsWithElapsedTime);
-      }
-    } catch (error) {
-      console.error('Erro ao buscar carros:', error);
+      const response = await ParkingApi.getCapacityParking(cashId);
+      setSuccess(true);
+      setMessage(response.message || 'Capacidade do pátio carregada com sucesso');
+      return { 
+        success: true, 
+        message: response.message || 'Capacidade do pátio carregada com sucesso', 
+        data: response.data 
+      };
+    } catch (error: any) {
+      const errorMessage = error.message || 'Erro ao buscar capacidade do pátio';
+      setSuccess(false);
+      setError(errorMessage);
+      return { 
+        success: false, 
+        message: errorMessage,
+        data: {
+          capacityMax: 0,
+          quantityVehicles: 0,
+          quantityCars: 0,
+          quantityMotorcycles: 0,
+          maxCars: 0,
+          maxMotorcycles: 0,
+          percentage: 0
+        }
+      };
     } finally {
       setLoading(false);
     }
   };
 
-  // Atualiza contadores a cada segundo
-  useEffect(() => {
-    if (cars.length === 0) return;
+  return {
+    loading,
+    error,
+    success,
+    message,
+    getCapacityParking
+  };
+}
 
-    const interval = setInterval(() => {
-      setCars(prevCars =>
-        prevCars.map(car => {
-          const parsedEntryTime = new Date(car.entryTime);
-          return {
-            ...car,
-            elapsedTime: calculateElapsedTime(parsedEntryTime),
-          };
-        })
-      );
-    }, 1000);
+export function useParkedVehicles(cashId: string, limit: number = 5) {
+  const [vehicles, setVehicles] = useState<ParkedVehicle[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
 
-    return () => clearInterval(interval);
-  }, [cars]);
+  const loadInitial = async () => {
+    setLoading(true);
+    setError(null);
+    setVehicles([]);
+    setNextCursor(null);
+    setHasMore(true);
 
-  // Busca inicial
-  useEffect(() => {
-    fetchParkingConfig();
-    fetchCars();
-  }, []);
+    try {
+      const response = await ParkingApi.getParkedVehicles(cashId, undefined, limit);
 
-  const refresh = () => {
-    fetchCars();
-    fetchParkingConfig();
+      if (response.success) {
+        setVehicles(response.data.vehicles);
+        setNextCursor(response.data.nextCursor || null);
+        setHasMore(response.data.hasMore);
+      } else {
+        setError(response.message || 'Erro ao carregar veículos');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Erro ao carregar veículos');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Calcula a porcentagem de ocupação do pátio
-  const occupancyPercentage = parkingCapacity
-    ? Math.round((cars.length / parkingCapacity) * 100)
-    : 0;
+  const loadMore = async () => {
+    if (!nextCursor || loading || !hasMore) {
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await ParkingApi.getParkedVehicles(cashId, nextCursor, limit);
+      
+      if (response.success) {
+        setVehicles(prev => {
+          const newVehicles = [...prev, ...response.data.vehicles];
+          return newVehicles;
+        });
+        setNextCursor(response.data.nextCursor || null);
+        setHasMore(response.data.hasMore);
+      } else {
+        setError(response.message || 'Erro ao carregar mais veículos');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Erro ao carregar mais veículos');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return {
-    cars,
+    vehicles,
     loading,
-    refresh,
-    occupancyPercentage,
+    error,
+    nextCursor,
+    hasMore,
+    loadInitial,
+    loadMore
   };
-};
-
-export default useParking;
+}

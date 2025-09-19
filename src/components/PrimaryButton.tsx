@@ -1,4 +1,4 @@
-import { PrimaryButtonProps } from "@/src/types/components";
+import { PrimaryButtonProps } from "@/types/components";
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 
@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
     width: '60%',
     height: 50,
     backgroundColor: '#1C274C',
-    borderRadius: 50,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 10,

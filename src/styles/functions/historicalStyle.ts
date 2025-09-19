@@ -1,4 +1,4 @@
-import Colors from "@/src/constants/Colors";
+import Colors from "@/constants/Colors";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
@@ -50,7 +50,7 @@ export const styles = StyleSheet.create({
     flexShrink: 1,
   },
   buttonArea: {
-    backgroundColor: Colors.blueLogo,
+    backgroundColor: Colors.blue.logo,
     borderRadius: 10,
     minWidth: 60,
     minHeight: 60,

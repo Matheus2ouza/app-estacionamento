@@ -1,4 +1,4 @@
-import Colors from '@/src/constants/Colors';
+import Colors from '@/constants/Colors';
 import { MaterialIcons } from '@expo/vector-icons';
 import React, { useEffect } from 'react';
 import {
@@ -12,13 +12,12 @@ import {
 interface FeedbackModalProps {
   visible: boolean;
   message: string;
-  isSuccess?: boolean;
+  type?: 'success' | 'error' | 'warning' | 'info';
   onClose: () => void;
   dismissible?: boolean;
   // Props para navegação automática
   onBackPress?: () => void;
   autoNavigateOnSuccess?: boolean;
-  autoNavigateOnError?: boolean;
   navigateDelay?: number;
   timeClose?: number;
 }
@@ -26,40 +25,73 @@ interface FeedbackModalProps {
 const FeedbackModal = ({ 
   visible, 
   message, 
-  isSuccess = false, 
+  type = 'info', 
   onClose, 
   dismissible = true,
   onBackPress,
   autoNavigateOnSuccess = false,
-  autoNavigateOnError = false,
   navigateDelay = 2000,
-  timeClose = 5000
+  timeClose
 }: FeedbackModalProps) => {
+  // Determina o tempo de fechamento baseado no tipo
+  const getTimeClose = () => {
+    if (timeClose) return timeClose;
+    
+    switch (type) {
+      case 'success': return 3000;
+      case 'error': return 5000;
+      case 'warning': return 4000;
+      case 'info': return 4000;
+      default: return 4000;
+    }
+  };
+
+  // Determina se deve navegar automaticamente
+  const shouldAutoNavigate = type === 'success' && autoNavigateOnSuccess;
+
+  // Determina o ícone baseado no tipo
+  const getIcon = () => {
+    switch (type) {
+      case 'success': return 'check-circle';
+      case 'error': return 'error';
+      case 'warning': return 'warning';
+      case 'info': return 'info';
+      default: return 'info';
+    }
+  };
+
+  // Determina a cor de fundo baseada no tipo
+  const getBackgroundColor = () => {
+    switch (type) {
+      case 'success': return Colors.status.success;
+      case 'error': return Colors.status.error;
+      case 'warning': return Colors.orange[500];
+      case 'info': return Colors.blue.primary;
+      default: return Colors.blue.primary;
+    }
+  };
+
   useEffect(() => {
     if (visible) {
       const timer = setTimeout(() => {
         onClose();
-      }, timeClose);
+      }, getTimeClose());
 
       return () => clearTimeout(timer);
     }
-  }, [visible]);
+  }, [visible, type]);
 
   // Efeito para navegação automática
   useEffect(() => {
-    if (visible && onBackPress) {
-      const shouldNavigate = (isSuccess && autoNavigateOnSuccess) || (!isSuccess && autoNavigateOnError);
-      
-      if (shouldNavigate) {
-        const timer = setTimeout(() => {
-          onBackPress();
-          onClose();
-        }, navigateDelay);
+    if (visible && onBackPress && shouldAutoNavigate) {
+      const timer = setTimeout(() => {
+        onBackPress();
+        onClose();
+      }, navigateDelay);
 
-        return () => clearTimeout(timer);
-      }
+      return () => clearTimeout(timer);
     }
-  }, [visible, isSuccess, autoNavigateOnSuccess, autoNavigateOnError, onBackPress, navigateDelay, onClose]);
+  }, [visible, shouldAutoNavigate, onBackPress, navigateDelay, onClose]);
 
   return (
     <Modal
@@ -75,10 +107,10 @@ const FeedbackModal = ({
             <TouchableWithoutFeedback>
               <View style={[
                 styles.modalView,
-                isSuccess ? styles.successBackground : styles.errorBackground
+                { backgroundColor: getBackgroundColor() }
               ]}>
                 <MaterialIcons
-                  name={isSuccess ? "check-circle" : "error"}
+                  name={getIcon() as any}
                   size={40}
                   color="white"
                 />
@@ -91,10 +123,10 @@ const FeedbackModal = ({
         <View style={styles.centeredView}>
           <View style={[
             styles.modalView,
-            isSuccess ? styles.successBackground : styles.errorBackground
+            { backgroundColor: getBackgroundColor() }
           ]}>
             <MaterialIcons
-              name={isSuccess ? "check-circle" : "error"}
+              name={getIcon() as any}
               size={40}
               color="white"
             />
@@ -127,12 +159,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
     width: '80%',
-  },
-  successBackground: {
-    backgroundColor: Colors.status.success,
-  },
-  errorBackground: {
-    backgroundColor: Colors.status.error,
   },
   modalText: {
     marginVertical: 15,
