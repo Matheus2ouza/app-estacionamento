@@ -9,7 +9,6 @@
       "distribution": "internal",
       "channel": "development",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api-estacionamento.vercel.app",
         "NODE_ENV": "development"
       },
       "android": {
