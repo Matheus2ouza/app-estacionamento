@@ -34,7 +34,16 @@
       "expo-font",
       "expo-web-browser",
       "expo-secure-store",
-      "expo-notifications",
+      [
+        "expo-notifications",
+        {
+          "icon": "./src/assets/images/splash-icon-white.png",
+          "color": "#003153",
+          "sounds": [
+            "./src/assets/sounds/livechat-129007.wav"
+          ]
+        }
+      ],
       [
         "expo-splash-screen",
         {
