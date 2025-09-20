@@ -75,11 +75,10 @@ const CashRegisterModal = ({
       visible={visible}
       animationType="fade"
       transparent={true}
-      onRequestClose={role === 'ADMIN' ? handleClose : () => {}}
+      onRequestClose={handleClose} // agora sempre chama handleClose
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
-          {role === 'ADMIN' ? (
             <>
               <Text style={styles.title}>{getTitle()}</Text>
               <Text style={styles.message}>{getMessage()}</Text>
@@ -112,26 +111,10 @@ const CashRegisterModal = ({
                 </TouchableOpacity>
               </View>
             </>
-          ) : (
-            <>
-              <Text style={styles.title}>Caixa não aberto</Text>
-              <Text style={styles.message}>
-                Entre em contato com o administrador para que ele possa abrir o caixa.
-              </Text>
-              
-              {/* Botão de logout para não-ADMIN */}
-              <TouchableOpacity 
-                style={styles.logoutButton}
-                onPress={handleLogout}
-              >
-                <Text style={styles.buttonText}>Sair</Text>
-              </TouchableOpacity>
-            </>
-          )}
         </View>
       </View>
     </Modal>
-  );
+  );  
 };
 
 const styles = StyleSheet.create({
