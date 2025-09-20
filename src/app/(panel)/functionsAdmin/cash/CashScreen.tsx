@@ -23,22 +23,24 @@ export default function CashIndex() {
   const {
     cashStatus,
     cashData,
-    isCashOpen,
-    isCashClosed,
-    isCashNotCreated,
-    refreshAllData,
+    updateCashStatus,
   } = useCashContext();
 
   // Hook useCash - fonte principal de dados
   const cashHook = useCash();
+
+  // Funções utilitárias locais
+  const isCashOpen = (): boolean => cashStatus === 'open';
+  const isCashClosed = (): boolean => cashStatus === 'closed';
+  const isCashNotCreated = (): boolean => cashStatus === 'not_created';
 
   const [refreshing, setRefreshing] = useState(false);
   const [expandedCards, setExpandedCards] = useState<string[]>([]);
   const [showWarning, setShowWarning] = useState(true);
   
   // Refs estáveis para evitar loops e dependências mutáveis no useFocusEffect
-  const refreshAllDataRef = useRef(refreshAllData);
-  refreshAllDataRef.current = refreshAllData;
+  const updateCashStatusRef = useRef(updateCashStatus);
+  updateCashStatusRef.current = updateCashStatus;
   const cashDataRef = useRef(cashData);
   cashDataRef.current = cashData;
   const cashStatusRef = useRef(cashStatus);
@@ -111,7 +113,7 @@ export default function CashIndex() {
       let cancelled = false;
       (async () => {
         // Atualiza status/dados do contexto
-        await refreshAllDataRef.current();
+        await updateCashStatusRef.current();
         if (cancelled) return;
 
         // Após atualizar o contexto, buscar detalhes reais se houver caixa válido
@@ -136,6 +138,10 @@ export default function CashIndex() {
     setRefreshing(true);
     
     try {
+      // Atualizar status do contexto primeiro
+      await updateCashStatus();
+      
+      // Depois buscar detalhes se houver caixa válido
       if ((cashStatus === 'open' || cashStatus === 'closed') && cashData?.id) {
         await cashHook.fetchGeneralDetailsCash(cashData.id);
       }
@@ -149,6 +155,10 @@ export default function CashIndex() {
   // Função para tentar novamente
   const handleRetry = async () => {
     try {
+      // Atualizar status do contexto primeiro
+      await updateCashStatus();
+      
+      // Depois buscar detalhes se houver caixa válido
       if ((cashStatus === 'open' || cashStatus === 'closed') && cashData?.id) {
         await cashHook.fetchGeneralDetailsCash(cashData.id);
       }

@@ -1,4 +1,5 @@
 import Colors from '@/constants/Colors';
+import { useAuth } from '@/context/AuthContext';
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import React from 'react';
@@ -16,6 +17,7 @@ interface ParkingBoxProps {
 }
 
 const ParkingBox: React.FC<ParkingBoxProps> = ({ cashStatus, onRefresh, parkingData }) => {
+  const { role } = useAuth();
   const mockParkingData = {
     free: 42,
     used: 99,
@@ -27,7 +29,7 @@ const ParkingBox: React.FC<ParkingBoxProps> = ({ cashStatus, onRefresh, parkingD
       return (
         <View style={styles.noDataContainer}>
           <Text style={styles.noDataText}>
-            Pátio fechado{'\n'}Abra o caixa para ver as vagas
+            {role === 'NORMAL' ? 'Pátio fechado, aguarde o administrador abrir o caixa para ver as vagas' : 'Pátio fechado\nAbra o caixa para ver as vagas'}
           </Text>
         </View>
       );

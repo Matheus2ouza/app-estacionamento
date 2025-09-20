@@ -49,7 +49,12 @@ export default function EntreyRegister() {
     useRegisterVehicle();
 
   // Contexto do caixa para verificar status
-  const { cashData, cashStatus, isCashNotCreated, isCashClosed } = useCashContext();
+  const { cashData, cashStatus } = useCashContext();
+
+  // Funções utilitárias locais para verificar status do caixa
+  const isCashOpen = (): boolean => cashStatus === 'open';
+  const isCashClosed = (): boolean => cashStatus === 'closed';
+  const isCashNotCreated = (): boolean => cashStatus === 'not_created';
 
   // Verificar se a tela deve ser bloqueada
   const isScreenBlocked = isCashNotCreated() || isCashClosed();

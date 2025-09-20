@@ -93,11 +93,11 @@ export default function Normal() {
       onPress: () => router.push("/functions/parking"),
     },
     {
-      id: "historico",
-      title: "Histórico",
-      description: "Visualizar histórico de operações",
-      icon: { name: "time-outline", library: "Ionicons" },
-      onPress: () => router.push("/functions/history"),
+      id: "despesas",
+      title: "despesas",
+      description: "Visualizar despesas",
+      icon: { name: "receipt-outline", library: "Ionicons" },
+      onPress: () => router.push("/functions/expenseRecord"),
     },
     {
       id: "pagamentos",
@@ -112,6 +112,20 @@ export default function Normal() {
       description: "Visualizar produtos",
       icon: { name: "cube-outline", library: "Ionicons" },
       onPress: () => router.push("/functions/inventory"),
+    },
+    {
+      id: "caixa",
+      title: "Configurar caixa",
+      description: "Configurar caixa",
+      icon: { name: "cube-outline", library: "Ionicons" },
+      onPress: () => router.push("/functionsAdmin/CashSettings"),
+    },
+    {
+      id: "historico",
+      title: "Histórico",
+      description: "Visualizar histórico de operações",
+      icon: { name: "time-outline", library: "Ionicons" },
+      onPress: () => router.push("/functions/history"),
     },
     {
       id: "sair",

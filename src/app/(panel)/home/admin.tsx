@@ -36,42 +36,51 @@ export default function AdminHome() {
     cashData, 
     cashDetails,
     parkingDetails,
-    openCash,
-    reOpenCash,
-    closeCash,
-    refreshAllData,
-    fetchCashStatus,
+    updateCashStatus,
     fetchCashDetails,
     fetchParkingDetails,
-    isCashOpen,
-    isCashClosed,
-    isCashNotCreated,
+    openCash,
+    closeCash,
+    reopenCash,
   } = useCashContext();
+
+  // Funções utilitárias locais
+  const isCashOpen = (): boolean => cashStatus === 'open';
+  const isCashClosed = (): boolean => cashStatus === 'closed';
+  const isCashNotCreated = (): boolean => cashStatus === 'not_created';
 
 
   // Referência estável para evitar re-execuções
-  const refreshAllDataRef = useRef(refreshAllData);
-  refreshAllDataRef.current = refreshAllData;
   const isCashNotCreatedRef = useRef(isCashNotCreated);
   isCashNotCreatedRef.current = isCashNotCreated;
 
   // Buscar dados ao montar a tela
   useEffect(() => {
-    refreshAllDataRef.current();
+    console.log('🔍 [AdminHome] useEffect inicial: Montando tela, buscando dados');
+    updateCashStatus();
   }, []);
 
   // Função para converter dados do estacionamento para o formato esperado pelo ParkingBox
   const convertParkingData = () => {
-    if (!parkingDetails?.data) return undefined;
+    console.log('🔍 [AdminHome] convertParkingData: Convertendo dados do estacionamento');
+    console.log('🔍 [AdminHome] convertParkingData: parkingDetails:', parkingDetails);
+    
+    if (!parkingDetails?.data) {
+      console.log('❌ [AdminHome] convertParkingData: Nenhum dado de estacionamento disponível');
+      return undefined;
+    }
     
     const { data } = parkingDetails;
     const free = data.capacityMax - data.quantityVehicles;
     
-    return {
+    const result = {
       free,
       used: data.quantityVehicles,
       details: [data.quantityCars, data.quantityMotorcycles]
     };
+    
+    console.log('✅ [AdminHome] convertParkingData: Dados convertidos:', result);
+    return result;
   };
 
   // Buscar dados quando a tela recebe foco e, se não houver caixa, solicitar abertura (sem dependências para evitar loop)
@@ -80,16 +89,42 @@ export default function AdminHome() {
       console.log('🔍 [AdminHome] useFocusEffect: Tela recebeu foco, atualizando todos os dados');
       let cancelled = false;
       (async () => {
-        await refreshAllDataRef.current();
-        if (!cancelled && isCashNotCreatedRef.current()) {
+        // Atualizar status do caixa
+        await updateCashStatus();
+        
+        if (cancelled) return;
+        
+        // Se caixa não foi criado, mostrar modal
+        if (isCashNotCreatedRef.current()) {
           setMessage(true);
+          return;
+        }
+        
+        // Se caixa estiver aberto, buscar dados do pátio
+        if (cashStatus === 'open' && cashData?.id) {
+          console.log('🔍 [AdminHome] useFocusEffect: Caixa aberto, buscando dados do pátio');
+          try {
+            await fetchParkingDetails(cashData.id);
+            console.log('✅ [AdminHome] useFocusEffect: Dados do pátio atualizados');
+          } catch (error) {
+            console.error('❌ [AdminHome] useFocusEffect: Erro ao buscar dados do pátio:', error);
+          }
+        }
+        
+        // Se caixa estiver aberto ou fechado, buscar detalhes do caixa
+        if ((cashStatus === 'open' || cashStatus === 'closed') && cashData?.id) {
+          console.log('🔍 [AdminHome] useFocusEffect: Buscando detalhes do caixa');
+          try {
+            await fetchCashDetails(cashData.id);
+            console.log('✅ [AdminHome] useFocusEffect: Detalhes do caixa atualizados');
+          } catch (error) {
+            console.error('❌ [AdminHome] useFocusEffect: Erro ao buscar detalhes do caixa:', error);
+          }
         }
       })();
       return () => { cancelled = true; };
     }, [])
   );
-
-
 
   // Função específica para refresh do CashBox
   const handleCashBoxRefresh = async () => {
@@ -106,13 +141,13 @@ export default function AdminHome() {
     const startTime = Date.now();
     
     try {
-      // Buscar apenas o status e detalhes do caixa
-      const { status, cashId } = await fetchCashStatus();
-      console.log('🔍 [AdminHome] handleCashBoxRefresh: Status atualizado:', status, 'ID:', cashId);
+      // Atualizar status do caixa
+      await updateCashStatus();
+      console.log('🔍 [AdminHome] handleCashBoxRefresh: Status atualizado');
       
       // Se o caixa existe, buscar detalhes do caixa
-      if ((status === 'open' || status === 'closed') && cashId) {
-        await fetchCashDetails(cashId);
+      if ((cashStatus === 'open' || cashStatus === 'closed') && cashData?.id) {
+        await fetchCashDetails(cashData.id);
         console.log('✅ [AdminHome] handleCashBoxRefresh: Detalhes do caixa atualizados');
       }
     } catch (error) {
@@ -143,12 +178,16 @@ export default function AdminHome() {
     const startTime = Date.now();
     
     try {
-      // Buscar apenas dados do estacionamento
-      if (cashData?.id) {
+      // Atualizar status do caixa primeiro
+      await updateCashStatus();
+      console.log('🔍 [AdminHome] handleParkingBoxRefresh: Status atualizado');
+      
+      // Buscar dados do estacionamento se o caixa estiver aberto
+      if (cashStatus === 'open' && cashData?.id) {
         await fetchParkingDetails(cashData.id);
         console.log('✅ [AdminHome] handleParkingBoxRefresh: Dados do estacionamento atualizados');
       } else {
-        console.log('❌ [AdminHome] handleParkingBoxRefresh: ID do caixa não disponível');
+        console.log('❌ [AdminHome] handleParkingBoxRefresh: Caixa não aberto ou ID não disponível');
       }
     } catch (error) {
       console.error('❌ [AdminHome] handleParkingBoxRefresh: Erro ao atualizar dados do estacionamento:', error);
@@ -171,6 +210,14 @@ export default function AdminHome() {
       console.log('✅ [AdminHome] useEffect cashStatus: Caixa aberto');
       setMessage(false);
       setShowCashClosed(false);
+      
+      // Buscar dados do pátio automaticamente quando caixa for aberto
+      if (cashData?.id) {
+        console.log('🔍 [AdminHome] useEffect cashStatus: Buscando dados do pátio automaticamente');
+        fetchParkingDetails(cashData.id).catch(error => {
+          console.error('❌ [AdminHome] useEffect cashStatus: Erro ao buscar dados do pátio:', error);
+        });
+      }
     }
     
     if (isCashClosed()) {
@@ -184,7 +231,12 @@ export default function AdminHome() {
       setMessage(true);
       setShowCashClosed(false);
     }
-  }, [cashStatus]);
+  }, [cashStatus, cashData?.id]);
+
+  // Monitorar mudanças nos dados do estacionamento
+  useEffect(() => {
+    console.log('🔍 [AdminHome] useEffect parkingDetails: Dados do estacionamento mudaram:', parkingDetails);
+  }, [parkingDetails]);
 
 
   const handleOpenCash = () => {
@@ -195,87 +247,75 @@ export default function AdminHome() {
   };
 
   const handleOpenCashRegister = async (initialValue: string) => {
-    setShowLoader(true);
-    const startTime = Date.now();
+    console.log('🔍 [AdminHome] handleOpenCashRegister: Abrindo caixa com valor:', initialValue);
     
     try {
-      // Função para converter valor monetário brasileiro para número
-      const convertBrazilianCurrency = (value: string): number => {
-        if (!value || value.trim() === '') return 0;
-        
-        // Remove espaços e caracteres não numéricos exceto vírgula e ponto
-        let cleanValue = value.replace(/\s/g, '').replace(/[^\d,.-]/g, '');
-        
-        // Se tem vírgula, assume formato brasileiro (17,50)
-        if (cleanValue.includes(',')) {
-          // Substitui vírgula por ponto para parseFloat
-          cleanValue = cleanValue.replace(',', '.');
-        }
-        
-        const result = parseFloat(cleanValue);
-        return isNaN(result) ? 0 : result;
-      };
-
-      const numericValue = convertBrazilianCurrency(initialValue);
+      setShowLoader(true);
+      const numericValue = typeof initialValue === 'string' ? parseFloat(initialValue) : initialValue;
+      const result = await openCash(numericValue);
       
-      const [success, message] = await openCash(numericValue);
+      setFeedbackMessage(result.message);
+      setFeedbackSuccess(result.success);
+      setShowFeedback(true);
+      setTimeCloseFeedback(3000);
       
-      if (success) {
+      if (result.success) {
+        // Fechar o modal de abertura do caixa
         setShowCashRegister(false);
-        setFeedbackMessage(message);
-        setFeedbackSuccess(true);
-        setShowFeedback(true);
-        setTimeCloseFeedback(3000)
-      } else {
-        setFeedbackMessage(message);
-        setFeedbackSuccess(false);
-        setShowFeedback(true);
-        setTimeCloseFeedback(3000)
+        
+        // Forçar atualização dos dados após abrir caixa
+        setTimeout(async () => {
+          await updateCashStatus();
+          if (cashData?.id) {
+            await fetchCashDetails(cashData.id);
+            await fetchParkingDetails(cashData.id);
+          }
+        }, 1000);
       }
+    } catch (error) {
+      console.error('❌ [AdminHome] handleOpenCashRegister: Erro ao abrir caixa:', error);
+      setFeedbackMessage('Erro inesperado ao abrir caixa');
+      setFeedbackSuccess(false);
+      setShowFeedback(true);
+      setTimeCloseFeedback(3000);
     } finally {
-      const elapsedTime = Date.now() - startTime;
-      const remainingTime = Math.max(0, 2000 - elapsedTime);
-      
-      setTimeout(() => {
-        setShowLoader(false);
-      }, remainingTime);
+      setShowLoader(false);
     }
   };
 
   const handleReopenCashRegister = async () => {
-    if (!cashData?.id) {
-      console.error('ID do caixa não encontrado');
-      setFeedbackMessage('Erro: Caixa não encontrado');
-      setFeedbackSuccess(false);
-      setShowFeedback(true);
-      return;
-    }
-
-    setShowLoader(true);
-    const startTime = Date.now();
+    console.log('🔍 [AdminHome] handleReopenCashRegister: Reabrindo caixa');
     
     try {
-      const [success, message] = await reOpenCash(cashData.id);
+      setShowLoader(true);
+      const result = await reopenCash(cashData?.id);
       
-      if (success) {
+      setFeedbackMessage(result.message);
+      setFeedbackSuccess(result.success);
+      setShowFeedback(true);
+      setTimeCloseFeedback(3000);
+      
+      if (result.success) {
+        // Fechar o modal de reabertura do caixa
         setShowCashRegister(false);
-        setFeedbackMessage(message);
-        setFeedbackSuccess(true);
-        setShowFeedback(true);
-        setTimeCloseFeedback(3000)
-      } else {
-        setFeedbackMessage(message);
-        setFeedbackSuccess(false);
-        setShowFeedback(true);
-        setTimeCloseFeedback(3000)
+        
+        // Forçar atualização dos dados após reabrir caixa
+        setTimeout(async () => {
+          await updateCashStatus();
+          if (cashData?.id) {
+            await fetchCashDetails(cashData.id);
+            await fetchParkingDetails(cashData.id);
+          }
+        }, 1000);
       }
+    } catch (error) {
+      console.error('❌ [AdminHome] handleReopenCashRegister: Erro ao reabrir caixa:', error);
+      setFeedbackMessage('Erro inesperado ao reabrir caixa');
+      setFeedbackSuccess(false);
+      setShowFeedback(true);
+      setTimeCloseFeedback(3000);
     } finally {
-      const elapsedTime = Date.now() - startTime;
-      const remainingTime = Math.max(0, 2000 - elapsedTime);
-      
-      setTimeout(() => {
-        setShowLoader(false);
-      }, remainingTime);
+      setShowLoader(false);
     }
   };
 
@@ -312,12 +352,12 @@ export default function AdminHome() {
           }}
         >
           <View style={styles.iconCircle}>
-          <Feather name="settings" size={30} color={Colors.text.inverse} />
+            <Feather name="settings" size={30} color={Colors.text.inverse} />
           </View>
         </TouchableOpacity>
       </LinearGradient>
 
-      <MessageModal 
+      <MessageModal
         visible={message}
         onClose={() => setMessage(false)}
         message="Nenhum caixa foi criado ainda. Deseja criar um novo caixa? Caso escolha não abrir o caixa pode ser que algumas funções do sistema não funcionem corretamente ou não estejam disponíveis."
@@ -325,8 +365,8 @@ export default function AdminHome() {
         buttons={[
           {
             text: "Sim, Abrir o caixa",
-            onPress: handleOpenCash
-          }
+            onPress: handleOpenCash,
+          },
         ]}
         closeButtonText="Fechar"
       />
@@ -349,7 +389,7 @@ export default function AdminHome() {
       <FeedbackModal
         visible={showFeedback}
         message={feedbackMessage}
-        type={feedbackSuccess ? 'success' : 'error'}
+        type={feedbackSuccess ? "success" : "error"}
         onClose={() => setShowFeedback(false)}
         dismissible={true}
         timeClose={timeCloseFeedback}
@@ -361,7 +401,7 @@ export default function AdminHome() {
         textStyle={{
           color: Colors.text.primary,
           fontSize: 16,
-          fontWeight: '500'
+          fontWeight: "500",
         }}
         color={Colors.blue.logo}
         overlayColor={Colors.overlay.medium}
@@ -370,24 +410,39 @@ export default function AdminHome() {
       />
 
       <View style={styles.body}>
-        <CashBox 
+        <CashBox
           cashStatus={cashStatus}
           onRefresh={handleCashBoxRefresh}
-          cashData={cashDetails ? {
-            "Valor Inicial": cashDetails.initialValue,
-            Dinheiro: cashDetails.totalCash,
-            Credito: cashDetails.totalCredit,
-            Debito: cashDetails.totalDebit,
-            Pix: cashDetails.totalPix,
-            Saída: cashDetails.outgoingExpenseTotal,
-            Total: cashDetails.finalValue
-          } : undefined}
+          cashData={
+            cashDetails
+              ? {
+                  "Valor Inicial": cashDetails.initialValue,
+                  Dinheiro: cashDetails.totalCash,
+                  Credito: cashDetails.totalCredit,
+                  Debito: cashDetails.totalDebit,
+                  Pix: cashDetails.totalPix,
+                  Saída: cashDetails.outgoingExpenseTotal,
+                  Total: cashDetails.finalValue,
+                }
+              : undefined
+          }
         />
 
-        <ParkingBox 
+        <ParkingBox
           cashStatus={cashStatus}
           onRefresh={handleParkingBoxRefresh}
-          parkingData={convertParkingData()}
+          parkingData={(() => {
+            const data = convertParkingData();
+            console.log(
+              "🔍 [AdminHome] Renderizando ParkingBox com dados:",
+              data
+            );
+            console.log(
+              "🔍 [AdminHome] Renderizando ParkingBox com cashStatus:",
+              cashStatus
+            );
+            return data;
+          })()}
         />
 
         <LinearGradient
@@ -422,7 +477,11 @@ export default function AdminHome() {
             }}
           >
             <View style={styles.buttonPatio}>
-              <FontAwesome name="product-hunt" size={40} color={Colors.text.inverse} />
+              <FontAwesome
+                name="product-hunt"
+                size={40}
+                color={Colors.text.inverse}
+              />
             </View>
           </Pressable>
           <Pressable
@@ -431,7 +490,11 @@ export default function AdminHome() {
             }}
           >
             <View style={styles.buttonDashboard}>
-              <MaterialCommunityIcons name="food-fork-drink" size={40} color={Colors.text.inverse} />
+              <MaterialCommunityIcons
+                name="food-fork-drink"
+                size={40}
+                color={Colors.text.inverse}
+              />
             </View>
           </Pressable>
         </LinearGradient>
