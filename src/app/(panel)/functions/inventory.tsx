@@ -29,7 +29,12 @@ export default function Inventory() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSort, setSelectedSort] = useState<string>("name");
   const [showInactiveProducts, setShowInactiveProducts] = useState(false);
-  const { cashData, cashStatus, isCashNotCreated, isCashClosed } = useCashContext();
+  const { cashData, cashStatus } = useCashContext();
+  
+  // Funções utilitárias locais para verificar status do caixa
+  const isCashOpen = (): boolean => cashStatus === 'open';
+  const isCashClosed = (): boolean => cashStatus === 'closed';
+  const isCashNotCreated = (): boolean => cashStatus === 'not_created';
 
   // Hook de paginação para produtos
   const { 
