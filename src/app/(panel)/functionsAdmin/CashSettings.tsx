@@ -11,14 +11,38 @@ import { styles } from "@/styles/functions/cashSettingsStyles";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function CashSettings() {
-  const { cashData, cashDetails, isCashOpen, isCashClosed, isCashNotCreated, fetchCashDetails, fetchParkingDetails, openCash, closeCash, reOpenCash, refreshAllData, updateInitialValue } = useCashContext();
+  const {
+    cashData,
+    cashDetails,
+    cashStatus,
+    fetchCashDetails,
+    fetchParkingDetails,
+    updateCashStatus,
+    openCash,
+    closeCash,
+    reopenCash,
+    updateInitialValue,
+  } = useCashContext();
   const { role } = useAuth();
   const cashHook = useCash();
 
+  // Funções utilitárias locais
+  const isCashOpen = (): boolean => cashStatus === "open";
+  const isCashClosed = (): boolean => cashStatus === "closed";
+  const isCashNotCreated = (): boolean => cashStatus === "not_created";
+
   const [now, setNow] = useState<number>(Date.now());
+  const [displayTime, setDisplayTime] = useState<string>("—");
   const [loadingAction, setLoadingAction] = useState<boolean>(false);
   const [showRegisterModal, setShowRegisterModal] = useState<boolean>(false);
   const [confirmVisible, setConfirmVisible] = useState<boolean>(false);
@@ -26,58 +50,112 @@ export default function CashSettings() {
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [loadingEdit, setLoadingEdit] = useState<boolean>(false);
   const [showFeedback, setShowFeedback] = useState<boolean>(false);
-  const [feedbackMessage, setFeedbackMessage] = useState<string>('');
-  const [feedbackType, setFeedbackType] = useState<'success' | 'error'>('success');
-  const [refreshKey, setRefreshKey] = useState<number>(0);
+  const [feedbackMessage, setFeedbackMessage] = useState<string>("");
+  const [feedbackType, setFeedbackType] = useState<"success" | "error">(
+    "success",
+  );
+
+  // Log de renderização apenas quando há mudanças significativas
+  const [lastCashStatus, setLastCashStatus] = useState(cashStatus);
+  if (lastCashStatus !== cashStatus) {
+    console.log('🔍 [CashSettings] Status do caixa mudou:', lastCashStatus, '->', cashStatus);
+    setLastCashStatus(cashStatus);
+  }
 
   // Carregar detalhes ao montar (evita depender da ref da função para não criar loop)
   useEffect(() => {
-    if (cashData?.id) {
+    console.log('🔍 [CashSettings] useEffect cashData: Executando...', {
+      cashDataId: cashData?.id,
+      hasCashData: !!cashData,
+      hasCashDataId: !!cashData?.id
+    });
+    
+    if (cashData?.id && role !== "NORMAL") {
+      console.log('🔍 [CashSettings] useEffect cashData: Buscando detalhes para ID:', cashData.id);
       fetchCashDetails(cashData.id);
       cashHook.fetchGeneralDetailsCash(cashData.id);
+    } else {
+      console.log('🔍 [CashSettings] useEffect cashData: Sem ID do caixa, pulando busca');
     }
-  }, [cashData?.id, refreshKey]); // Adicionado refreshKey para forçar atualização
+  }, [cashData?.id]); // Removido refreshKey para evitar loops
 
   // Recarregar dados sempre que a tela entrar em foco
   useFocusEffect(
     useCallback(() => {
-      refreshAllData();
+      console.log('🔍 [CashSettings] useFocusEffect: Executando...');
+      // Usar updateCashStatus em vez de refreshAllData para evitar loops
+      updateCashStatus();
       return undefined;
-    }, [refreshAllData])
+    }, []),
   );
+
+  const openingDate = useMemo(() => {
+    console.log('🔍 [CashSettings] useMemo openingDate: Executando...', {
+      openingDate: cashData?.opening_date
+    });
+    return cashData?.opening_date ? new Date(cashData.opening_date) : null;
+  }, [cashData?.opening_date]);
 
   // Timer do contador quando aberto
   useEffect(() => {
-    if (!isCashOpen()) return;
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, [isCashOpen]);
-
-  const openingDate = useMemo(
-    () => (cashData?.opening_date ? new Date(cashData.opening_date) : null),
-    [cashData?.opening_date]
-  );
+    console.log('🔍 [CashSettings] useEffect timer: Executando...', {
+      isCashOpen: isCashOpen(),
+      cashStatus
+    });
+    
+    if (cashStatus !== "open") {
+      console.log('🔍 [CashSettings] useEffect timer: Caixa não está aberto, pulando timer');
+      setDisplayTime("—");
+      return;
+    }
+    
+    console.log('🔍 [CashSettings] useEffect timer: Iniciando timer para caixa aberto');
+    const id = setInterval(() => {
+      const currentTime = Date.now();
+      setNow(currentTime);
+      
+      // Calcular e atualizar apenas o displayTime
+      if (openingDate) {
+        const diffMs = currentTime - openingDate.getTime();
+        const totalSeconds = Math.max(0, Math.floor(diffMs / 1000));
+        const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+        const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+        const seconds = String(totalSeconds % 60).padStart(2, "0");
+        setDisplayTime(`${hours}:${minutes}:${seconds}`);
+      }
+    }, 1000);
+    
+    return () => {
+      console.log('🔍 [CashSettings] useEffect timer: Limpando timer');
+      clearInterval(id);
+    };
+  }, [cashStatus, openingDate]);
 
   const closingDate = useMemo(() => {
+    console.log('🔍 [CashSettings] useMemo closingDate: Executando...', {
+      hookData: !!cashHook.data,
+      contextData: !!cashData,
+      fromHook: (cashHook.data as any)?.generalDetails?.closingDate,
+      fromContext: (cashData as any)?.closing_date
+    });
+    
     const fromHook = (cashHook.data as any)?.generalDetails?.closingDate;
     const fromContext = (cashData as any)?.closing_date;
     const dateStr = fromHook || fromContext;
     return dateStr ? new Date(dateStr) : null;
   }, [cashHook.data, cashData]);
 
+  // Calcular tempo decorrido (otimizado para evitar re-renderizações)
   const elapsedTime = useMemo(() => {
     if (!openingDate) return "—";
-    // Aberto: cronômetro em tempo real
-    if (isCashOpen()) {
-      const diffMs = now - openingDate.getTime();
-      const totalSeconds = Math.max(0, Math.floor(diffMs / 1000));
-      const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
-      const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
-      const seconds = String(totalSeconds % 60).padStart(2, "0");
-      return `${hours}:${minutes}:${seconds}`;
+    
+    // Aberto: usar displayTime que é atualizado pelo timer
+    if (cashStatus === "open") {
+      return displayTime;
     }
+    
     // Fechado: duração total entre abertura e fechamento
-    if (isCashClosed() && closingDate) {
+    if (cashStatus === "closed" && closingDate) {
       const diffMs = Math.max(0, closingDate.getTime() - openingDate.getTime());
       const totalSeconds = Math.floor(diffMs / 1000);
       const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
@@ -85,8 +163,9 @@ export default function CashSettings() {
       const seconds = String(totalSeconds % 60).padStart(2, "0");
       return `${hours}:${minutes}:${seconds}`;
     }
+    
     return "—";
-  }, [now, openingDate, closingDate, isCashOpen, isCashClosed]);
+  }, [cashStatus, displayTime, openingDate, closingDate]);
 
   const formatDateTime = useCallback((dateString?: string) => {
     if (!dateString) return "—";
@@ -101,11 +180,19 @@ export default function CashSettings() {
   }, []);
 
   const performClose = useCallback(async (): Promise<[boolean, string]> => {
-    if (!cashData?.id) return [false, 'ID do caixa não encontrado'];
-    return await closeCash(cashData.id);
-  }, [cashData?.id, closeCash]);
+    console.log('🔍 [CashSettings] performClose: Executando...', {
+      cashDataId: cashData?.id
+    });
+    
+    const result = await closeCash(cashData?.id);
+    return [result.success, result.message];
+  }, [closeCash, cashData?.id]);
 
   const handleRequestClose = useCallback(async () => {
+    console.log('🔍 [CashSettings] handleRequestClose: Executando...', {
+      cashDataId: cashData?.id
+    });
+    
     if (!cashData?.id) return;
     try {
       setLoadingAction(true);
@@ -117,27 +204,27 @@ export default function CashSettings() {
         setLoadingAction(false);
         return;
       }
-      
+
       const [success, message] = await performClose();
       if (success) {
         setFeedbackMessage(message);
-        setFeedbackType('success');
+        setFeedbackType("success");
         setShowFeedback(true);
         // Forçar atualização dos dados do hook
         if (cashData?.id) {
           await cashHook.fetchGeneralDetailsCash(cashData.id);
         }
-        // Forçar re-render da tela
-        setRefreshKey(prev => prev + 1);
+        // Forçar atualização do contexto
+        await updateCashStatus();
       } else {
         setFeedbackMessage(message);
-        setFeedbackType('error');
+        setFeedbackType("error");
         setShowFeedback(true);
       }
     } catch (error) {
-      console.error('Erro ao fechar caixa:', error);
-      setFeedbackMessage('Erro inesperado ao fechar caixa');
-      setFeedbackType('error');
+      console.error("Erro ao fechar caixa:", error);
+      setFeedbackMessage("Erro inesperado ao fechar caixa");
+      setFeedbackType("error");
       setShowFeedback(true);
     } finally {
       setLoadingAction(false);
@@ -150,31 +237,30 @@ export default function CashSettings() {
 
   // Função para reabrir o caixa
   const handleReopenCash = async () => {
-    if (!cashData?.id) return;
+    console.log('🔍 [CashSettings] handleReopenCash: Executando...', {
+      cashDataId: cashData?.id
+    });
     
     try {
       setLoadingAction(true);
-      const [success, message] = await reOpenCash(cashData.id);
+      const result = await reopenCash(cashData?.id);
       
-      if (success) {
-        setFeedbackMessage(message);
-        setFeedbackType('success');
-        setShowFeedback(true);
+      setFeedbackMessage(result.message);
+      setFeedbackType(result.success ? "success" : "error");
+      setShowFeedback(true);
+      
+      if (result.success) {
         // Forçar atualização dos dados do hook
         if (cashData?.id) {
           await cashHook.fetchGeneralDetailsCash(cashData.id);
         }
-        // Forçar re-render da tela
-        setRefreshKey(prev => prev + 1);
-      } else {
-        setFeedbackMessage(message);
-        setFeedbackType('error');
-        setShowFeedback(true);
+        // Forçar atualização do contexto
+        await updateCashStatus();
       }
     } catch (error) {
-      console.error('Erro ao reabrir caixa:', error);
-      setFeedbackMessage('Erro inesperado ao reabrir caixa');
-      setFeedbackType('error');
+      console.error("Erro ao reabrir caixa:", error);
+      setFeedbackMessage("Erro inesperado ao reabrir caixa");
+      setFeedbackType("error");
       setShowFeedback(true);
     } finally {
       setLoadingAction(false);
@@ -182,9 +268,9 @@ export default function CashSettings() {
   };
 
   const convertBrazilianCurrency = (value: string): number => {
-    if (!value || value.trim() === '') return 0;
-    let cleanValue = value.replace(/\s/g, '').replace(/[^\d,.-]/g, '');
-    if (cleanValue.includes(',')) cleanValue = cleanValue.replace(',', '.');
+    if (!value || value.trim() === "") return 0;
+    let cleanValue = value.replace(/\s/g, "").replace(/[^\d,.-]/g, "");
+    if (cleanValue.includes(",")) cleanValue = cleanValue.replace(",", ".");
     const result = parseFloat(cleanValue);
     return isNaN(result) ? 0 : result;
   };
@@ -195,19 +281,19 @@ export default function CashSettings() {
       return {
         label: "Fechar Caixa",
         color: Colors.icon.error,
-        mode: "close" as const
+        mode: "close" as const,
       };
     } else if (isCashClosed()) {
       return {
         label: "Reabrir Caixa",
         color: Colors.icon.warning,
-        mode: "reopen" as const
+        mode: "reopen" as const,
       };
     } else {
       return {
         label: "Abrir Caixa",
         color: Colors.icon.success,
-        mode: "open" as const
+        mode: "open" as const,
       };
     }
   };
@@ -216,34 +302,36 @@ export default function CashSettings() {
 
   // Função para salvar o novo valor inicial
   const handleSaveInitialValue = async (newValue: number) => {
-    if (!cashData?.id) return;
+    console.log('🔍 [CashSettings] handleSaveInitialValue: Executando...', {
+      newValue,
+      cashDataId: cashData?.id
+    });
     
-    setLoadingEdit(true);
+    if (!cashData?.id) {
+      setFeedbackMessage("ID do caixa não disponível");
+      setFeedbackType("error");
+      setShowFeedback(true);
+      return;
+    }
+    
     try {
-      const [success, message] = await updateInitialValue(cashData.id, newValue);
+      setLoadingEdit(true);
+      const result = await updateInitialValue(cashData.id, newValue);
       
-      if (success) {
-        setFeedbackMessage(message);
-        setFeedbackType('success');
-        setShowEditModal(false);
-        setShowFeedback(true);
-        await refreshAllData();
+      setFeedbackMessage(result.message);
+      setFeedbackType(result.success ? "success" : "error");
+      setShowFeedback(true);
+      
+      if (result.success) {
         // Forçar atualização dos dados do hook
-        if (cashData?.id) {
-          await cashHook.fetchGeneralDetailsCash(cashData.id);
-        }
-        // Forçar re-render da tela
-        setRefreshKey(prev => prev + 1);
-      } else {
-        setFeedbackMessage(message);
-        setFeedbackType('error');
-        setShowFeedback(true);
+        await cashHook.fetchGeneralDetailsCash(cashData.id);
+        // Forçar atualização do contexto
+        await updateCashStatus();
       }
-      
     } catch (error) {
-      console.error('Erro ao salvar valor inicial:', error);
-      setFeedbackMessage('Erro inesperado ao atualizar valor inicial');
-      setFeedbackType('error');
+      console.error("Erro ao atualizar valor inicial:", error);
+      setFeedbackMessage("Erro inesperado ao atualizar valor inicial");
+      setFeedbackType("error");
       setShowFeedback(true);
     } finally {
       setLoadingEdit(false);
@@ -254,7 +342,7 @@ export default function CashSettings() {
     <View style={styles.container}>
       <Header title="Configurações do Caixa" titleStyle={{ fontSize: 25 }} />
 
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
@@ -268,7 +356,9 @@ export default function CashSettings() {
             <Text style={styles.infoTitle}>Informações sobre Edição</Text>
           </View>
           <Text style={styles.infoDescription}>
-            Você pode visualizar os dados do caixa, fechar o caixa, reabrir o caixa e editar o caixa (no caso o único campo que pode ser editado é o valor inicial).
+            Você pode visualizar os dados do caixa, fechar o caixa, reabrir o
+            caixa e editar o caixa (no caso o único campo que pode ser editado é
+            o valor inicial).
           </Text>
         </View>
 
@@ -318,23 +408,34 @@ export default function CashSettings() {
                   : "NÃO CRIADO"}
               </Text>
             </View>
-            
-            {!isCashNotCreated() && (
-              <Pressable 
-                style={styles.editButton} 
-                onPress={() => setShowEditModal(true)}
-              >
-                <Ionicons name="pencil" size={20} color={Colors.gray.light} />
-              </Pressable>
-            )}
+
+            {!isCashNotCreated() ||
+              (isCashClosed() && (
+                <Pressable
+                  style={styles.editButton}
+                  onPress={() => setShowEditModal(true)}
+                >
+                  <Ionicons name="pencil" size={20} color={Colors.gray.light} />
+                </Pressable>
+              ))}
           </View>
 
           <View style={styles.spacerMd} />
 
           {isCashNotCreated() ? (
             <View style={styles.infoRow}>
-              <Text style={[styles.value, { textAlign: 'center', fontStyle: 'italic', color: Colors.gray.medium }]}>
-                Nenhum caixa foi criado ainda. Clique no botão abaixo para criar um novo caixa.
+              <Text
+                style={[
+                  styles.value,
+                  {
+                    textAlign: "center",
+                    fontStyle: "italic",
+                    color: Colors.gray.medium,
+                  },
+                ]}
+              >
+                Nenhum caixa foi criado ainda. Clique no botão abaixo para criar
+                um novo caixa.
               </Text>
             </View>
           ) : (
@@ -369,55 +470,61 @@ export default function CashSettings() {
                   <View style={styles.spacerSm} />
                 </>
               )}
+                  <View style={styles.infoRow}>
+                    <Text style={styles.label}>Tempo Aberto</Text>
+                    <Text style={styles.value}>{elapsedTime}</Text>
+                  </View>
+              {role === "ADMIN" && (
+                <>
 
-              <View style={styles.infoRow}>
-                <Text style={styles.label}>Tempo Aberto</Text>
-                <Text style={styles.value}>{elapsedTime}</Text>
-              </View>
+                  <View style={styles.spacerSm} />
 
-              <View style={styles.spacerSm} />
+                  <View style={styles.infoRow}>
+                    <Text style={styles.label}>Valor Inicial</Text>
+                    <Text style={styles.value}>
+                      R${" "}
+                      {cashHook.data?.generalDetails?.initialValue
+                        ? cashHook.data.generalDetails.initialValue
+                            .toFixed(2)
+                            .replace(".", ",")
+                        : "0,00"}
+                    </Text>
+                  </View>
 
-              <View style={styles.infoRow}>
-                <Text style={styles.label}>Valor Inicial</Text>
-                <Text style={styles.value}>
-                  R${" "}
-                  {cashHook.data?.generalDetails?.initialValue
-                    ? cashHook.data.generalDetails.initialValue
-                        .toFixed(2)
-                        .replace(".", ",")
-                    : "0,00"}
-                </Text>
-              </View>
+                  <View style={styles.spacerSm} />
 
-              <View style={styles.spacerSm} />
+                  <View style={styles.infoRow}>
+                    <Text style={styles.label}>Valor Final</Text>
+                    <Text style={styles.value}>
+                      R${" "}
+                      {cashHook.data?.generalDetails?.finalValue
+                        ? cashHook.data.generalDetails.finalValue
+                            .toFixed(2)
+                            .replace(".", ",")
+                        : "0,00"}
+                    </Text>
+                  </View>
 
-              <View style={styles.infoRow}>
-                <Text style={styles.label}>Valor Final</Text>
-                <Text style={styles.value}>
-                  R${" "}
-                  {cashHook.data?.generalDetails?.finalValue
-                    ? cashHook.data.generalDetails.finalValue
-                        .toFixed(2)
-                        .replace(".", ",")
-                    : "0,00"}
-                </Text>
-              </View>
+                  <View style={styles.spacerSm} />
 
-              <View style={styles.spacerSm} />
-
-              <View style={styles.infoRow}>
-                <Text style={styles.label}>Lucro</Text>
-                <Text style={[styles.value, { color: Colors.icon.success }]}>
-                  R${" "}
-                  {(() => {
-                    const initial =
-                      cashHook.data?.generalDetails?.initialValue || 0;
-                    const final = cashHook.data?.generalDetails?.finalValue || 0;
-                    const profit = final - initial;
-                    return profit.toFixed(2).replace(".", ",");
-                  })()}
-                </Text>
-              </View>
+                  <View style={styles.infoRow}>
+                    <Text style={styles.label}>Lucro</Text>
+                    <Text
+                      style={[styles.value, { color: Colors.icon.success }]}
+                    >
+                      R${" "}
+                      {(() => {
+                        const initial =
+                          cashHook.data?.generalDetails?.initialValue || 0;
+                        const final =
+                          cashHook.data?.generalDetails?.finalValue || 0;
+                        const profit = final - initial;
+                        return profit.toFixed(2).replace(".", ",");
+                      })()}
+                    </Text>
+                  </View>
+                </>
+              )}
             </>
           )}
         </View>
@@ -443,30 +550,31 @@ export default function CashSettings() {
         onClose={() => setShowRegisterModal(false)}
         onOpenCashRegister={async (initialValue) => {
           setShowRegisterModal(false);
+
           try {
             setLoadingAction(true);
-            const numericValue = convertBrazilianCurrency(initialValue);
-            const [success, message] = await openCash(numericValue);
-            
-            if (success) {
-              setFeedbackMessage(message);
-              setFeedbackType('success');
-              setShowFeedback(true);
+            const numericValue =
+              typeof initialValue === "string"
+                ? parseFloat(initialValue)
+                : initialValue;
+            const result = await openCash(numericValue);
+
+            setFeedbackMessage(result.message);
+            setFeedbackType(result.success ? "success" : "error");
+            setShowFeedback(true);
+
+            if (result.success) {
               // Forçar atualização dos dados do hook
               if (cashData?.id) {
                 await cashHook.fetchGeneralDetailsCash(cashData.id);
               }
-              // Forçar re-render da tela
-              setRefreshKey(prev => prev + 1);
-            } else {
-              setFeedbackMessage(message);
-              setFeedbackType('error');
-              setShowFeedback(true);
+              // Forçar atualização do contexto
+              await updateCashStatus();
             }
           } catch (error) {
-            console.error('Erro ao abrir caixa:', error);
-            setFeedbackMessage('Erro inesperado ao abrir caixa');
-            setFeedbackType('error');
+            console.error("Erro ao abrir caixa:", error);
+            setFeedbackMessage("Erro inesperado ao abrir caixa");
+            setFeedbackType("error");
             setShowFeedback(true);
           } finally {
             setLoadingAction(false);
@@ -498,21 +606,23 @@ export default function CashSettings() {
             const [success, message] = await performClose();
             if (success) {
               setFeedbackMessage(message);
-              setFeedbackType('success');
+              setFeedbackType("success");
               setShowFeedback(true);
               // Forçar atualização dos dados do hook
               if (cashData?.id) {
                 await cashHook.fetchGeneralDetailsCash(cashData.id);
               }
+              // Forçar atualização do contexto
+              await updateCashStatus();
             } else {
               setFeedbackMessage(message);
-              setFeedbackType('error');
+              setFeedbackType("error");
               setShowFeedback(true);
             }
           } catch (error) {
-            console.error('Erro ao fechar caixa:', error);
-            setFeedbackMessage('Erro inesperado ao fechar caixa');
-            setFeedbackType('error');
+            console.error("Erro ao fechar caixa:", error);
+            setFeedbackMessage("Erro inesperado ao fechar caixa");
+            setFeedbackType("error");
             setShowFeedback(true);
           } finally {
             setLoadingAction(false);
