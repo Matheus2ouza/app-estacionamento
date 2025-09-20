@@ -40,7 +40,7 @@
           "icon": "./src/assets/images/splash-icon-white.png",
           "color": "#003153",
           "sounds": [
-            "./src/assets/sounds/livechat-129007.wav"
+            "./src/assets/sounds/soundAlert.wav"
           ]
         }
       ],
