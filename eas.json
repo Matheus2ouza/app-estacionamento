@@ -58,6 +58,9 @@
       "ios": {
         "simulator": true
       },
+      "android": {
+        "simulator": true
+      },
       "environment": "development"
     }
   },
