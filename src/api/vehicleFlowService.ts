@@ -87,6 +87,11 @@ export const VehicleApi = {
     return response.data;
   },
 
+  deleteVehicle: async (id: string): Promise<DeleteVehicleResponse> => {
+    const responde = await axiosInstance.delete(`/vehicles/${id}`);
+    return responde.data
+  },
+
   updateVehicle: async (id: string, data: UpdateVehicleData): Promise<UpdateVehicleResponse> => {
     const response = await axiosInstance.put(`/vehicles/entries/${id}`, data);
     return response.data;
