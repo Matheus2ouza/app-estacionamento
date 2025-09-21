@@ -85,7 +85,7 @@ export default function NormalHome() {
   // Buscar dados quando a tela recebe foco e, se não houver caixa, solicitar abertura (sem dependências para evitar loop)
   useFocusEffect(
     useCallback(() => {
-      console.log('🔍 [AdminHome] useFocusEffect: Tela recebeu foco, atualizando todos os dados');
+      console.log('🔍 [NormalHome] useFocusEffect: Tela recebeu foco, atualizando dados do estacionamento');
       let cancelled = false;
       (async () => {
         // Atualizar status do caixa
@@ -99,14 +99,14 @@ export default function NormalHome() {
           return;
         }
         
-        // Se caixa estiver aberto, buscar dados do pátio
+        // Buscar dados atualizados do estacionamento quando a tela recebe foco (apenas para normal)
         if (cashStatus === 'open' && cashData?.id) {
-          console.log('🔍 [AdminHome] useFocusEffect: Caixa aberto, buscando dados do pátio');
+          console.log('🔍 [NormalHome] useFocusEffect: Caixa aberto, buscando dados atualizados do estacionamento');
           try {
             await fetchParkingDetails(cashData.id);
-            console.log('✅ [AdminHome] useFocusEffect: Dados do pátio atualizados');
+            console.log('✅ [NormalHome] useFocusEffect: Dados do estacionamento atualizados');
           } catch (error) {
-            console.error('❌ [AdminHome] useFocusEffect: Erro ao buscar dados do pátio:', error);
+            console.error('❌ [NormalHome] useFocusEffect: Erro ao buscar dados do estacionamento:', error);
           }
         }
       })();
@@ -217,10 +217,12 @@ export default function NormalHome() {
         // Forçar atualização dos dados após abrir caixa
         setTimeout(async () => {
           await updateCashStatus();
-          if (cashData?.id) {
-            await fetchParkingDetails(cashData.id);
+          // Usar o cashId retornado pela API ou aguardar o cashData ser atualizado
+          const cashIdToUse = result.cashId || cashData?.id;
+          if (cashIdToUse) {
+            await fetchParkingDetails(cashIdToUse);
           }
-        }, 1000);
+        }, 100);
       }
     } catch (error) {
       console.error('❌ [AdminHome] handleOpenCashRegister: Erro ao abrir caixa:', error);
@@ -251,10 +253,12 @@ export default function NormalHome() {
         // Forçar atualização dos dados após reabrir caixa
         setTimeout(async () => {
           await updateCashStatus();
-          if (cashData?.id) {
-            await fetchParkingDetails(cashData.id);
+          // Usar o cashId retornado pela API ou aguardar o cashData ser atualizado
+          const cashIdToUse = result.cashId || cashData?.id;
+          if (cashIdToUse) {
+            await fetchParkingDetails(cashIdToUse);
           }
-        }, 1000);
+        }, 100);
       }
     } catch (error) {
       console.error('❌ [AdminHome] handleReopenCashRegister: Erro ao reabrir caixa:', error);

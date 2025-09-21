@@ -100,26 +100,32 @@ export default function AdminHome() {
           return;
         }
         
-        // Se caixa estiver aberto, buscar dados do pátio
-        if (cashStatus === 'open' && cashData?.id) {
-          console.log('🔍 [AdminHome] useFocusEffect: Caixa aberto, buscando dados do pátio');
-          try {
-            await fetchParkingDetails(cashData.id);
-            console.log('✅ [AdminHome] useFocusEffect: Dados do pátio atualizados');
-          } catch (error) {
-            console.error('❌ [AdminHome] useFocusEffect: Erro ao buscar dados do pátio:', error);
-          }
-        }
+        // Aguardar um pouco para o estado ser atualizado após updateCashStatus
+        await new Promise(resolve => setTimeout(resolve, 100));
         
-        // Se caixa estiver aberto ou fechado, buscar detalhes do caixa
-        if ((cashStatus === 'open' || cashStatus === 'closed') && cashData?.id) {
-          console.log('🔍 [AdminHome] useFocusEffect: Buscando detalhes do caixa');
+        if (cancelled) return;
+        
+        // Buscar dados atualizados do caixa e estacionamento quando a tela recebe foco
+        if (cashData?.id) {
+          console.log('🔍 [AdminHome] useFocusEffect: Carregando dados para ID:', cashData.id);
+          console.log('🔍 [AdminHome] useFocusEffect: Buscando dados atualizados do caixa e estacionamento');
           try {
-            await fetchCashDetails(cashData.id);
-            console.log('✅ [AdminHome] useFocusEffect: Detalhes do caixa atualizados');
+            // Buscar detalhes do caixa (para admin)
+            if (cashStatus === 'open' || cashStatus === 'closed') {
+              await fetchCashDetails(cashData.id);
+              console.log('✅ [AdminHome] useFocusEffect: Detalhes do caixa atualizados');
+            }
+            
+            // Buscar dados do estacionamento (apenas se caixa estiver aberto)
+            if (cashStatus === 'open') {
+              await fetchParkingDetails(cashData.id);
+              console.log('✅ [AdminHome] useFocusEffect: Dados do estacionamento atualizados');
+            }
           } catch (error) {
-            console.error('❌ [AdminHome] useFocusEffect: Erro ao buscar detalhes do caixa:', error);
+            console.error('❌ [AdminHome] useFocusEffect: Erro ao buscar dados:', error);
           }
+        } else {
+          console.log('❌ [AdminHome] useFocusEffect: ID do caixa não disponível após updateCashStatus');
         }
       })();
       return () => { cancelled = true; };
@@ -266,11 +272,13 @@ export default function AdminHome() {
         // Forçar atualização dos dados após abrir caixa
         setTimeout(async () => {
           await updateCashStatus();
-          if (cashData?.id) {
-            await fetchCashDetails(cashData.id);
-            await fetchParkingDetails(cashData.id);
+          // Usar o cashId retornado pela API ou aguardar o cashData ser atualizado
+          const cashIdToUse = result.cashId || cashData?.id;
+          if (cashIdToUse) {
+            await fetchCashDetails(cashIdToUse);
+            await fetchParkingDetails(cashIdToUse);
           }
-        }, 1000);
+        }, 100);
       }
     } catch (error) {
       console.error('❌ [AdminHome] handleOpenCashRegister: Erro ao abrir caixa:', error);
@@ -302,11 +310,13 @@ export default function AdminHome() {
         // Forçar atualização dos dados após reabrir caixa
         setTimeout(async () => {
           await updateCashStatus();
-          if (cashData?.id) {
-            await fetchCashDetails(cashData.id);
-            await fetchParkingDetails(cashData.id);
+          // Usar o cashId retornado pela API ou aguardar o cashData ser atualizado
+          const cashIdToUse = result.cashId || cashData?.id;
+          if (cashIdToUse) {
+            await fetchCashDetails(cashIdToUse);
+            await fetchParkingDetails(cashIdToUse);
           }
-        }, 1000);
+        }, 100);
       }
     } catch (error) {
       console.error('❌ [AdminHome] handleReopenCashRegister: Erro ao reabrir caixa:', error);
