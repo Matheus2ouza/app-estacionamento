@@ -20,6 +20,7 @@ export default function useGoals() {
     
     try {
       const response = await DashboardApi.listGoals();
+      console.log(response)
       
       // A API retorna {data: [...], message: "...", success: true}
       const goalsArray = response.data || [];
@@ -37,6 +38,7 @@ export default function useGoals() {
           goalPeriod: goal.goalPeriod,
           goalValue: parseFloat(goal.goalValue),
           isActive: goal.isActive,
+          notification: goal.notifications, // API retorna 'notifications' (plural)
           createdAt: goal.createdAt ? new Date(goal.createdAt) : new Date(),
           updatedAt: goal.updatedAt ? new Date(goal.updatedAt) : new Date(),
         };
@@ -53,7 +55,6 @@ export default function useGoals() {
             break;
         }
       });
-      
       setGoals(goalsConfig);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar metas');
@@ -63,54 +64,67 @@ export default function useGoals() {
   }, []);
 
   // Salvar meta
-  const saveGoal = useCallback(async (type: 'daily' | 'weekly' | 'monthly', formData: GoalFormData) => {
-    setSaving(true);
-    setError(null);
-    
-    try {
-      const targetValue = parseFloat(formData.targetValue.replace(/[^\d,]/g, '').replace(',', '.'));
-      
-      if (isNaN(targetValue) || targetValue <= 0) {
-        throw new Error('Valor deve ser maior que zero');
+  const saveGoal = useCallback(
+    async (type: 'daily' | 'weekly' | 'monthly', formData: GoalFormData, shouldNotify: boolean) => {
+      setSaving(true);
+      setError(null);
+  
+      try {
+        const targetValue = parseFloat(
+          formData.targetValue.replace(/[^\d,]/g, '').replace(',', '.')
+        );
+  
+        if (isNaN(targetValue) || targetValue <= 0) {
+          throw new Error('Valor deve ser maior que zero');
+        }
+  
+        // Mapear tipo para enum Period
+        const periodMap: Record<string, Period> = {
+          daily: Period.DIARIA,
+          weekly: Period.SEMANAL,
+          monthly: Period.MENSAL,
+        };
+  
+        const createGoalData: CreateGoalData = {
+          goalPeriod: periodMap[type],
+          goalValue: parseBrazilianCurrency(formData.targetValue).toString(),
+          isActive: formData.isActive,
+          notification: shouldNotify,
+        };
+  
+        const result = await DashboardApi.createGoal(createGoalData);
+  
+        if (result.success) {
+          // Recarregar metas após salvar
+          await loadGoals();
+          await new Promise((resolve) => setTimeout(resolve, 300));
+          return true;
+        } else {
+          throw new Error(result.message || 'Erro ao salvar meta');
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Erro ao salvar meta');
+        return false;
+      } finally {
+        setSaving(false);
       }
+    },
+    [loadGoals]
+  );
+  
 
-      // Mapear tipo para enum Period
-      const periodMap: Record<string, Period> = {
-        daily: Period.DIARIA,
-        weekly: Period.SEMANAL,
-        monthly: Period.MENSAL,
-      };
-
-      const createGoalData: CreateGoalData = {
-        goalPeriod: periodMap[type],
-        goalValue: parseBrazilianCurrency(formData.targetValue).toString(),
-        isActive: formData.isActive,
-      };
-
-      const result = await DashboardApi.createGoal(createGoalData);
-      
-      if (result.success) {
-        // Recarregar metas após salvar
-        await loadGoals();
-        // Pequeno delay para renderizar as mudanças na tela
-        await new Promise(resolve => setTimeout(resolve, 300));
-        return true;
-      } else {
-        throw new Error(result.message || 'Erro ao salvar meta');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao salvar meta');
-      return false;
-    } finally {
-      setSaving(false);
-    }
-  }, [loadGoals]);
-
-  // Atualizar meta existente (mesmo comportamento que salvar, pois a API cria/atualiza)
-  const updateGoal = useCallback(async (type: 'daily' | 'weekly' | 'monthly', formData: GoalFormData) => {
-    // Para simplificar, usar a mesma lógica de saveGoal
-    return await saveGoal(type, formData);
-  }, [saveGoal]);
+  const updateGoal = useCallback(
+    async (
+      type: 'daily' | 'weekly' | 'monthly',
+      formData: GoalFormData,
+      shouldNotify: boolean
+    ) => {
+      // Reutiliza a mesma lógica de saveGoal, mas repassa o shouldNotify
+      return await saveGoal(type, formData, shouldNotify);
+    },
+    [saveGoal]
+  );
+  
 
   // Desativar meta usando rota específica
   const deleteGoal = useCallback(async (type: 'daily' | 'weekly' | 'monthly') => {

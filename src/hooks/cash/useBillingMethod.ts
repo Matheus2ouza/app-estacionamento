@@ -1,4 +1,4 @@
-import { cashApi } from "@/api/cashService";
+import { billingApi } from "@/api/billingService";
 import { BillingMethod, BillingMethodListResponse, BillingMethodResponse, CategoryType } from "@/types/billingMethodTypes/billingMethod";
 import { useState } from "react";
 
@@ -56,7 +56,7 @@ export function useBillingMethod() {
         motoValue: convertBrazilianCurrency(formData.motoPrice)
       };
       
-      const response: BillingMethodResponse = await cashApi.billingSave(billingMethodData);
+      const response: BillingMethodResponse = await billingApi.billingSave(billingMethodData);
 
       setSuccess(true);
       setMessage(response.message || 'Método salvo com sucesso');
@@ -85,7 +85,7 @@ export function useBillingMethod() {
     setMessage(null);
 
     try {
-      const response: BillingMethodListResponse = await cashApi.billingGetMethods();
+      const response: BillingMethodListResponse = await billingApi.billingGetMethods();
 
       setSuccess(true);
       setMessage(response.message || 'Métodos carregados com sucesso');
@@ -112,7 +112,7 @@ export function useBillingMethod() {
     setMessage(null);
 
     try {
-      const response: BillingMethodResponse = await cashApi.billingDelete(id);
+      const response: BillingMethodResponse = await billingApi.billingDelete(id);
 
       setSuccess(true);
       setMessage(response.message || 'Método desativado com sucesso');
@@ -142,7 +142,7 @@ export function useBillingMethod() {
     setMessage(null);
     
     try {
-      const response: BillingMethodResponse = await cashApi.billingActivate(id);
+      const response: BillingMethodResponse = await billingApi.billingActivate(id);
       
       setSuccess(true);
       setMessage(response.message || 'Método ativado com sucesso');
@@ -168,7 +168,7 @@ export function useBillingMethod() {
     setMessage(null);
     
     try {
-      const response: BillingMethodResponse = await cashApi.billingUpdate(updateData);
+      const response: BillingMethodResponse = await billingApi.billingUpdate(updateData);
       setSuccess(true);
       setMessage(response.message);
       return { success: true, message: response.message, data: response.data };
@@ -222,7 +222,7 @@ export function useBillingMethod() {
         motoValue: convertBrazilianCurrency(updateData.motoPrice)
       };
 
-      const response: BillingMethodResponse = await cashApi.billingUpdatePut({
+      const response: BillingMethodResponse = await billingApi.billingUpdatePut({
         ...billingMethodData,
         id: updateData.id
       });

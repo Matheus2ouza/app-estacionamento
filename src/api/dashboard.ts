@@ -46,6 +46,7 @@ export const DashboardApi = {
     params.append('goalPeriod', data.goalPeriod);
     params.append('goalValue', data.goalValue);
     params.append('isActive', data.isActive ? 'true' : 'false');
+    params.append('notifications', data.notification? 'true' : 'false');
     
     const response = await axiosInstance.post('/dashboard/goals', null, { params });
     return response.data;

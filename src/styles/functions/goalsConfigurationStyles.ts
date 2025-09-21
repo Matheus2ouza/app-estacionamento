@@ -30,6 +30,31 @@ export const styles = StyleSheet.create({
     marginBottom: 24,
     fontFamily: Fonts.RobotoRegular,
   },
+  notificationContainer: {
+    backgroundColor: Colors.white
+  },
+  notificationCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: Colors.gray[900],
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  notificationHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  notificationLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: Colors.gray[800],
+    fontFamily: Fonts.RobotoMedium,
+  },
   goalsContainer: {
     gap: 16,
   },
@@ -209,6 +234,35 @@ export const styles = StyleSheet.create({
   saveButtonTextDisabled: {
     color: Colors.gray[500],
   },
+  updateButton: {
+    flex: 1,
+    backgroundColor: Colors.yellow[500],
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    shadowColor: Colors.yellow[500],
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  updateButtonText: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+    fontFamily: Fonts.Roboto_600SemiBold,
+  },
+  updateButtonDisabled: {
+    backgroundColor: Colors.gray[300],
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  updateButtonTextDisabled: {
+    color: Colors.gray[500],
+  },
   deactivateButton: {
     flex: 1,
     backgroundColor: Colors.red[500],
@@ -262,9 +316,13 @@ export const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 8,
     marginRight: 12,
+    minWidth: 40,
+    minHeight: 40,
+    justifyContent: "center",
+    alignItems: "center"
   },
   infoTitle: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: '700',
     color: Colors.white,
     fontFamily: Fonts.Roboto_700Bold,

@@ -9,6 +9,7 @@ export interface Goal {
   goalPeriod: Period;
   goalValue: number;
   isActive: boolean;
+  notification: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -38,6 +39,7 @@ export interface CreateGoalData {
   goalPeriod: Period;
   goalValue: string;
   isActive: boolean;
+  notification: boolean;
 }
 
 // Tipos para resposta da API
@@ -52,6 +54,7 @@ export interface GoalApiData {
   goalPeriod: Period;
   goalValue: string;
   isActive: boolean;
+  notifications: boolean;
   createdAt: string;
   updatedAt: string;
 }
