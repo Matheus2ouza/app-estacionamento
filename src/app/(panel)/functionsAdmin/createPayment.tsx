@@ -8,7 +8,14 @@ import { styles } from "@/styles/functions/createPaymentStyle";
 import { changeOptions } from "@/types/billingMethodTypes/billingMethod";
 import { router } from "expo-router";
 import { useState } from "react";
-import { KeyboardAvoidingView, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import DatePicker from "react-native-date-picker";
 import { Dropdown } from "react-native-element-dropdown";
 import { Provider as PaperProvider } from "react-native-paper";
@@ -17,24 +24,35 @@ export default function CreatePayment() {
   const [change, setChange] = useState<string>();
   const [title, setTitle] = useState<string>("");
   const [tolerance, setTolerance] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
   const [time, setTime] = useState<string>("00:00:00");
   const [carPrice, setCarPrice] = useState<string>("");
   const [motoPrice, setMotoPrice] = useState<string>("");
   const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
-  const [specialCase, setSpecialCase] = useState<{
-    title: string;
-    message: string;
-    errors: ("tolerance" | "time" | "carPrice" | "motoPrice")[];
-  } | undefined>(undefined);
+  const [specialCase, setSpecialCase] = useState<
+    | {
+        title: string;
+        message: string;
+        errors: ("tolerance" | "time" | "carPrice" | "motoPrice")[];
+      }
+    | undefined
+  >(undefined);
   const [showFeedback, setShowFeedback] = useState<boolean>(false);
   const [feedbackMessage, setFeedbackMessage] = useState<string>("");
-  const [feedbackType, setFeedbackType] = useState<'success' | 'error' | 'warning' | 'info'>('info');
+  const [feedbackType, setFeedbackType] = useState<
+    "success" | "error" | "warning" | "info"
+  >("info");
   const [showTimePicker, setShowTimePicker] = useState<boolean>(false);
-  const [selectedTime, setSelectedTime] = useState<Date>(new Date(2024, 0, 1, 0, 0, 0));
+  const [selectedTime, setSelectedTime] = useState<Date>(
+    new Date(2024, 0, 1, 0, 0, 0)
+  );
 
-  const { loading, error, success, message, handleSaveMethod } = useBillingMethod();
+  const { loading, error, success, message, handleSaveMethod } =
+    useBillingMethod();
 
-  const selectedOption = changeOptions.find(option => option.value === change);
+  const selectedOption = changeOptions.find(
+    (option) => option.value === change
+  );
   const isFixedValue = change === "VALOR_FIXO";
 
   const handleChange = (item: any) => {
@@ -44,7 +62,7 @@ export default function CreatePayment() {
   const handleDisabledFieldPress = () => {
     if (isFixedValue) {
       setFeedbackMessage("Campo desabilitado para valor fixo");
-      setFeedbackType('info');
+      setFeedbackType("info");
       setShowFeedback(true);
     }
   };
@@ -60,17 +78,24 @@ export default function CreatePayment() {
 
   const handleTimePickerConfirm = (date: Date) => {
     setShowTimePicker(false);
-    
+
     // Criar uma nova data com o horário selecionado mas data fixa
-    const newSelectedTime = new Date(2024, 0, 1, date.getHours(), date.getMinutes(), date.getSeconds());
+    const newSelectedTime = new Date(
+      2024,
+      0,
+      1,
+      date.getHours(),
+      date.getMinutes(),
+      date.getSeconds()
+    );
     setSelectedTime(newSelectedTime);
-    
+
     // Formatar para HH:MM:SS
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    const seconds = date.getSeconds().toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    const seconds = date.getSeconds().toString().padStart(2, "0");
     const formattedTime = `${hours}:${minutes}:${seconds}`;
-    
+
     setTime(formattedTime);
   };
 
@@ -80,38 +105,48 @@ export default function CreatePayment() {
 
   const handleToleranceChange = (text: string) => {
     // Permitir apenas números
-    const cleanText = text.replace(/[^0-9]/g, '');
+    const cleanText = text.replace(/[^0-9]/g, "");
     setTolerance(cleanText);
   };
 
   const handleSave = async () => {
-    console.log('Debug - handleSave called, change:', change);
-    
-    if (!selectedOption || !title.trim() || !carPrice || !motoPrice) {
+    console.log("Debug - handleSave called, change:", change);
+
+    if (
+      !selectedOption ||
+      !title.trim() ||
+      !carPrice ||
+      !motoPrice ||
+      !description
+    ) {
       const messages = {
         noOption: "Selecione um método de cobrança",
         noTitle: "Digite um título",
-        noPrices: "Digite os preços para carro e moto"
+        noPrices: "Digite os preços para carro e moto",
       };
-      
+
       setFeedbackMessage(
-        !selectedOption ? messages.noOption :
-        !title.trim() ? messages.noTitle : messages.noPrices
+        !selectedOption
+          ? messages.noOption
+          : !title.trim()
+          ? messages.noTitle
+          : messages.noPrices
       );
-      setFeedbackType('error');
+      setFeedbackType("error");
       setShowFeedback(true);
       return;
     }
 
     // Verificar se tolerância é zero para mostrar aviso especial
     const toleranceValue = parseInt(tolerance) || 0;
-    
+
     // Verificar tolerância zero apenas se não for VALOR_FIXO
     if (!isFixedValue && toleranceValue === 0) {
       setSpecialCase({
         title: "Atenção: Tolerância inválida",
-        message: "Você definiu a tolerância como 0 minutos. Isso significa que não haverá tempo gratuito para os clientes.",
-        errors: ["tolerance"]
+        message:
+          "Você definiu a tolerância como 0 minutos. Isso significa que não haverá tempo gratuito para os clientes.",
+        errors: ["tolerance"],
       });
       setShowConfirmation(true);
       return;
@@ -119,25 +154,26 @@ export default function CreatePayment() {
     if (!isFixedValue && toleranceValue > 60) {
       setSpecialCase({
         title: "Atenção: Tolerância inválida",
-        message: "Você definiu a tolerância como maior que 60 minutos. O valor máximo permitido é 60 minutos.",
-        errors: ["tolerance"]
+        message:
+          "Você definiu a tolerância como maior que 60 minutos. O valor máximo permitido é 60 minutos.",
+        errors: ["tolerance"],
       });
       setShowConfirmation(true);
       return;
     }
-    
+
     // Função para verificar se o preço é zero ou vazio
     const isPriceZeroOrEmpty = (price: string): boolean => {
-      if (!price || price.trim() === '') return true;
-      
+      if (!price || price.trim() === "") return true;
+
       // Remove espaços e caracteres não numéricos exceto vírgula e ponto
-      let cleanPrice = price.replace(/\s/g, '').replace(/[^\d,.-]/g, '');
-      
+      let cleanPrice = price.replace(/\s/g, "").replace(/[^\d,.-]/g, "");
+
       // Se tem vírgula, substitui por ponto
-      if (cleanPrice.includes(',')) {
-        cleanPrice = cleanPrice.replace(',', '.');
+      if (cleanPrice.includes(",")) {
+        cleanPrice = cleanPrice.replace(",", ".");
       }
-      
+
       const numericPrice = parseFloat(cleanPrice);
       return isNaN(numericPrice) || numericPrice === 0;
     };
@@ -146,70 +182,80 @@ export default function CreatePayment() {
     if (isPriceZeroOrEmpty(carPrice) || isPriceZeroOrEmpty(motoPrice)) {
       const priceErrors: ("carPrice" | "motoPrice")[] = [];
       let message = "";
-      
+
       if (isPriceZeroOrEmpty(carPrice)) {
-        message = "Você definiu o preço do carro como 0. Isso significa que não haverá cobrança para os clientes.";
+        message =
+          "Você definiu o preço do carro como 0. Isso significa que não haverá cobrança para os clientes.";
         priceErrors.push("carPrice");
       }
       if (isPriceZeroOrEmpty(motoPrice)) {
-        message = "Você definiu o preço da moto como 0. Isso significa que não haverá cobrança para os clientes.";
+        message =
+          "Você definiu o preço da moto como 0. Isso significa que não haverá cobrança para os clientes.";
         priceErrors.push("motoPrice");
       }
-      
+
       setSpecialCase({
         title: "Atenção: Preços Zerados",
         message: message,
-        errors: priceErrors
+        errors: priceErrors,
       });
       setShowConfirmation(true);
       return;
     }
 
     // Verificar se o tempo é válido apenas para POR_MINUTO
-    if (change === 'POR_MINUTO') {
-      console.log('Debug - Entrou na validação POR_MINUTO, time:', time);
-      
+    if (change === "POR_MINUTO") {
+      console.log("Debug - Entrou na validação POR_MINUTO, time:", time);
+
       // Verificar se o tempo não foi selecionado
       if (time === "00:00:00") {
         const errorCase = {
           title: "Erro: Tempo não selecionado",
-          message: "Por favor, selecione um tempo válido para este método de cobrança.",
-          errors: ["time"] as ("tolerance" | "time" | "carPrice" | "motoPrice")[]
+          message:
+            "Por favor, selecione um tempo válido para este método de cobrança.",
+          errors: ["time"] as (
+            | "tolerance"
+            | "time"
+            | "carPrice"
+            | "motoPrice"
+          )[],
         };
-        console.log('Debug - Setting specialCase:', errorCase);
+        console.log("Debug - Setting specialCase:", errorCase);
         setSpecialCase(errorCase);
         setShowConfirmation(true);
         return;
       }
-      
+
       // Verificar se os minutos são válidos (0-59)
-      const timeParts = time.split(':');
+      const timeParts = time.split(":");
       const hours = parseInt(timeParts[0]);
       const minutes = parseInt(timeParts[1]);
-      
+
       // Para POR_MINUTO, só considerar os minutos (0-59)
       if (minutes < 1 || minutes > 59) {
         setSpecialCase({
           title: "Erro: Tempo Inválido",
-          message: "Para cobrança por minuto, o tempo deve ser entre 1 e 59 minutos. Por favor, ajuste o tempo selecionado.",
-          errors: ["time"]
+          message:
+            "Para cobrança por minuto, o tempo deve ser entre 1 e 59 minutos. Por favor, ajuste o tempo selecionado.",
+          errors: ["time"],
         });
         setShowConfirmation(true);
         return;
       }
-      
+
       // Verificar se há horas (não permitido para POR_MINUTO)
       if (hours > 0) {
         setSpecialCase({
           title: "Erro: Tempo Inválido",
-          message: "Para cobrança por minuto, não é permitido usar horas. Selecione apenas minutos.",
-          errors: ["time"]
+          message:
+            "Para cobrança por minuto, não é permitido usar horas. Selecione apenas minutos.",
+          errors: ["time"],
         });
         setShowConfirmation(true);
         return;
       }
     }
-    
+
     // Se não há erros, mostra confirmação normal
     setSpecialCase(undefined);
     setShowConfirmation(true);
@@ -218,21 +264,22 @@ export default function CreatePayment() {
   const saveBillingMethod = async () => {
     const result = await handleSaveMethod({
       title: title.trim(),
+      description: description,
       category: change!,
       tolerance,
       time: time,
       carPrice,
-      motoPrice
+      motoPrice,
     });
 
     setFeedbackMessage(result.message);
-    setFeedbackType(result.success ? 'success' : 'error');
+    setFeedbackType(result.success ? "success" : "error");
     setShowFeedback(true);
   };
 
   const handleFeedbackClose = () => {
     setShowFeedback(false);
-    if (feedbackType === 'success') {
+    if (feedbackType === "success") {
       router.back();
     }
   };
@@ -265,7 +312,7 @@ export default function CreatePayment() {
                 itemTextStyle={styles.dropdownItemText}
                 selectedTextStyle={styles.dropdownSelectedText}
               />
-              
+
               {selectedOption && (
                 <View style={styles.descriptionContainer}>
                   <Text style={styles.descriptionText}>
@@ -276,128 +323,192 @@ export default function CreatePayment() {
 
               {selectedOption && (
                 <View style={styles.sectionContainer}>
-                <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>Configurações de Preços</Text>
-                </View>
-                
-                <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>Título</Text>
-                  <TextInput
-                    style={[styles.input, title ? styles.inputWithText : styles.inputWithPlaceholder]}
-                    placeholder="Digite o título"
-                    placeholderTextColor="#999"
-                    value={title}
-                    onChangeText={setTitle}
-                  />
-                </View>
+                  <View style={styles.sectionHeader}>
+                    <Text style={styles.sectionTitle}>
+                      Configurações de Preços
+                    </Text>
+                  </View>
 
-                <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>Tolerância (minutos)</Text>
-                  {isFixedValue ? (
-                    <TouchableOpacity
-                      style={[styles.input, styles.inputDisabled]}
-                      onPress={handleDisabledFieldPress}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.disabledText}>Campo desabilitado para valor fixo</Text>
-                    </TouchableOpacity>
-                  ) : (
-                    <>
-                      <View style={styles.timeInputContainer}>
-                        <TextInput
-                          style={[styles.timeInput, tolerance ? styles.inputWithText : styles.inputWithPlaceholder]}
-                          placeholder="Ex: 15 (15m de tolerância)"
-                          placeholderTextColor="#999"
-                          keyboardType="numeric"
-                          value={tolerance}
-                          onChangeText={handleToleranceChange}
-                        />
-                        <View style={styles.timeUnitContainer}>
-                          <Text style={styles.timeUnitText}>
-                            min tolerância
-                          </Text>
-                        </View>
-                      </View>
-                      <Text style={styles.optionalText}>Tempo em que vai ser desconsiderado ao calcular o valor do pagamento.</Text>
-                    </>
-                  )}
-                </View>
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.inputLabel}>Título</Text>
+                    <TextInput
+                      style={[
+                        styles.input,
+                        title
+                          ? styles.inputWithText
+                          : styles.inputWithPlaceholder,
+                      ]}
+                      placeholder="Digite o título"
+                      placeholderTextColor="#999"
+                      value={title}
+                      onChangeText={setTitle}
+                    />
 
-                <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>
-                    Tempo {selectedOption?.typeTime && selectedOption.typeTime !== 'deactivated' ? `(${selectedOption.typeTime})` : ''}
-                  </Text>
-                  {isFixedValue ? (
-                    <TouchableOpacity
-                      style={[styles.input, styles.inputDisabled]}
-                      onPress={handleDisabledFieldPress}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.disabledText}>Campo desabilitado para valor fixo</Text>
-                    </TouchableOpacity>
-                  ) : (
-                    <TouchableOpacity
-                      style={styles.timeInputContainer}
-                      onPress={() => setShowTimePicker(true)}
-                      activeOpacity={0.7}
-                    >
-                      <Text
-                        style={[
-                          styles.timeInput,
-                          time !== "00:00:00" ? styles.inputWithText : styles.inputWithPlaceholder,
-                          { paddingVertical: 16, textAlign: 'left', color: time !== "00:00:00" ? '#000' : '#999' }
-                        ]}
+                    <Text style={styles.optionalText}>
+                      O Campo de titulo será usado para identificação do
+                      operador. Recomendado um titulo descritivo mas curto.
+                    </Text>
+                  </View>
+                  
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.inputLabel}>Descrição</Text>
+                    <TextInput
+                      style={styles.observationInput}
+                      value={description}
+                      onChangeText={setDescription}
+                      placeholderTextColor={Colors.gray[400]}
+                      multiline
+                      numberOfLines={3}
+                      textAlignVertical="top"
+                      maxLength={200}
+                    />
+                    <Text style={styles.observationHint}>
+                      {description.length}/200 caracteres
+                    </Text>
+                    <Text style={styles.optionalText}>
+                      O texto informado aqui será impresso no ticket. Escreva de
+                      forma clara e descritiva para que o cliente entenda a
+                      informação.
+                    </Text>
+                  </View>
+
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.inputLabel}>Tolerância (minutos)</Text>
+                    {isFixedValue ? (
+                      <TouchableOpacity
+                        style={[styles.input, styles.inputDisabled]}
+                        onPress={handleDisabledFieldPress}
+                        activeOpacity={0.7}
                       >
-                        {time !== "00:00:00" ? time : getTimePlaceholder()}
-                      </Text>
-                      <View style={styles.timeUnitContainer}>
-                        <Text style={styles.timeUnitText}>
-                          selecionar
+                        <Text style={styles.disabledText}>
+                          Campo desabilitado para valor fixo
                         </Text>
-                      </View>
-                    </TouchableOpacity>
-                  )}
-                </View>
+                      </TouchableOpacity>
+                    ) : (
+                      <>
+                        <View style={styles.timeInputContainer}>
+                          <TextInput
+                            style={[
+                              styles.timeInput,
+                              tolerance
+                                ? styles.inputWithText
+                                : styles.inputWithPlaceholder,
+                            ]}
+                            placeholder="Ex: 15 (15m de tolerância)"
+                            placeholderTextColor="#999"
+                            keyboardType="numeric"
+                            value={tolerance}
+                            onChangeText={handleToleranceChange}
+                          />
+                          <View style={styles.timeUnitContainer}>
+                            <Text style={styles.timeUnitText}>
+                              min tolerância
+                            </Text>
+                          </View>
+                        </View>
+                        <Text style={styles.optionalText}>
+                          Tempo em que vai ser desconsiderado ao calcular o
+                          valor do pagamento.
+                        </Text>
+                      </>
+                    )}
+                  </View>
 
-                <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>Preço Carro</Text>
-                  <TextInput
-                    style={[styles.input, carPrice ? styles.inputWithText : styles.inputWithPlaceholder]}
-                    placeholder="R$ 00,00"
-                    placeholderTextColor="#999"
-                    keyboardType="decimal-pad"
-                    value={carPrice}
-                    onChangeText={(text) => {
-                      // Permitir apenas números, vírgula e ponto
-                      const cleanText = text.replace(/[^\d,.-]/g, '');
-                      setCarPrice(cleanText);
-                    }}
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.inputLabel}>
+                      Tempo{" "}
+                      {selectedOption?.typeTime &&
+                      selectedOption.typeTime !== "deactivated"
+                        ? `(${selectedOption.typeTime})`
+                        : ""}
+                    </Text>
+                    {isFixedValue ? (
+                      <TouchableOpacity
+                        style={[styles.input, styles.inputDisabled]}
+                        onPress={handleDisabledFieldPress}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.disabledText}>
+                          Campo desabilitado para valor fixo
+                        </Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity
+                        style={styles.timeInputContainer}
+                        onPress={() => setShowTimePicker(true)}
+                        activeOpacity={0.7}
+                      >
+                        <Text
+                          style={[
+                            styles.timeInput,
+                            time !== "00:00:00"
+                              ? styles.inputWithText
+                              : styles.inputWithPlaceholder,
+                            {
+                              paddingVertical: 16,
+                              textAlign: "left",
+                              color: time !== "00:00:00" ? "#000" : "#999",
+                            },
+                          ]}
+                        >
+                          {time !== "00:00:00" ? time : getTimePlaceholder()}
+                        </Text>
+                        <View style={styles.timeUnitContainer}>
+                          <Text style={styles.timeUnitText}>selecionar</Text>
+                        </View>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.inputLabel}>Preço Carro</Text>
+                    <TextInput
+                      style={[
+                        styles.input,
+                        carPrice
+                          ? styles.inputWithText
+                          : styles.inputWithPlaceholder,
+                      ]}
+                      placeholder="R$ 00,00"
+                      placeholderTextColor="#999"
+                      keyboardType="decimal-pad"
+                      value={carPrice}
+                      onChangeText={(text) => {
+                        // Permitir apenas números, vírgula e ponto
+                        const cleanText = text.replace(/[^\d,.-]/g, "");
+                        setCarPrice(cleanText);
+                      }}
+                    />
+                  </View>
+
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.inputLabel}>Preço Moto</Text>
+                    <TextInput
+                      style={[
+                        styles.input,
+                        motoPrice
+                          ? styles.inputWithText
+                          : styles.inputWithPlaceholder,
+                      ]}
+                      placeholder="R$ 00,00"
+                      placeholderTextColor="#999"
+                      keyboardType="decimal-pad"
+                      value={motoPrice}
+                      onChangeText={(text) => {
+                        // Permitir apenas números, vírgula e ponto
+                        const cleanText = text.replace(/[^\d,.-]/g, "");
+                        setMotoPrice(cleanText);
+                      }}
+                    />
+                  </View>
+
+                  <PrimaryButton
+                    title={loading ? "Salvando..." : "Salvar Configurações"}
+                    onPress={handleSave}
+                    style={styles.button}
+                    disabled={loading}
                   />
                 </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>Preço Moto</Text>
-                  <TextInput
-                    style={[styles.input, motoPrice ? styles.inputWithText : styles.inputWithPlaceholder]}
-                    placeholder="R$ 00,00"
-                    placeholderTextColor="#999"
-                    keyboardType="decimal-pad"
-                    value={motoPrice}
-                    onChangeText={(text) => {
-                      // Permitir apenas números, vírgula e ponto
-                      const cleanText = text.replace(/[^\d,.-]/g, '');
-                      setMotoPrice(cleanText);
-                    }}
-                  />
-                </View>
-                
-                <PrimaryButton
-                  title={loading ? "Salvando..." : "Salvar Configurações"}
-                  onPress={handleSave}
-                  style={styles.button}
-                  disabled={loading}
-                />
-              </View>
               )}
             </View>
           </PaperProvider>
@@ -414,7 +525,7 @@ export default function CreatePayment() {
           tolerance,
           time: isFixedValue ? undefined : time,
           carPrice,
-          motoPrice
+          motoPrice,
         }}
         specialCase={specialCase}
         confirmText="Confirmar"

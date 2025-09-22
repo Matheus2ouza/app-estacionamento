@@ -3,9 +3,10 @@ import { BillingMethod, BillingMethodListResponse, BillingMethodResponse, Catego
 import { useState } from "react";
 
 // Tipo para os dados do formulário
-type FormData = {
+type BillingForm = {
   title: string;
   category: string;
+  description: string;
   tolerance: string;
   time?: string;
   carPrice: string;
@@ -18,7 +19,7 @@ export function useBillingMethod() {
   const [success, setSuccess] = useState<boolean>(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  const handleSaveMethod = async (formData: FormData): Promise<BillingMethodResponse> => {
+  const handleSaveMethod = async (formData: BillingForm): Promise<BillingMethodResponse> => {
     setLoading(true);
     setError(null);
     setSuccess(false);
@@ -49,6 +50,7 @@ export function useBillingMethod() {
       // Estruturar os dados conforme o tipo BillingMethod
       const billingMethodData: BillingMethod = {
         title: formData.title,
+        description: formData.description,
         category: formData.category as CategoryType,
         tolerance: parseInt(formData.tolerance) || 0,
         time: formData.time,
@@ -182,7 +184,7 @@ export function useBillingMethod() {
     }
   };
 
-  const handleUpdatePutMethod = async (updateData: FormData & { id: string }): Promise<BillingMethodResponse> => {
+  const handleUpdatePutMethod = async (updateData: BillingForm & { id: string }): Promise<BillingMethodResponse> => {
     setLoading(true);
     setError(null);
     setSuccess(false);
@@ -215,6 +217,7 @@ export function useBillingMethod() {
       // Estruturar os dados conforme o tipo BillingMethod
       const billingMethodData: BillingMethod = {
         title: updateData.title || '',
+        description: updateData.description || '',
         category: updateData.category as CategoryType,
         tolerance: parseInt(updateData.tolerance),
         time: updateData.time,

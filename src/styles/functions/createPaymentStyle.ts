@@ -228,5 +228,28 @@ export const styles = StyleSheet.create({
   inputWithPlaceholder: {
     ...TypographyThemes.openSans.body, // Open Sans para placeholder - legível
     fontSize: 13,
-  }
+  },
+  observationInput: {
+    backgroundColor: Colors.white,
+    borderWidth: 2,
+    borderColor: Colors.gray[200],
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: Colors.text.primary,
+    minHeight: 140,
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+  },
+  observationHint: {
+    ...TypographyThemes.nunito.bodySmall,
+    fontSize: 12,
+    color: Colors.gray[500],
+    marginLeft: 4,
+    textAlign: "right",
+  },
 });
