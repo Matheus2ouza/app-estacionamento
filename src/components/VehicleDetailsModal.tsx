@@ -16,7 +16,6 @@ import { useVehiclePhoto } from '../hooks/vehicleFlow/useVehiclePhoto';
 import FeedbackModal from './FeedbackModal';
 import GenericConfirmationModal from './GenericConfirmationModal';
 import PDFViewer from './PDFViewer';
-import PermissionDeniedModal from './PermissionDeniedModal';
 import PhotoViewerModal from './PhotoViewerModal';
 
 interface VehicleDetailsModalProps {
@@ -38,7 +37,7 @@ export default function VehicleDetailsModal({
 }: VehicleDetailsModalProps) {
   const { hasManagerPermission } = useAuth();
   const { loading: loadingImage, error: photoError, fetchVehiclePhoto } = useVehiclePhoto();
-  const { loading: loadingTicket, error: ticketError, secondTicket, deleteVehicle: deleteVehicleVehicle, activateVehicle: activateVehicleVehicle } = useEditVehicle();
+  const { loading: loadingTicket, error: ticketError, secondTicket, deleteVehicle: deleteVehicle, activateVehicle: activateVehicle, deleteVehiclePermanent: deleteVehiclePermanent  } = useEditVehicle();
   const [photoViewerVisible, setPhotoViewerVisible] = useState(false);
   const [currentPhotoData, setCurrentPhotoData] = useState<{photo: string; photoType: string} | null>(null);
   const [secondTicketPdf, setSecondTicketPdf] = useState<string | null>(null);
@@ -51,35 +50,54 @@ export default function VehicleDetailsModal({
   
   // Estados para o GenericConfirmationModal
   const [confirmationVisible, setConfirmationVisible] = useState(false);
+  const [permanentDeleteConfirmationVisible, setPermanentDeleteConfirmationVisible] = useState(false);
+  const [finalPermanentDeleteConfirmationVisible, setFinalPermanentDeleteConfirmationVisible] = useState(false);
   const [loadingToggleStatus, setLoadingToggleStatus] = useState(false);
+  const [userWantsPermanentDelete, setUserWantsPermanentDelete] = useState<boolean | null>(null);
   
-  // Estados para o PermissionDeniedModal
-  const [permissionDeniedVisible, setPermissionDeniedVisible] = useState(false);
   
   if (!vehicle) return null;
 
   const handleToggleStatus = () => {
-    // Verifica permissão antes de abrir o modal de confirmação
-    if (!hasManagerPermission()) {
-      setPermissionDeniedVisible(true);
+    // Se o veículo está inativo, apenas reativa (todos podem reativar)
+    if (vehicle.status === 'DELETED') {
+      handleDirectActivation();
       return;
     }
-    setConfirmationVisible(true);
+    
+    // Se o veículo está ativo
+    if (hasManagerPermission()) {
+      // MANAGER/ADMIN: pergunta se quer exclusão permanente
+      setConfirmationVisible(true);
+    } else {
+      // NORMAL: apenas desativa diretamente
+      handleDirectDeactivation();
+    }
   };
 
-  const handleConfirmToggleStatus = async () => {
+  // Função para lidar com a resposta sobre exclusão permanente
+  const handlePermanentDeleteResponse = (wantsPermanent: boolean) => {
+    setUserWantsPermanentDelete(wantsPermanent);
+    setPermanentDeleteConfirmationVisible(false);
+    
+    if (wantsPermanent) {
+      // Se quer exclusão permanente, procede diretamente
+      handleDirectPermanentDelete();
+    } else {
+      // Se não quer exclusão permanente, apenas desativa
+      handleDirectDeactivation();
+    }
+  };
+
+  // Função específica para desativação direta (sem modal de confirmação)
+  const handleDirectDeactivation = async () => {
     setLoadingToggleStatus(true);
-    setConfirmationVisible(false);
     
     try {
-      // Verifica se o veículo está ativo ou inativo para decidir qual função usar
-      const isActive = !vehicle.deletedAt;
-      const result = isActive 
-        ? await deleteVehicleVehicle(vehicle.id)
-        : await activateVehicleVehicle(vehicle.id);
+      const result = await deleteVehicle(vehicle.id);
       
       if (result.success) {
-        setFeedbackMessage(result.message || 'Operação realizada com sucesso');
+        setFeedbackMessage(result.message || 'Veículo desativado com sucesso');
         setFeedbackType('success');
         setShowFeedback(true);
         // Chama o callback do componente pai para atualizar a lista
@@ -87,12 +105,12 @@ export default function VehicleDetailsModal({
         // Fecha o modal após a operação bem-sucedida
         onClose();
       } else {
-        setFeedbackMessage(result.message || 'Erro ao realizar operação');
+        setFeedbackMessage(result.message || 'Erro ao desativar veículo');
         setFeedbackType('error');
         setShowFeedback(true);
       }
     } catch (error) {
-      setFeedbackMessage('Erro inesperado ao realizar operação');
+      setFeedbackMessage('Erro inesperado ao desativar veículo');
       setFeedbackType('error');
       setShowFeedback(true);
     } finally {
@@ -100,13 +118,78 @@ export default function VehicleDetailsModal({
     }
   };
 
-  const handleCancelToggleStatus = () => {
-    setConfirmationVisible(false);
+  // Função específica para exclusão permanente direta
+  const handleDirectPermanentDelete = async () => {
+    setLoadingToggleStatus(true);
+    
+    try {
+      const result = await deleteVehiclePermanent(vehicle.id);
+      
+      if (result.success) {
+        setFeedbackMessage(result.message || 'Veículo excluído permanentemente');
+        setFeedbackType('success');
+        setShowFeedback(true);
+        // Chama o callback do componente pai para atualizar a lista
+        onDelete(vehicle);
+        // Fecha o modal após a operação bem-sucedida
+        onClose();
+      } else {
+        setFeedbackMessage(result.message || 'Erro ao excluir veículo permanentemente');
+        setFeedbackType('error');
+        setShowFeedback(true);
+      }
+    } catch (error) {
+      setFeedbackMessage('Erro inesperado ao excluir veículo permanentemente');
+      setFeedbackType('error');
+      setShowFeedback(true);
+    } finally {
+      setLoadingToggleStatus(false);
+    }
   };
 
-  const handleClosePermissionDenied = () => {
-    setPermissionDeniedVisible(false);
+  // Função específica para reativação direta
+  const handleDirectActivation = async () => {
+    setLoadingToggleStatus(true);
+    
+    try {
+      const result = await activateVehicle(vehicle.id);
+
+      if (result.success) {
+        setFeedbackMessage(result.message || 'Veículo reativado com sucesso');
+        setFeedbackType('success');
+        setShowFeedback(true);
+        // Chama o callback do componente pai para atualizar a lista
+        onDelete(vehicle);
+        // Fecha o modal após a operação bem-sucedida
+        onClose();
+      } else {
+        setFeedbackMessage(result.message || 'Erro ao reativar veículo');
+        setFeedbackType('error');
+        setShowFeedback(true);
+      }
+    } catch (error) {
+      setFeedbackMessage('Erro inesperado ao reativar veículo');
+      setFeedbackType('error');
+      setShowFeedback(true);
+    } finally {
+      setLoadingToggleStatus(false);
+    }
   };
+
+  const handleCancelPermanentDelete = () => {
+    setPermanentDeleteConfirmationVisible(false);
+    setUserWantsPermanentDelete(null);
+  };
+
+  const handleFinalPermanentDeleteConfirm = () => {
+    setFinalPermanentDeleteConfirmationVisible(false);
+    handleDirectPermanentDelete();
+  };
+
+  const handleFinalPermanentDeleteCancel = () => {
+    setFinalPermanentDeleteConfirmationVisible(false);
+  };
+
 
   const formatDate = (dateString: string) => {
     try {
@@ -250,7 +333,9 @@ export default function VehicleDetailsModal({
             {(vehicle.observation || vehicle.description) && (
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Observação:</Text>
-                <Text style={styles.infoValue}>{vehicle.observation || vehicle.description}</Text>
+                <Text style={vehicle.observation ? styles.infoValue : styles.infoNonexistent}>
+                  {vehicle.observation || 'Dado Inexistente'}
+                </Text>
               </View>
             )}
 
@@ -380,75 +465,183 @@ export default function VehicleDetailsModal({
         </ScrollView>
 
         {/* Botões de Ação */}
-        <View style={styles.actionsContainer}>
-          <Pressable
-            style={[
-              styles.actionButton, 
-              styles.editButton,
-              (loadingToggleStatus || loadingTicket) && styles.actionButtonDisabled
-            ]}
-            onPress={() => onEdit(vehicle)}
-            disabled={loadingToggleStatus || loadingTicket}
-          >
-            <FontAwesome 
-              name="edit" 
-              size={18} 
-              color={(loadingToggleStatus || loadingTicket) ? Colors.gray[400] : Colors.white} 
-            />
-            <Text style={[
-              styles.actionButtonText,
-              (loadingToggleStatus || loadingTicket) && styles.actionButtonTextDisabled
-            ]}>
-              Editar
-            </Text>
-          </Pressable>
+        <View style={[
+          styles.actionsContainer,
+          hasManagerPermission() && vehicle.deletedAt && styles.actionsContainerGrid
+        ]}>
+          {/* Layout Grid 2x2 - Apenas para Manager/Admin com veículo desativado */}
+          {hasManagerPermission() && vehicle.deletedAt ? (
+            <>
+              {/* Primeira linha de botões */}
+              <View style={styles.actionRow}>
+                <Pressable
+                  style={[
+                    styles.actionButton, 
+                    styles.editButton,
+                    (loadingToggleStatus || loadingTicket) && styles.actionButtonDisabled,
+                    styles.actionButtonGrid
+                  ]}
+                  onPress={() => onEdit(vehicle)}
+                  disabled={loadingToggleStatus || loadingTicket}
+                >
+                  <FontAwesome 
+                    name="edit" 
+                    size={18} 
+                    color={(loadingToggleStatus || loadingTicket) ? Colors.gray[400] : Colors.white} 
+                  />
+                  <Text style={[
+                    styles.actionButtonText,
+                    (loadingToggleStatus || loadingTicket) && styles.actionButtonTextDisabled
+                  ]}>
+                    Editar
+                  </Text>
+                </Pressable>
 
-          {/* Botão de Desativar/Ativar - Apenas para MANAGER e ADMIN */}
-          {hasManagerPermission() && (
-            <Pressable
-              style={[
-                styles.actionButton,
-                !vehicle.deletedAt ? styles.deleteButton : styles.activateButton,
-                (loadingToggleStatus || loadingTicket) && styles.actionButtonDisabled
-              ]}
-              onPress={handleToggleStatus}
-              disabled={loadingToggleStatus || loadingTicket}
-            >
-              <FontAwesome
-                name={loadingToggleStatus ? 'spinner' : (!vehicle.deletedAt ? 'trash' : 'check')}
-                size={18}
-                color={(loadingToggleStatus || loadingTicket) ? Colors.gray[400] : Colors.white}
-              />
-              <Text style={[
-                styles.actionButtonText,
-                (loadingToggleStatus || loadingTicket) && styles.actionButtonTextDisabled
-              ]}>
-                {loadingToggleStatus ? 'Processando...' : (!vehicle.deletedAt ? 'Desativar' : 'Ativar')}
-              </Text>
-            </Pressable>
+                <Pressable
+                  style={[
+                    styles.actionButton,
+                    styles.activateButton,
+                    (loadingToggleStatus || loadingTicket) && styles.actionButtonDisabled,
+                    styles.actionButtonGrid
+                  ]}
+                  onPress={handleToggleStatus}
+                  disabled={loadingToggleStatus || loadingTicket}
+                >
+                  <FontAwesome
+                    name={loadingToggleStatus ? 'spinner' : 'check'}
+                    size={18}
+                    color={(loadingToggleStatus || loadingTicket) ? Colors.gray[400] : Colors.white}
+                  />
+                  <Text style={[
+                    styles.actionButtonText,
+                    (loadingToggleStatus || loadingTicket) && styles.actionButtonTextDisabled
+                  ]}>
+                    {loadingToggleStatus ? 'Processando...' : 'Ativar'}
+                  </Text>
+                </Pressable>
+              </View>
+
+              {/* Segunda linha de botões */}
+              <View style={styles.actionRow}>
+                <Pressable
+                  style={[
+                    styles.actionButton,
+                    styles.permanentDeleteButton,
+                    (loadingToggleStatus || loadingTicket) && styles.actionButtonDisabled,
+                    styles.actionButtonGrid
+                  ]}
+                  onPress={() => {
+                    setFinalPermanentDeleteConfirmationVisible(true);
+                  }}
+                  disabled={loadingToggleStatus || loadingTicket}
+                >
+                  <FontAwesome
+                    name={loadingToggleStatus ? 'spinner' : 'trash-o'}
+                    size={18}
+                    color={(loadingToggleStatus || loadingTicket) ? Colors.gray[400] : Colors.white}
+                  />
+                  <Text style={[
+                    styles.actionButtonText,
+                    (loadingToggleStatus || loadingTicket) && styles.actionButtonTextDisabled
+                  ]}>
+                    {loadingToggleStatus ? 'Processando...' : 'Excluir'}
+                  </Text>
+                </Pressable>
+
+                <Pressable
+                  style={[
+                    styles.actionButton, 
+                    styles.secondTicketButton,
+                    (loadingToggleStatus || loadingTicket) && styles.actionButtonDisabled,
+                    styles.actionButtonGrid
+                  ]}
+                  onPress={handleGenerateSecondTicket}
+                  disabled={loadingToggleStatus || loadingTicket}
+                >
+                  <FontAwesome 
+                    name={loadingTicket ? "spinner" : "ticket"} 
+                    size={18} 
+                    color={(loadingToggleStatus || loadingTicket) ? Colors.gray[400] : Colors.white} 
+                  />
+                  <Text style={[
+                    styles.actionButtonText,
+                    (loadingToggleStatus || loadingTicket) && styles.actionButtonTextDisabled
+                  ]}>
+                    {loadingTicket ? 'Gerando...' : '2º Ticket'}
+                  </Text>
+                </Pressable>
+              </View>
+            </>
+          ) : (
+            /* Layout Horizontal - Para usuário normal ou Manager/Admin com veículo ativo */
+            <>
+              <Pressable
+                style={[
+                  styles.actionButton, 
+                  styles.editButton,
+                  (loadingToggleStatus || loadingTicket) && styles.actionButtonDisabled
+                ]}
+                onPress={() => onEdit(vehicle)}
+                disabled={loadingToggleStatus || loadingTicket}
+              >
+                <FontAwesome 
+                  name="edit" 
+                  size={18} 
+                  color={(loadingToggleStatus || loadingTicket) ? Colors.gray[400] : Colors.white} 
+                />
+                <Text style={[
+                  styles.actionButtonText,
+                  (loadingToggleStatus || loadingTicket) && styles.actionButtonTextDisabled
+                ]}>
+                  Editar
+                </Text>
+              </Pressable>
+
+              <Pressable
+                style={[
+                  styles.actionButton,
+                  !vehicle.deletedAt ? styles.deleteButton : styles.activateButton,
+                  (loadingToggleStatus || loadingTicket) && styles.actionButtonDisabled
+                ]}
+                onPress={handleToggleStatus}
+                disabled={loadingToggleStatus || loadingTicket}
+              >
+                <FontAwesome
+                  name={loadingToggleStatus ? 'spinner' : (!vehicle.deletedAt ? 'trash' : 'check')}
+                  size={18}
+                  color={(loadingToggleStatus || loadingTicket) ? Colors.gray[400] : Colors.white}
+                />
+                <Text style={[
+                  styles.actionButtonText,
+                  (loadingToggleStatus || loadingTicket) && styles.actionButtonTextDisabled
+                ]}>
+                  {loadingToggleStatus ? 'Processando...' : (!vehicle.deletedAt ? 'Desativar' : 'Ativar')}
+                </Text>
+              </Pressable>
+
+              <Pressable
+                style={[
+                  styles.actionButton, 
+                  styles.secondTicketButton,
+                  (loadingToggleStatus || loadingTicket) && styles.actionButtonDisabled
+                ]}
+                onPress={handleGenerateSecondTicket}
+                disabled={loadingToggleStatus || loadingTicket}
+              >
+                <FontAwesome 
+                  name={loadingTicket ? "spinner" : "ticket"} 
+                  size={18} 
+                  color={(loadingToggleStatus || loadingTicket) ? Colors.gray[400] : Colors.white} 
+                />
+                <Text style={[
+                  styles.actionButtonText,
+                  (loadingToggleStatus || loadingTicket) && styles.actionButtonTextDisabled
+                ]}>
+                  {loadingTicket ? 'Gerando...' : '2º Ticket'}
+                </Text>
+              </Pressable>
+            </>
           )}
-
-          <Pressable
-            style={[
-              styles.actionButton, 
-              styles.secondTicketButton,
-              (loadingToggleStatus || loadingTicket) && styles.actionButtonDisabled
-            ]}
-            onPress={handleGenerateSecondTicket}
-            disabled={loadingToggleStatus || loadingTicket}
-          >
-            <FontAwesome 
-              name={loadingTicket ? "spinner" : "ticket"} 
-              size={18} 
-              color={(loadingToggleStatus || loadingTicket) ? Colors.gray[400] : Colors.white} 
-            />
-            <Text style={[
-              styles.actionButtonText,
-              (loadingToggleStatus || loadingTicket) && styles.actionButtonTextDisabled
-            ]}>
-              {loadingTicket ? 'Gerando...' : '2º Ticket'}
-            </Text>
-          </Pressable>
         </View>
       </View>
 
@@ -480,31 +673,45 @@ export default function VehicleDetailsModal({
         navigateDelay={2000}
       />
 
-      {/* Confirmation Modal */}
+      {/* Confirmation Modal - Desativar */}
       <GenericConfirmationModal
         visible={confirmationVisible}
-        title="Confirmar Operação"
-        message={`Tem certeza que deseja ${!vehicle.deletedAt ? 'desativar' : 'ativar'} o veículo ${vehicle.plate}?`}
-        details={!vehicle.deletedAt 
-          ? 'Uma vez o veículo for desativado, ele não aparecerá na lista de veículos ativos e não poderá ser editado. Para poder ativá-lo novamente, será necessário um usuário com nível de permissão mínimo de Gerente.'
-          : 'Ao ativar o veículo, ele voltará a aparecer na lista de veículos ativos e poderá ser editado normalmente.'
-        }
-        confirmText={!vehicle.deletedAt ? 'Desativar' : 'Ativar'}
-        cancelText="Cancelar"
-        onConfirm={handleConfirmToggleStatus}
-        onCancel={handleCancelToggleStatus}
-        confirmButtonStyle={!vehicle.deletedAt ? 'danger' : 'success'}
+        title="Desativar Veículo?"
+        message="Deseja desativar este veículo ou excluí-lo permanentemente?"
+        details="Se escolher 'Desativar', o veículo será desativado e poderá ser reativado posteriormente. Se escolher 'Excluir Permanentemente', o veículo será removido definitivamente do sistema."
+        confirmText="Desativar"
+        cancelText="Excluir Permanentemente"
+        onConfirm={() => handlePermanentDeleteResponse(false)}
+        onCancel={() => handlePermanentDeleteResponse(true)}
+        confirmButtonStyle="danger"
       />
 
-      {/* Permission Denied Modal */}
-      <PermissionDeniedModal
-        visible={permissionDeniedVisible}
-        onClose={handleClosePermissionDenied}
-        action="desativar ou ativar veículos"
-        requiredRole="MANAGER"
-        currentRole={hasManagerPermission() ? 'MANAGER' : 'NORMAL'}
-        message="Você precisa ter permissão de Gerente ou Administrador para desativar ou ativar veículos."
+      {/* Confirmation Modal - Exclusão Permanente */}
+      <GenericConfirmationModal
+        visible={permanentDeleteConfirmationVisible}
+        title="Confirmar Exclusão Permanente"
+        message="Tem certeza que deseja excluir permanentemente este veículo?"
+        details="Esta ação não pode ser desfeita. O veículo será permanentemente removido do sistema e não poderá ser recuperado."
+        confirmText="Excluir Permanentemente"
+        cancelText="Cancelar"
+        onConfirm={handleDirectPermanentDelete}
+        onCancel={handleCancelPermanentDelete}
+        confirmButtonStyle="danger"
       />
+
+      {/* Confirmation Modal - Exclusão Permanente Final */}
+      <GenericConfirmationModal
+        visible={finalPermanentDeleteConfirmationVisible}
+        title="⚠️ EXCLUSÃO PERMANENTE ⚠️"
+        message="ATENÇÃO: Você está prestes a excluir permanentemente este veículo do sistema!"
+        details="Esta ação é IRREVERSÍVEL e irá:\n\n• Remover completamente todos os dados do veículo\n• Excluir histórico de entrada e saída\n• Deletar fotos e documentos associados\n• Impossibilitar qualquer recuperação futura\n\nTem ABSOLUTA CERTEZA que deseja continuar?"
+        confirmText="SIM, EXCLUIR PERMANENTEMENTE"
+        cancelText="Cancelar"
+        onConfirm={handleFinalPermanentDeleteConfirm}
+        onCancel={handleFinalPermanentDeleteCancel}
+        confirmButtonStyle="danger"
+      />
+
     </Modal>
   );
 }
@@ -603,6 +810,14 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'right',
   },
+  infoNonexistent: {
+    ...TypographyThemes.nunito.body,
+    fontSize: 14,
+    color: Colors.gray[400],
+    fontWeight: '500',
+    flex: 1,
+    textAlign: 'right',
+  },
   descriptionContainer: {
     paddingVertical: 8,
     paddingLeft: 10,
@@ -665,6 +880,17 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.gray[200],
     gap: 5,
   },
+  actionsContainerGrid: {
+    flexDirection: 'column',
+    gap: 8,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    gap: 5,
+  },
+  actionRowGrid: {
+    gap: 5,
+  },
   actionButton: {
     flex: 1,
     flexDirection: 'row',
@@ -692,6 +918,12 @@ const styles = StyleSheet.create({
   },
   secondTicketButton: {
     backgroundColor: Colors.orange[500],
+  },
+  permanentDeleteButton: {
+    backgroundColor: Colors.red[700],
+  },
+  actionButtonGrid: {
+    flex: 1,
   },
   actionButtonDisabled: {
     backgroundColor: Colors.gray[300],
