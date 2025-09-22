@@ -52,7 +52,6 @@ export const styles = StyleSheet.create({
   
   // Método de cobrança (somente leitura)
   methodContainer: {
-    marginBottom: 24,
     backgroundColor: Colors.white,
     borderRadius: 16,
     padding: 20,
@@ -301,5 +300,31 @@ export const styles = StyleSheet.create({
     ...TypographyThemes.nunito.caption,
     color: Colors.text.secondary,
     marginTop: 4,
+  },
+  inputDescriptoon: {
+    marginBottom: 5
+  },
+  observationInput: {
+    backgroundColor: Colors.white,
+    borderWidth: 2,
+    borderColor: Colors.gray[200],
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: Colors.text.primary,
+    minHeight: 140,
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+  },
+  observationHint: {
+    ...TypographyThemes.nunito.bodySmall,
+    fontSize: 12,
+    color: Colors.gray[500],
+    marginLeft: 4,
+    textAlign: "right",
   },
 });
