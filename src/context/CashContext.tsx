@@ -33,9 +33,9 @@ interface CashContextType {
   ) => Promise<CapacityParkingResponse | null>;
 
   // Funções de controle do caixa
-  openCash: (initialValue: number) => Promise<{ success: boolean; message: string }>;
+  openCash: (initialValue: number) => Promise<{ success: boolean; message: string; cashId?: string }>;
   closeCash: (cashId?: string) => Promise<{ success: boolean; message: string }>;
-  reopenCash: (cashId?: string) => Promise<{ success: boolean; message: string }>;
+  reopenCash: (cashId?: string) => Promise<{ success: boolean; message: string; cashId?: string }>;
   updateInitialValue: (cashId: string, initialValue: number) => Promise<{ success: boolean; message: string }>;
 }
 
@@ -268,7 +268,7 @@ export function CashProvider({ children }: CashProviderProps) {
   };
 
   // Função para abrir caixa
-  const openCash = async (initialValue: number): Promise<{ success: boolean; message: string }> => {
+  const openCash = async (initialValue: number): Promise<{ success: boolean; message: string; cashId?: string }> => {
     console.log("🔍 [CashContext] openCash: Abrindo caixa com valor inicial:", initialValue);
     setLoading(true);
     setError(null);
@@ -282,7 +282,11 @@ export function CashProvider({ children }: CashProviderProps) {
         setCashStatus("open");
         setSuccess(true);
         console.log("✅ [CashContext] openCash: Caixa aberto com sucesso");
-        return { success: true, message: response.message || "Caixa aberto com sucesso" };
+        return { 
+          success: true, 
+          message: response.message || "Caixa aberto com sucesso",
+          cashId: response.cash.id
+        };
       } else {
         const errorMsg = response.message || "Erro ao abrir caixa";
         console.error("❌ [CashContext] openCash: Erro na resposta:", errorMsg);
@@ -340,7 +344,7 @@ export function CashProvider({ children }: CashProviderProps) {
   };
 
   // Função para reabrir caixa
-  const reopenCash = async (cashId?: string): Promise<{ success: boolean; message: string }> => {
+  const reopenCash = async (cashId?: string): Promise<{ success: boolean; message: string; cashId?: string }> => {
     const idToUse = cashId || cashData?.id;
     console.log("🔍 [CashContext] reopenCash: Reabrindo caixa com ID:", idToUse);
     
@@ -363,7 +367,11 @@ export function CashProvider({ children }: CashProviderProps) {
         setCashStatus("open");
         setSuccess(true);
         console.log("✅ [CashContext] reopenCash: Caixa reaberto com sucesso");
-        return { success: true, message: response.message || "Caixa reaberto com sucesso" };
+        return { 
+          success: true, 
+          message: response.message || "Caixa reaberto com sucesso",
+          cashId: response.cash.id
+        };
       } else {
         const errorMsg = response.message || "Erro ao reabrir caixa";
         console.error("❌ [CashContext] reopenCash: Erro na resposta:", errorMsg);
