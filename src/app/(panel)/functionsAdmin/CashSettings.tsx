@@ -409,15 +409,14 @@ export default function CashSettings() {
               </Text>
             </View>
 
-            {!isCashNotCreated() ||
-              (isCashClosed() && (
-                <Pressable
-                  style={styles.editButton}
-                  onPress={() => setShowEditModal(true)}
-                >
-                  <Ionicons name="pencil" size={20} color={Colors.gray.light} />
-                </Pressable>
-              ))}
+            {isCashOpen() && (
+              <Pressable
+                style={styles.editButton}
+                onPress={() => setShowEditModal(true)}
+              >
+                <Ionicons name="pencil" size={20} color={Colors.gray.light} />
+              </Pressable>
+            )}
           </View>
 
           <View style={styles.spacerMd} />
