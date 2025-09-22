@@ -82,6 +82,42 @@ const useEditVehicle = () => {
     }
   }
 
+  const deleteVehiclePermanent = async (id: string) => {
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
+    setMessage(null);
+
+    try {
+      const response = await VehicleApi.deleteVehicle(id);
+
+      if(response.success) {
+        setSuccess(true);
+        setMessage(response.message || "Veículo deletado com sucesso.");
+        return {
+          success: true,
+          message: response.message || "Veículo deletado com sucesso.",
+        };
+      } else {
+        setError(response.message || "Erro ao deletar veículo.");
+        return {
+          success: false,
+          message: response.message || "Erro ao deletar veículo.",
+        };
+      }
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || "Erro ao deletar veículo.";
+      setError(errorMessage);
+      setMessage(errorMessage);
+      return {
+        success: false,
+        message: errorMessage,
+      };
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const activateVehicle = async (id: string) => {
     setLoading(true);
     setError(null);
@@ -236,6 +272,7 @@ const useEditVehicle = () => {
     message,
     secondTicket,
     deleteVehicle,
+    deleteVehiclePermanent,
     activateVehicle,
     updateVehicle,
     updateVehiclePhoto,
