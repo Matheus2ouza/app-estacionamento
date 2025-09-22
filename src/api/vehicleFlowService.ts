@@ -158,4 +158,9 @@ export const VehicleApi = {
       });
     return response.data;
   },
+
+  duplicateReceipt: async (id: string): Promise<VehicleResponse> => {
+    const response = await axiosInstance.get(`/vehicles/exit/${id}/duplicate`);
+    return response.data
+  }
 };

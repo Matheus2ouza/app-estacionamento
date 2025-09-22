@@ -15,7 +15,7 @@ export default function useHistory() {
 
     try {
       const response = await cashApi.generalHistoryCash(limit, cursor);
-      
+
       if (response.success) {
         if (cursor) {
           // Carregando mais dados (pagination)

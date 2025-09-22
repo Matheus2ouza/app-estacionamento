@@ -1,5 +1,5 @@
 import axios from "axios"; // usamos axios puro para as APIs externas
-import { BarcodeSearchResponse, Product, ProductPayment, ProductPaymentResponse, ProductRegisterResponse, Responselist } from "../types/productsTypes/products";
+import { BarcodeSearchResponse, duplicateReceipt, Product, ProductPayment, ProductPaymentResponse, ProductRegisterResponse, Responselist } from "../types/productsTypes/products";
 import axiosInstance from "./axiosInstance";
 
 export const ProductApi = {
@@ -57,6 +57,11 @@ export const ProductApi = {
       },
     });
     return response.data;
+  },
+
+  duplicateReceipt: async (id: string): Promise<duplicateReceipt> => {
+    const response = await axiosInstance.get(`/products/${id}/duplicate`);
+    return response.data
   },
 
   // 🔎 Busca produto pelo código de barras (UPC/EAN) usando UPCitemDB
