@@ -14,6 +14,12 @@ export interface VehicleResponse {
   error?: string;
 }
 
+export interface duplicateReceipt {
+  success: boolean;
+  message?: string;
+  data?: string;
+}
+
 export interface VehiclePhotoResponse {
   success: boolean;
   data?: photoData;

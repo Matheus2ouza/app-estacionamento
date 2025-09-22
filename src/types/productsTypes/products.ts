@@ -57,3 +57,9 @@ export interface ProductPaymentResponse {
   transactionId: string;
   receipt: string;
 }
+
+export interface duplicateReceipt {
+  success: boolean;
+  message?: string;
+  data?: string;
+}
