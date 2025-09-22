@@ -1,5 +1,5 @@
 import { VehicleApi } from "@/api/vehicleFlowService";
-import { CalculateExitResponse, RegisterExitData, RegisterExitResponse } from "@/types/vehicleTypes/vehicles";
+import { CalculateExitResponse, duplicateReceipt, RegisterExitData, RegisterExitResponse } from "@/types/vehicleTypes/vehicles";
 import { useState } from "react";
 
 export const useExitVehicle = () => {
@@ -76,9 +76,50 @@ export const useExitVehicle = () => {
     }
   };
 
+  const duplicateReceipt = async (id: string) => {
+    setLoading(true);
+    setSuccess(false);
+    setError(null);
+
+    try {
+      console.log('chamando a api')
+      console.log('o id:', id)
+      const response: duplicateReceipt = await VehicleApi.duplicateReceipt(id);
+
+
+      if(response.success) {
+        setSuccess(true);
+        return {
+          success: true,
+          data: response.data,
+        };
+      } else {
+        setError(response.message || "Erro ao gerar a segunda vida do comprovante.");
+        return {
+          success: false,
+          message: response.message || "Erro ao gerar a segunda vida do comprovante.",
+          data: null,
+        };
+      }
+    } catch (error: any) {
+      console.log(error)
+      const errorMessage = error?.response?.data?.message || "Erro ao gerar a segunda vida do comprovante.";
+      setError(errorMessage);
+      setMessage(errorMessage);
+      return {
+        success: false,
+        message: errorMessage,
+        data: null,
+      };
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return {
     calculateExit,
     registerExit,
+    duplicateReceipt,
     loading,
     success,
     error,

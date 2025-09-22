@@ -1,5 +1,5 @@
 import { ProductApi } from "@/api/productsService";
-import { ProductPayment, ProductPaymentResponse } from "@/types/productsTypes/products";
+import { duplicateReceipt, ProductPayment, ProductPaymentResponse } from "@/types/productsTypes/products";
 import { useState } from "react";
 
 const useRegisterProductSale = () => {
@@ -62,6 +62,46 @@ const useRegisterProductSale = () => {
     }
   };
 
+  const duplicateReceipt = async (id: string) => {
+    setLoading(true);
+    setSuccess(false);
+    setError(null);
+
+    try {
+      console.log('chamando a api')
+      console.log('o id:', id)
+      const response: duplicateReceipt = await ProductApi.duplicateReceipt(id);
+      console.log(response)
+
+      if(response.success) {
+        setSuccess(true);
+        return {
+          success: true,
+          data: response.data,
+        };
+      } else {
+        setError(response.message || "Erro ao gerar a segunda vida do comprovante.");
+        return {
+          success: false,
+          message: response.message || "Erro ao gerar a segunda vida do comprovante.",
+          data: null,
+        };
+      }
+    } catch (error: any) {
+      console.log(error)
+      const errorMessage = error?.response?.data?.message || "Erro ao gerar a segunda vida do comprovante.";
+      setError(errorMessage);
+      setMessage(errorMessage);
+      return {
+        success: false,
+        message: errorMessage,
+        data: null,
+      };
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const resetState = () => {
     setError(null);
     setSuccess(false);
@@ -70,6 +110,7 @@ const useRegisterProductSale = () => {
 
   return {
     registerProductSale,
+    duplicateReceipt,
     loading,
     error,
     success,
