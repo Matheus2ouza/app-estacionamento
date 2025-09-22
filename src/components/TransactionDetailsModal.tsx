@@ -14,8 +14,11 @@ import {
 import { TypographyThemes } from '../constants/Fonts';
 import { useAuth } from '../context/AuthContext';
 import usePhotoCache from '../hooks/history/usePhotoCache';
+import useRegisterProductSale from '../hooks/products/useRegisterProductSale';
+import { useExitVehicle } from '../hooks/vehicleFlow/useExitVehicle';
 import FeedbackModal from './FeedbackModal';
 import GenericConfirmationModal from './GenericConfirmationModal';
+import PDFViewer from './PDFViewer';
 import PermissionDeniedModal from './PermissionDeniedModal';
 import PhotoViewerModal from './PhotoViewerModal';
 import Separator from './Separator';
@@ -60,6 +63,79 @@ export default function TransactionDetailsModal({
   // Estados para o PhotoViewerModal
   const [photoViewerVisible, setPhotoViewerVisible] = useState(false);
   const [loadedPhotoUrl, setLoadedPhotoUrl] = useState<string | null>(null);
+  const [generatingDuplicate, setGeneratingDuplicate] = useState(false);
+  const [pdfVisible, setPdfVisible] = useState(false);
+  const [pdfData, setPdfData] = useState<string | null>(null);
+
+  const { duplicateReceipt } = useExitVehicle();
+  const { duplicateReceipt: duplicateProductReceipt } = useRegisterProductSale();
+
+  const getDuplicateFilename = () => {
+    const rawDate = transaction?.data?.transactionDate || new Date().toISOString();
+    const datePart = rawDate.replace(/[:]/g, '-');
+    if (transaction?.type === 'vehicle') {
+      const vehicleData = Array.isArray(transaction.data.vehicleEntries)
+        ? transaction.data.vehicleEntries[0]
+        : transaction.data.vehicleEntries;
+      const plate = (vehicleData?.plate || 'VEICULO').replace(/[^A-Za-z0-9-]/g, '');
+      return `segunda-via-veiculo-${plate}-${datePart}.pdf`;
+    }
+    if (transaction?.type === 'product') {
+      const firstItem = Array.isArray(transaction.data.saleItems) && transaction.data.saleItems.length > 0
+        ? transaction.data.saleItems[0]
+        : null;
+      const rawName = (firstItem?.productName || 'PRODUTO').toString();
+      const cleanName = rawName
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove acentos
+        .replace(/[^A-Za-z0-9- ]/g, '') // remove chars especiais
+        .trim()
+        .replace(/\s+/g, '-');
+      const shortName = cleanName.length > 24 ? cleanName.slice(0, 24) : cleanName;
+      return `segunda-via-produto-${shortName || 'PRODUTO'}-${datePart}.pdf`;
+    }
+    return `segunda-via-${transaction?.type || 'transacao'}-${datePart}.pdf`;
+  };
+
+  const handleGenerateSecondCopy = async () => {
+    const resolvedId = transaction?.data?.id;
+    if (!resolvedId) {
+      setFeedbackMessage('Transação sem ID válido.');
+      setFeedbackType('error');
+      setShowFeedback(true);
+      return;
+    }
+
+    try {
+      setGeneratingDuplicate(true);
+      let result;
+      if (transaction?.type === 'vehicle') {
+        result = await duplicateReceipt(resolvedId);
+        console.log('esse é o resultado do result')
+        console.log(result.data)
+      } else if (transaction?.type === 'product') {
+        result = await duplicateProductReceipt(resolvedId);
+      } else {
+        setFeedbackMessage('Tipo de transação não suportado.');
+        setFeedbackType('warning');
+        setShowFeedback(true);
+        return;
+      }
+      if (result.success && result.data) {
+        setPdfData(result.data);
+        setPdfVisible(true);
+      } else {
+        setFeedbackMessage(result.message || 'Não foi possível gerar a 2ª via.');
+        setFeedbackType('error');
+        setShowFeedback(true);
+      }
+    } catch (e) {
+      setFeedbackMessage('Erro ao gerar a 2ª via do comprovante.');
+      setFeedbackType('error');
+      setShowFeedback(true);
+    } finally {
+      setGeneratingDuplicate(false);
+    }
+  };
 
   const handleToggleStatus = () => {
     if (!transaction) return;
@@ -872,6 +948,22 @@ export default function TransactionDetailsModal({
           </View>
         </ScrollView>
 
+        {/* Botão Gerar 2ª Via (Veículo/Produto) */}
+        {(transaction.type === 'vehicle' || transaction.type === 'product') && (
+          <View style={styles.actionsContainer}>
+            <Pressable
+              style={[styles.copyButton, generatingDuplicate && styles.actionButtonDisabled]}
+              onPress={handleGenerateSecondCopy}
+              disabled={generatingDuplicate}
+            >
+              <FontAwesome name={generatingDuplicate ? 'spinner' : 'file-pdf-o'} size={18} color={Colors.white} />
+              <Text style={[styles.copyButtonText, generatingDuplicate && styles.actionButtonTextDisabled]}>
+                {generatingDuplicate ? 'Gerando...' : 'Gerar 2ª via'}
+              </Text>
+            </Pressable>
+          </View>
+        )}
+
         {/* Botão de Excluir */}
         {showDeleteButton && (
           <View style={styles.actionsContainer}>
@@ -911,6 +1003,19 @@ export default function TransactionDetailsModal({
         autoNavigateOnSuccess={false}
         navigateDelay={2000}
       />
+
+      {/* PDF Viewer Modal */}
+      {pdfData && (
+        <PDFViewer
+          base64={pdfData}
+          visible={pdfVisible}
+          onClose={() => {
+            setPdfVisible(false);
+            setPdfData(null);
+          }}
+          filename={getDuplicateFilename()}
+        />
+      )}
 
       {/* Confirmation Modal - Produtos e Despesas */}
       <GenericConfirmationModal
@@ -1267,6 +1372,23 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.whiteSemiTransparent2,
     borderTopWidth: 1,
     borderTopColor: Colors.gray[200],
+  },
+  copyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: Colors.yellow[500],
+    gap: 8,
+    marginBottom: 8,
+  },
+  copyButtonText: {
+    ...TypographyThemes.nunito.body,
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.white,
   },
   deleteButton: {
     flexDirection: 'row',
