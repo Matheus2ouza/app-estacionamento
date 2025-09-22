@@ -98,6 +98,7 @@ export default function MethodPayment() {
       params: {
         id: method.id,
         title: method.title,
+        description: method.description,
         category: method.category,
         tolerance: method.tolerance.toString(),
         time: method.timeMinutes !== undefined && method.timeMinutes !== null ? method.timeMinutes.toString() : "",
