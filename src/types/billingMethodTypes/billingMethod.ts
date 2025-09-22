@@ -8,6 +8,7 @@ export type CategoryType = typeof categoryMethod[number];
 
 export type BillingMethod = {
   title: string;
+  description: string;
   category?: CategoryType;
   tolerance: number;
   time?: string;
@@ -30,6 +31,7 @@ export type BillingMethodListResponse = {
 export type BillingMethodList = {
   id: string;
   title: string;
+  description: string;
   category: CategoryType;
   isActive: boolean;
   tolerance: number;
