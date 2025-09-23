@@ -213,7 +213,7 @@ export const styles = StyleSheet.create({
   },
   // Botões de ação
   buttonContainer: {
-    marginVertical: 25,
+    marginBottom: 25,
     alignItems: "center",
     width: "100%",
   },
