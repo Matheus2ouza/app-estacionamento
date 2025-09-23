@@ -441,7 +441,7 @@ export default function History() {
         <SearchInput
           searchQuery={search}
           onSearchChange={setSearch}
-          placeholder="Buscar por placa, produto, despesa, data ou operador..."
+          placeholder="Buscar por..."
           sortOptions={sortOptions}
           selectedSort={sortBy}
           onSortChange={handleSortChange}

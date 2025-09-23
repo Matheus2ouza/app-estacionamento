@@ -1,5 +1,5 @@
 import { cashApi } from '@/api/cashService';
-import { CashHistoryData } from '@/types/cashTypes/cash';
+import { CashHistoryData, ListCashHistoryAllResponse, ListHistoryCash } from '@/types/cashTypes/cash';
 import { useCallback, useRef, useState } from 'react';
 
 export const useCashHistory = () => {
@@ -74,6 +74,46 @@ export const useCashHistory = () => {
       setLoading(false);
     }
   }, []);
+  
+  const fetchAllCashHistory = useCallback(async (limit: number = 9, cursor?: string): Promise<{ items: ListHistoryCash[]; hasNextPage: boolean; nextCursor?: string } | null> => {
+    // Evitar chamadas desnecessárias se já está carregando
+    if (isLoadingRef.current) {
+      console.log('⏳ [useCashHistory] fetchCashHistory: Já está carregando, ignorando chamada');
+      return null;
+    }
+
+    console.log('🔍 [useCashHistory] fetchCashHistory: Buscando histórico de todos os caixas', { limit, cursor });
+    isLoadingRef.current = true;
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response: ListCashHistoryAllResponse = await cashApi.listCashHistory(limit, cursor);
+      console.log('🔍 [useCashHistory] fetchCashHistory: Resposta da API:', response);
+
+      if (response.success && response.data) {
+        console.log('✅ [useCashHistory] fetchCashHistory: Histórico obtido com sucesso');
+        return {
+          items: response.data,
+          hasNextPage: response.hasNextPage,
+          nextCursor: response.nextCursor,
+        };
+      } else {
+        const errorMsg = response.message || 'Erro ao buscar histórico do caixa';
+        console.error('❌ [useCashHistory] fetchCashHistory: Erro na resposta:', errorMsg);
+        setError(errorMsg);
+        return null;
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao buscar histórico do caixa';
+      console.error('❌ [useCashHistory] fetchCashHistory: Erro:', errorMessage, err);
+      setError(errorMessage);
+      return null;
+    } finally {
+      setLoading(false);
+      isLoadingRef.current = false;
+    }
+  }, []);
 
   const clearError = useCallback(() => {
     setError(null);
@@ -86,6 +126,7 @@ export const useCashHistory = () => {
     success,
     message,
     fetchCashHistory,
+    fetchAllCashHistory,
     clearError,
     deleteTransaction,
   };
