@@ -3,6 +3,19 @@ export const adjustEntryTime = (entryTime: string | Date): Date => {
   return new Date(entryTime);
 };
 
+export const formatDateTime = (dateString: string | null | undefined) => {
+  if (!dateString) return "N/A";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "Data inválida";
+  return date.toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 export const formatTime = (date: Date): string => {
   return date.toLocaleTimeString([], { 
     hour: '2-digit', 
