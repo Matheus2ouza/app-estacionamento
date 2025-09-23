@@ -24,7 +24,7 @@ interface CashContextType {
   parkingDetails: CapacityParkingResponse | null;
 
   // Função central de status
-  updateCashStatus: () => Promise<void>;
+  updateCashStatus: () => Promise<cash | null>;
 
   // Funções de dados
   fetchCashDetails: (cashId?: string) => Promise<CashData | null>;
@@ -85,7 +85,7 @@ export function CashProvider({ children }: CashProviderProps) {
   }, [parkingDetails]);
 
   // Função central que sempre busca o status do caixa
-  const updateCashStatus = async (): Promise<void> => {
+  const updateCashStatus = async (): Promise<cash | null> => {
     console.log(
       "🔍 [CashContext] updateCashStatus: Atualizando status do caixa",
     );
@@ -107,7 +107,7 @@ export function CashProvider({ children }: CashProviderProps) {
         setCashData(null);
         setCashDetails(null);
         setParkingDetails(null);
-        return;
+        return null;
       }
 
       const cash = response.cash;
@@ -129,6 +129,7 @@ export function CashProvider({ children }: CashProviderProps) {
         setParkingDetails(null); // Limpar dados do estacionamento quando fechado
         console.log("🔒 [CashContext] updateCashStatus: Caixa fechado");
       }
+      return cash;
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Erro ao buscar status do caixa";
@@ -142,6 +143,7 @@ export function CashProvider({ children }: CashProviderProps) {
       setCashData(null);
       setCashDetails(null);
       setParkingDetails(null);
+      return null;
     } finally {
       setLoading(false);
     }

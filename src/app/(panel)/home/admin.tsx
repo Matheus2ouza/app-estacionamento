@@ -19,21 +19,23 @@ import { Pressable, Text, TouchableOpacity, View } from "react-native";
 import Spinner from "react-native-loading-spinner-overlay";
 
 export default function AdminHome() {
-  const [message, setMessage] = useState(false)
-  const [showCashRegister, setShowCashRegister] = useState(false)
-  const [cashRegisterMode, setCashRegisterMode] = useState<'open' | 'reopen'>('open')
-  const [showCashClosed, setShowCashClosed] = useState(false)
-  const [showLoader, setShowLoader] = useState(false)
-  const [showFeedback, setShowFeedback] = useState(false)
-  const [feedbackMessage, setFeedbackMessage] = useState('')
-  const [feedbackSuccess, setFeedbackSuccess] = useState(false)
-  const [timeCloseFeedback, setTimeCloseFeedback] = useState(5000)
+  const [message, setMessage] = useState(false);
+  const [showCashRegister, setShowCashRegister] = useState(false);
+  const [cashRegisterMode, setCashRegisterMode] = useState<"open" | "reopen">(
+    "open"
+  );
+  const [showCashClosed, setShowCashClosed] = useState(false);
+  const [showLoader, setShowLoader] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [feedbackSuccess, setFeedbackSuccess] = useState(false);
+  const [timeCloseFeedback, setTimeCloseFeedback] = useState(5000);
   const { role, userId } = useAuth();
-  const { 
-    loading: cashLoading, 
-    error, 
-    cashStatus, 
-    cashData, 
+  const {
+    loading: cashLoading,
+    error,
+    cashStatus,
+    cashData,
     cashDetails,
     parkingDetails,
     updateCashStatus,
@@ -45,10 +47,9 @@ export default function AdminHome() {
   } = useCashContext();
 
   // Funções utilitárias locais
-  const isCashOpen = (): boolean => cashStatus === 'open';
-  const isCashClosed = (): boolean => cashStatus === 'closed';
-  const isCashNotCreated = (): boolean => cashStatus === 'not_created';
-
+  const isCashOpen = (): boolean => cashStatus === "open";
+  const isCashClosed = (): boolean => cashStatus === "closed";
+  const isCashNotCreated = (): boolean => cashStatus === "not_created";
 
   // Referência estável para evitar re-execuções
   const isCashNotCreatedRef = useRef(isCashNotCreated);
@@ -56,184 +57,228 @@ export default function AdminHome() {
 
   // Buscar dados ao montar a tela
   useEffect(() => {
-    console.log('🔍 [AdminHome] useEffect inicial: Montando tela, buscando dados');
+    console.log(
+      "🔍 [AdminHome] useEffect inicial: Montando tela, buscando dados"
+    );
     updateCashStatus();
   }, []);
 
   // Função para converter dados do estacionamento para o formato esperado pelo ParkingBox
   const convertParkingData = () => {
-    console.log('🔍 [AdminHome] convertParkingData: Convertendo dados do estacionamento');
-    console.log('🔍 [AdminHome] convertParkingData: parkingDetails:', parkingDetails);
-    
+    console.log(
+      "🔍 [AdminHome] convertParkingData: Convertendo dados do estacionamento"
+    );
+    console.log(
+      "🔍 [AdminHome] convertParkingData: parkingDetails:",
+      parkingDetails
+    );
+
     if (!parkingDetails?.data) {
-      console.log('❌ [AdminHome] convertParkingData: Nenhum dado de estacionamento disponível');
+      console.log(
+        "❌ [AdminHome] convertParkingData: Nenhum dado de estacionamento disponível"
+      );
       return undefined;
     }
-    
+
     const { data } = parkingDetails;
     const free = data.capacityMax - data.quantityVehicles;
-    
+
     const result = {
       free,
       used: data.quantityVehicles,
-      details: [data.quantityCars, data.quantityMotorcycles]
+      details: [data.quantityCars, data.quantityMotorcycles],
     };
-    
-    console.log('✅ [AdminHome] convertParkingData: Dados convertidos:', result);
+
+    console.log(
+      "✅ [AdminHome] convertParkingData: Dados convertidos:",
+      result
+    );
     return result;
   };
 
   // Buscar dados quando a tela recebe foco e, se não houver caixa, solicitar abertura (sem dependências para evitar loop)
   useFocusEffect(
     useCallback(() => {
-      console.log('🔍 [AdminHome] useFocusEffect: Tela recebeu foco, atualizando todos os dados');
+      console.log(
+        "🔍 [AdminHome] useFocusEffect: Tela recebeu foco, atualizando todos os dados"
+      );
       let cancelled = false;
       (async () => {
+        setShowLoader(true);
         // Atualizar status do caixa
         await updateCashStatus();
-        
+
         if (cancelled) return;
-        
+
         // Se caixa não foi criado, mostrar modal
         if (isCashNotCreatedRef.current()) {
           setMessage(true);
           return;
         }
-        
+
         // Aguardar um pouco para o estado ser atualizado após updateCashStatus
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
         if (cancelled) return;
-        
+
         // Buscar dados atualizados do caixa e estacionamento quando a tela recebe foco
         if (cashData?.id) {
-          console.log('🔍 [AdminHome] useFocusEffect: Carregando dados para ID:', cashData.id);
-          console.log('🔍 [AdminHome] useFocusEffect: Buscando dados atualizados do caixa e estacionamento');
+          console.log(
+            "🔍 [AdminHome] useFocusEffect: Carregando dados para ID:",
+            cashData.id
+          );
+          console.log(
+            "🔍 [AdminHome] useFocusEffect: Buscando dados atualizados do caixa e estacionamento"
+          );
           try {
             // Buscar detalhes do caixa (para admin)
-            if (cashStatus === 'open' || cashStatus === 'closed') {
+            if (cashStatus === "open" || cashStatus === "closed") {
               await fetchCashDetails(cashData.id);
-              console.log('✅ [AdminHome] useFocusEffect: Detalhes do caixa atualizados');
+              console.log(
+                "✅ [AdminHome] useFocusEffect: Detalhes do caixa atualizados"
+              );
             }
-            
+
             // Buscar dados do estacionamento (apenas se caixa estiver aberto)
-            if (cashStatus === 'open') {
+            if (cashStatus === "open") {
               await fetchParkingDetails(cashData.id);
-              console.log('✅ [AdminHome] useFocusEffect: Dados do estacionamento atualizados');
+              console.log(
+                "✅ [AdminHome] useFocusEffect: Dados do estacionamento atualizados"
+              );
             }
           } catch (error) {
-            console.error('❌ [AdminHome] useFocusEffect: Erro ao buscar dados:', error);
+            console.error(
+              "❌ [AdminHome] useFocusEffect: Erro ao buscar dados:",
+              error
+            );
           }
         } else {
-          console.log('❌ [AdminHome] useFocusEffect: ID do caixa não disponível após updateCashStatus');
+          console.log(
+            "❌ [AdminHome] useFocusEffect: ID do caixa não disponível após updateCashStatus"
+          );
         }
       })();
-      return () => { cancelled = true; };
+      setShowLoader(false);
+      return () => {
+        cancelled = true;
+      };
     }, [])
   );
 
   // Função específica para refresh do CashBox
   const handleCashBoxRefresh = async () => {
-    console.log('🔍 [AdminHome] handleCashBoxRefresh: Iniciando refresh do CashBox');
-    
-    // Verificar se o caixa não foi criado antes de fazer refresh
-    if (isCashNotCreated()) {
-      console.log('❌ [AdminHome] handleCashBoxRefresh: Caixa não criado, mostrando modal');
-      setMessage(true);
-      return;
-    }
-    
-    setShowLoader(true);
-    const startTime = Date.now();
-    
+    console.log(
+      "🔍 [AdminHome] handleCashBoxRefresh: Iniciando refresh do CashBox"
+    );
+
     try {
-      // Atualizar status do caixa
-      await updateCashStatus();
-      console.log('🔍 [AdminHome] handleCashBoxRefresh: Status atualizado');
-      
-      // Se o caixa existe, buscar detalhes do caixa
-      if ((cashStatus === 'open' || cashStatus === 'closed') && cashData?.id) {
-        await fetchCashDetails(cashData.id);
-        console.log('✅ [AdminHome] handleCashBoxRefresh: Detalhes do caixa atualizados');
+      // Atualizar status do caixa e usar o retorno imediatamente
+      const cash = await updateCashStatus();
+
+      // Verificar existência do caixa pelo retorno (evita depender do estado)
+      if (!cash) {
+        console.log(
+          "❌ [AdminHome] handleCashBoxRefresh: Caixa não criado, mostrando modal"
+        );
+        setMessage(true);
+        return;
+      }
+      console.log("🔍 [AdminHome] handleCashBoxRefresh: Status atualizado para:", cash.status);
+
+      // Se o caixa existe, buscar detalhes do caixa usando o ID retornado
+      const isOpenOrClosed = cash.status === "OPEN" || cash.status === "CLOSED";
+      if (isOpenOrClosed) {
+        await fetchCashDetails(cash.id);
+        console.log(
+          "✅ [AdminHome] handleCashBoxRefresh: Detalhes do caixa atualizados"
+        );
       }
     } catch (error) {
-      console.error('❌ [AdminHome] handleCashBoxRefresh: Erro ao atualizar dados do caixa:', error);
+      console.error(
+        "❌ [AdminHome] handleCashBoxRefresh: Erro ao atualizar dados do caixa:",
+        error
+      );
     } finally {
-      const elapsedTime = Date.now() - startTime;
-      const remainingTime = Math.max(0, 1000 - elapsedTime);
-      
-      setTimeout(() => {
-        setShowLoader(false);
-        console.log('🔍 [AdminHome] handleCashBoxRefresh: Finalizando refresh');
-      }, remainingTime);
+      setShowLoader(false);
     }
   };
 
   // Função específica para refresh do ParkingBox
   const handleParkingBoxRefresh = async () => {
-    console.log('🔍 [AdminHome] handleParkingBoxRefresh: Iniciando refresh do ParkingBox');
-    
-    // Verificar se o caixa não foi criado antes de fazer refresh
-    if (isCashNotCreated()) {
-      console.log('❌ [AdminHome] handleParkingBoxRefresh: Caixa não criado, mostrando modal');
-      setMessage(true);
-      return;
-    }
-    
+    console.log(
+      "🔍 [AdminHome] handleParkingBoxRefresh: Iniciando refresh do ParkingBox"
+    );
     setShowLoader(true);
-    const startTime = Date.now();
-    
+
     try {
-      // Atualizar status do caixa primeiro
-      await updateCashStatus();
-      console.log('🔍 [AdminHome] handleParkingBoxRefresh: Status atualizado');
-      
+      // Atualizar status do caixa primeiro e obter ID
+      const cash = await updateCashStatus();
+
+      // Verificar existência do caixa pelo retorno
+      if (!cash) {
+        console.log(
+          "❌ [AdminHome] handleParkingBoxRefresh: Caixa não criado, mostrando modal"
+        );
+        setMessage(true);
+        return;
+      }
+      console.log("🔍 [AdminHome] handleParkingBoxRefresh: Status atualizado para:", cash.status);
+
       // Buscar dados do estacionamento se o caixa estiver aberto
-      if (cashStatus === 'open' && cashData?.id) {
-        await fetchParkingDetails(cashData.id);
-        console.log('✅ [AdminHome] handleParkingBoxRefresh: Dados do estacionamento atualizados');
+      if (cash.status === "OPEN") {
+        await fetchParkingDetails(cash.id);
+        console.log(
+          "✅ [AdminHome] handleParkingBoxRefresh: Dados do estacionamento atualizados"
+        );
       } else {
-        console.log('❌ [AdminHome] handleParkingBoxRefresh: Caixa não aberto ou ID não disponível');
+        console.log(
+          "❌ [AdminHome] handleParkingBoxRefresh: Caixa não aberto"
+        );
       }
     } catch (error) {
-      console.error('❌ [AdminHome] handleParkingBoxRefresh: Erro ao atualizar dados do estacionamento:', error);
+      console.error(
+        "❌ [AdminHome] handleParkingBoxRefresh: Erro ao atualizar dados do estacionamento:",
+        error
+      );
     } finally {
-      const elapsedTime = Date.now() - startTime;
-      const remainingTime = Math.max(0, 1000 - elapsedTime);
-      
-      setTimeout(() => {
-        setShowLoader(false);
-        console.log('🔍 [AdminHome] handleParkingBoxRefresh: Finalizando refresh');
-      }, remainingTime);
+      setShowLoader(false);
     }
   };
 
   // Monitorar mudanças no status do caixa
   useEffect(() => {
-    console.log('🔍 [AdminHome] useEffect cashStatus: Status mudou para:', cashStatus);
-    
+    console.log(
+      "🔍 [AdminHome] useEffect cashStatus: Status mudou para:",
+      cashStatus
+    );
+
     if (isCashOpen()) {
-      console.log('✅ [AdminHome] useEffect cashStatus: Caixa aberto');
+      console.log("✅ [AdminHome] useEffect cashStatus: Caixa aberto");
       setMessage(false);
       setShowCashClosed(false);
-      
+
       // Buscar dados do pátio automaticamente quando caixa for aberto
       if (cashData?.id) {
-        console.log('🔍 [AdminHome] useEffect cashStatus: Buscando dados do pátio automaticamente');
-        fetchParkingDetails(cashData.id).catch(error => {
-          console.error('❌ [AdminHome] useEffect cashStatus: Erro ao buscar dados do pátio:', error);
+        console.log(
+          "🔍 [AdminHome] useEffect cashStatus: Buscando dados do pátio automaticamente"
+        );
+        fetchParkingDetails(cashData.id).catch((error) => {
+          console.error(
+            "❌ [AdminHome] useEffect cashStatus: Erro ao buscar dados do pátio:",
+            error
+          );
         });
       }
     }
-    
+
     if (isCashClosed()) {
-      console.log('🔒 [AdminHome] useEffect cashStatus: Caixa fechado');
+      console.log("🔒 [AdminHome] useEffect cashStatus: Caixa fechado");
       setMessage(false);
       setShowCashClosed(true);
     }
-    
+
     if (isCashNotCreated()) {
-      console.log('❌ [AdminHome] useEffect cashStatus: Caixa não criado');
+      console.log("❌ [AdminHome] useEffect cashStatus: Caixa não criado");
       setMessage(true);
       setShowCashClosed(false);
     }
@@ -241,34 +286,42 @@ export default function AdminHome() {
 
   // Monitorar mudanças nos dados do estacionamento
   useEffect(() => {
-    console.log('🔍 [AdminHome] useEffect parkingDetails: Dados do estacionamento mudaram:', parkingDetails);
+    console.log(
+      "🔍 [AdminHome] useEffect parkingDetails: Dados do estacionamento mudaram:",
+      parkingDetails
+    );
   }, [parkingDetails]);
-
 
   const handleOpenCash = () => {
     setMessage(false);
     setShowCashClosed(false);
-    setCashRegisterMode('open');
+    setCashRegisterMode("open");
     setShowCashRegister(true);
   };
 
   const handleOpenCashRegister = async (initialValue: string) => {
-    console.log('🔍 [AdminHome] handleOpenCashRegister: Abrindo caixa com valor:', initialValue);
-    
+    console.log(
+      "🔍 [AdminHome] handleOpenCashRegister: Abrindo caixa com valor:",
+      initialValue
+    );
+
     try {
       setShowLoader(true);
-      const numericValue = typeof initialValue === 'string' ? parseFloat(initialValue) : initialValue;
+      const numericValue =
+        typeof initialValue === "string"
+          ? parseFloat(initialValue)
+          : initialValue;
       const result = await openCash(numericValue);
-      
+
       setFeedbackMessage(result.message);
       setFeedbackSuccess(result.success);
       setShowFeedback(true);
       setTimeCloseFeedback(3000);
-      
+
       if (result.success) {
         // Fechar o modal de abertura do caixa
         setShowCashRegister(false);
-        
+
         // Forçar atualização dos dados após abrir caixa
         setTimeout(async () => {
           await updateCashStatus();
@@ -281,8 +334,11 @@ export default function AdminHome() {
         }, 100);
       }
     } catch (error) {
-      console.error('❌ [AdminHome] handleOpenCashRegister: Erro ao abrir caixa:', error);
-      setFeedbackMessage('Erro inesperado ao abrir caixa');
+      console.error(
+        "❌ [AdminHome] handleOpenCashRegister: Erro ao abrir caixa:",
+        error
+      );
+      setFeedbackMessage("Erro inesperado ao abrir caixa");
       setFeedbackSuccess(false);
       setShowFeedback(true);
       setTimeCloseFeedback(3000);
@@ -292,21 +348,21 @@ export default function AdminHome() {
   };
 
   const handleReopenCashRegister = async () => {
-    console.log('🔍 [AdminHome] handleReopenCashRegister: Reabrindo caixa');
-    
+    console.log("🔍 [AdminHome] handleReopenCashRegister: Reabrindo caixa");
+
     try {
       setShowLoader(true);
       const result = await reopenCash(cashData?.id);
-      
+
       setFeedbackMessage(result.message);
       setFeedbackSuccess(result.success);
       setShowFeedback(true);
       setTimeCloseFeedback(3000);
-      
+
       if (result.success) {
         // Fechar o modal de reabertura do caixa
         setShowCashRegister(false);
-        
+
         // Forçar atualização dos dados após reabrir caixa
         setTimeout(async () => {
           await updateCashStatus();
@@ -319,8 +375,11 @@ export default function AdminHome() {
         }, 100);
       }
     } catch (error) {
-      console.error('❌ [AdminHome] handleReopenCashRegister: Erro ao reabrir caixa:', error);
-      setFeedbackMessage('Erro inesperado ao reabrir caixa');
+      console.error(
+        "❌ [AdminHome] handleReopenCashRegister: Erro ao reabrir caixa:",
+        error
+      );
+      setFeedbackMessage("Erro inesperado ao reabrir caixa");
       setFeedbackSuccess(false);
       setShowFeedback(true);
       setTimeCloseFeedback(3000);
@@ -339,7 +398,7 @@ export default function AdminHome() {
 
   const handleOpenCashFromModal = () => {
     setShowCashClosed(false);
-    setCashRegisterMode('reopen');
+    setCashRegisterMode("reopen");
     setShowCashRegister(true);
   };
 
