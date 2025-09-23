@@ -222,3 +222,25 @@ export interface OutgoingExpenseHistory {
   operator: string;
   method: string;
 }
+
+export interface ListCashHistoryAllResponse {
+  success: boolean;
+  message?: string;
+  hasNextPage: boolean,
+  nextCursor: string;
+  data?: ListHistoryCash[];
+}
+
+export type CashStatusHistory = 'OPEN' | 'CLOSED';
+
+export interface ListHistoryCash {
+  id: string
+  openingDate: string;
+  closingDate: string;
+  status: CashStatusHistory;
+  operator: string;
+  profit: number;
+  generalSaleTotal: string;
+  vehicleEntryTotal: string;
+  outgoingExpenseTotal: string;
+}
