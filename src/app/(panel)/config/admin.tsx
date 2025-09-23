@@ -108,7 +108,7 @@ export default function Admin() {
       title: "Despesas",
       description: "Visualizar e registrar despesas",
       icon: { name: "receipt-outline", library: "Ionicons" },
-      onPress: () => {router.push("/functions/ListExpense")},
+      onPress: () => router.push("/(panel)/functions/expenseList"),
     },
     {
       id: "caixa",

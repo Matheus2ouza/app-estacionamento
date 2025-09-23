@@ -7,21 +7,12 @@ import Colors, { generateRandomColor } from "@/constants/Colors";
 import { useCashContext } from "@/context/CashContext";
 import { useExpenses } from "@/hooks/expense/useExpenses";
 import { styles } from "@/styles/functions/expense/ListExpenseStyles";
-import { FontAwesome } from "@expo/vector-icons";
-import Feather from "@expo/vector-icons/Feather";
+import { Feather, FontAwesome } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  Text,
-  View
-} from "react-native";
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 
-export default function ListExpense() {
+export default function ExpenseList() {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<string>("description");
   const { cashData, cashStatus } = useCashContext();
