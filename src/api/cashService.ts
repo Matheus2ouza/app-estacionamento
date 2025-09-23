@@ -1,4 +1,4 @@
-import { cashResponse, detailsResponse, generalDetailsResponse, historyCashResponse } from "../types/cashTypes/cash";
+import { cashResponse, detailsResponse, generalDetailsResponse, historyCashResponse, ListCashHistoryAllResponse } from "../types/cashTypes/cash";
 import axiosInstance from "./axiosInstance";
 
 export const cashApi = {
@@ -73,4 +73,15 @@ export const cashApi = {
     const response = await axiosInstance.delete(`/cash/${cashId}/${transactionId}?${params.toString()}`);
     return response.data;
   },
+
+  listCashHistory: async(limit: number = 5, cursor?: string): Promise<ListCashHistoryAllResponse> => {
+    const params = new URLSearchParams();
+    params.append('limit', limit.toString());
+    if (cursor) {
+      params.append('cursor', cursor);
+    }
+
+    const response = await axiosInstance.get(`/cash/history-all?${params.toString()}`);
+    return response.data
+  }
 };
