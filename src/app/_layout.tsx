@@ -20,12 +20,11 @@ const theme = {
   },
 };
 
-
-// Configura para mostrar banner mesmo com app aberto
+// Configura como notificações devem aparecer em foreground
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowBanner: true,  // banner no topo (foreground)
-    shouldShowList: true,    // adiciona na lista de notificações
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
   }),
@@ -36,21 +35,21 @@ export default function RootLayout() {
 
   useEffect(() => {
     const subscription = Notifications.addNotificationReceivedListener(async (notification) => {
-      // ⚡️ Apenas dispara a mesma notificação como local
-      await Notifications.scheduleNotificationAsync({
-        content: {
+      // ⚡️ Apenas no foreground
+      const trigger = notification.request.trigger;
+      if (trigger && 'type' in trigger && trigger.type === 'push') {
+        // Mostra banner sem duplicar a notificação
+        await Notifications.presentNotificationAsync({
           title: notification.request.content.title,
           body: notification.request.content.body,
           data: notification.request.content.data,
           sound: "default",
-        },
-        trigger: null, // mostra imediatamente
-      });
+        });
+      }
     });
-
+  
     return () => subscription.remove();
   }, []);
-  
 
   const onLayoutRootView = useCallback(async () => {
     if (fontsLoaded) {
