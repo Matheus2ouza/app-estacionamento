@@ -66,6 +66,14 @@ export default function SettingsCash() {
       onPress: () => router.push("/(panel)/functionsAdmin/CashSettings"),
       adminOnly: true,
     },
+    {
+      id: "historico-caixa",
+      title: "Historico dos caixas",
+      description: "Historico dos caixas passados",
+      icon: { name: "list-ol", library: "FontAwesome" },
+      onPress: () => router.push("/(panel)/functionsAdmin/listCashHistory"),
+      adminOnly: true,
+    },
   ];
 
   const renderOption = (option: OptionItem) => {
