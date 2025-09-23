@@ -24,7 +24,11 @@ import {
 export default function ListExpense() {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<string>("description");
-  const { cashData, cashStatus, isCashNotCreated, isCashClosed } = useCashContext();
+  const { cashData, cashStatus } = useCashContext();
+
+  // Funções utilitárias locais para verificar status do caixa
+  const isCashClosed = (): boolean => cashStatus === 'closed';
+  const isCashNotCreated = (): boolean => cashStatus === 'not_created';
 
   // Verificar se a tela deve ser bloqueada
   const isScreenBlocked = isCashNotCreated() || isCashClosed();
