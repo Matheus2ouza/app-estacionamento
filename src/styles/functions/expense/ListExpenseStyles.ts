@@ -12,9 +12,9 @@ export const styles = StyleSheet.create({
     marginBottom: 16,
   },
   loadingMore: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 10,
   },
   loadingMoreText: {
@@ -28,16 +28,16 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 8,
     gap: 8,
   },
   loadMoreButtonText: {
     color: Colors.white,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   loadMoreButtonDisabled: {
     backgroundColor: Colors.gray[300],
@@ -89,9 +89,9 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
   topRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: 8,
   },
   mainDataContainer: {
@@ -111,7 +111,7 @@ export const styles = StyleSheet.create({
     color: Colors.text.primary,
   },
   amountContainer: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   amountLabel: {
     ...TypographyThemes.nunito.caption,
@@ -126,7 +126,7 @@ export const styles = StyleSheet.create({
     fontWeight: "700",
   },
   methodContainer: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
     marginTop: 4,
   },
   methodLabel: {
@@ -142,9 +142,9 @@ export const styles = StyleSheet.create({
     fontWeight: "600",
   },
   detailsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     backgroundColor: Colors.red[500],
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -196,7 +196,7 @@ export const styles = StyleSheet.create({
     marginTop: 12,
   },
   dateContainer: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
     marginTop: 4,
   },
   dateLabel: {
@@ -217,9 +217,8 @@ export const styles = StyleSheet.create({
     right: 16,
   },
   fabButton: {
-    backgroundColor: Colors.red[500],
-    width: 68,
-    height: 68,
+    width: 62,
+    height: 62,
     borderRadius: 50,
     justifyContent: "center",
     alignItems: "center",
@@ -228,5 +227,13 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+  },
+  disabeleButton: {
+    backgroundColor: Colors.gray[400],
+    shadowColor: Colors.gray[400],
+  },
+  enableButton: {
+    backgroundColor: Colors.red[500],
+    shadowColor: Colors.red[500],
   },
 });

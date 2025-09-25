@@ -1,4 +1,3 @@
-import CashAvailabilityAlert from "@/components/CashAvailabilityAlert";
 import ExpenseDetailsModal from "@/components/ExpenseDetailsModal";
 import FeedbackModal from "@/components/FeedbackModal";
 import Header from "@/components/Header";
@@ -10,7 +9,16 @@ import { styles } from "@/styles/functions/expense/ListExpenseStyles";
 import { Feather, FontAwesome } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  ToastAndroid,
+  View,
+} from "react-native";
 
 export default function ExpenseList() {
   const [search, setSearch] = useState("");
@@ -18,11 +26,11 @@ export default function ExpenseList() {
   const { cashData, cashStatus } = useCashContext();
 
   // Funções utilitárias locais para verificar status do caixa
-  const isCashClosed = (): boolean => cashStatus === 'closed';
-  const isCashNotCreated = (): boolean => cashStatus === 'not_created';
+  const isCashClosed = (): boolean => cashStatus === "closed";
+  const isCashNotCreated = (): boolean => cashStatus === "not_created";
 
   // Verificar se a tela deve ser bloqueada
-  const isScreenBlocked = isCashNotCreated() || isCashClosed();
+  const isButtomBlocked = isCashNotCreated() || isCashClosed();
 
   // Funções de callback para os botões do alerta
   const handleBackPress = () => {
@@ -37,14 +45,14 @@ export default function ExpenseList() {
   ];
 
   // Hook para dados dos gastos
-  const { 
-    expenses, 
-    loading: expensesLoading, 
-    error: expensesError, 
+  const {
+    expenses,
+    loading: expensesLoading,
+    error: expensesError,
     success: expensesSuccess,
     message: expensesMessage,
     deleteExpense,
-    refreshExpenses 
+    refreshExpenses,
   } = useExpenses(cashData?.id || "");
 
   const [refreshing, setRefreshing] = useState(false);
@@ -61,7 +69,7 @@ export default function ExpenseList() {
       setModalIsSuccess(true);
       setModalVisible(true);
     }
-    
+
     if (expensesError) {
       setModalMessage(expensesError);
       setModalIsSuccess(false);
@@ -71,46 +79,53 @@ export default function ExpenseList() {
 
   // Gera cores aleatórias para cada despesa usando useMemo
   const expenseColors = useMemo(() => {
-    const colors: {[key: string]: string} = {};
-    expenses.forEach(expense => {
+    const colors: { [key: string]: string } = {};
+    expenses.forEach((expense) => {
       colors[expense.id] = generateRandomColor();
     });
     return colors;
   }, [expenses]);
 
-  const getExpenseBorderColor = useCallback((expenseId: string) => {
-    return expenseColors[expenseId] || Colors.red[500];
-  }, [expenseColors]);
+  const getExpenseBorderColor = useCallback(
+    (expenseId: string) => {
+      return expenseColors[expenseId] || Colors.red[500];
+    },
+    [expenseColors]
+  );
 
   // Função para formatar hora brasileira
   const formatBrazilianTime = (dateString: string) => {
     try {
       const date = new Date(dateString);
-      return date.toLocaleTimeString('pt-BR', {
-        hour: '2-digit',
-        minute: '2-digit'
+      return date.toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit",
       });
     } catch (error) {
-      return 'Hora inválida';
+      return "Hora inválida";
     }
   };
 
   // Filtra e ordena os gastos
   const filteredExpenses = useMemo(() => {
     const searchTerm = search.toLowerCase();
-    
+
     let filtered = expenses.filter((expense) => {
       if (!expense) return false;
-      
-      switch(sortBy) {
+
+      switch (sortBy) {
         case "description":
-          return expense.description?.toLowerCase().includes(searchTerm) || false;
+          return (
+            expense.description?.toLowerCase().includes(searchTerm) || false
+          );
         case "amount":
           return expense.amount?.toString().includes(searchTerm) || false;
         case "method":
           return expense.method?.toLowerCase().includes(searchTerm) || false;
         case "createdAt":
-          return expense.transactionDate ? formatBrazilianTime(expense.transactionDate).includes(searchTerm) : false;
+          return expense.transactionDate
+            ? formatBrazilianTime(expense.transactionDate).includes(searchTerm)
+            : false;
         default:
           return true;
       }
@@ -119,17 +134,25 @@ export default function ExpenseList() {
     // Ordena baseado no campo selecionado
     filtered.sort((a, b) => {
       if (!a || !b) return 0;
-      
-      switch(sortBy) {
+
+      switch (sortBy) {
         case "description":
-          return (a.description || '').toLowerCase().localeCompare((b.description || '').toLowerCase());
+          return (a.description || "")
+            .toLowerCase()
+            .localeCompare((b.description || "").toLowerCase());
         case "amount":
           return (b.amount || 0) - (a.amount || 0); // Maior valor primeiro
         case "method":
-          return (a.method || '').toLowerCase().localeCompare((b.method || '').toLowerCase());
+          return (a.method || "")
+            .toLowerCase()
+            .localeCompare((b.method || "").toLowerCase());
         case "createdAt":
-          const dateA = a.transactionDate ? new Date(a.transactionDate).getTime() : 0;
-          const dateB = b.transactionDate ? new Date(b.transactionDate).getTime() : 0;
+          const dateA = a.transactionDate
+            ? new Date(a.transactionDate).getTime()
+            : 0;
+          const dateB = b.transactionDate
+            ? new Date(b.transactionDate).getTime()
+            : 0;
           return dateB - dateA; // Mais recente primeiro
         default:
           return 0;
@@ -149,38 +172,38 @@ export default function ExpenseList() {
   };
 
   const handleSortChange = (sortKey: string | string[]) => {
-    if (typeof sortKey === 'string') {
+    if (typeof sortKey === "string") {
       setSortBy(sortKey);
     }
   };
 
   // Função para formatar valor monetário brasileiro
   const formatBrazilianCurrency = (value: number) => {
-    if (typeof value !== 'number' || isNaN(value)) {
-      return 'R$ 0,00';
+    if (typeof value !== "number" || isNaN(value)) {
+      return "R$ 0,00";
     }
-    return `R$ ${value.toFixed(2).replace('.', ',')}`;
+    return `R$ ${value.toFixed(2).replace(".", ",")}`;
   };
 
   // Função para truncar descrição
   const truncateDescription = (description: string, maxLength: number = 15) => {
-    if (!description) return 'Sem descrição';
+    if (!description) return "Sem descrição";
     if (description.length <= maxLength) return description;
-    return description.substring(0, maxLength) + '...';
+    return description.substring(0, maxLength) + "...";
   };
 
   // Função para obter ícone do método de pagamento
   const getMethodIcon = (method: string) => {
-    switch(method.toLowerCase()) {
-      case 'dinheiro':
-        return 'money-bill-wave';
-      case 'pix':
-        return 'qrcode';
-      case 'debito':
-      case 'credito':
-        return 'credit-card';
+    switch (method.toLowerCase()) {
+      case "dinheiro":
+        return "money-bill-wave";
+      case "pix":
+        return "qrcode";
+      case "debito":
+      case "credito":
+        return "credit-card";
       default:
-        return 'payment';
+        return "payment";
     }
   };
 
@@ -211,48 +234,48 @@ export default function ExpenseList() {
     // Fechar modal de detalhes
     setDetailsModalVisible(false);
     setSelectedExpense(null);
-    
+
     // Navegar para tela de edição com parâmetros
     router.push({
       pathname: "/functions/expenseRecord",
       params: {
         expenseId: expense.id,
-        expenseData: JSON.stringify(expense)
-      }
+        expenseData: JSON.stringify(expense),
+      },
     });
   };
 
   // Função para excluir despesa
   const handleDeleteExpense = async (expense: any) => {
     try {
-      console.log('Excluindo despesa:', expense.id);
+      console.log("Excluindo despesa:", expense.id);
       await deleteExpense(expense.id);
     } catch (error) {
-      console.error('Erro ao excluir despesa:', error);
+      console.error("Erro ao excluir despesa:", error);
     }
   };
 
   const renderExpenseItem = ({ item, index }: { item: any; index: number }) => {
     if (!item) return null;
-    
+
     // Determina o dado principal baseado na opção selecionada
     const getMainData = () => {
-      switch(sortBy) {
+      switch (sortBy) {
         case "description":
-          return truncateDescription(item.description || 'Sem descrição');
+          return truncateDescription(item.description || "Sem descrição");
         case "amount":
           return formatBrazilianCurrency(item.amount || 0);
         case "method":
-          return item.method || 'N/A';
+          return item.method || "N/A";
         case "createdAt":
-          return formatBrazilianTime(item.transactionDate || '');
+          return formatBrazilianTime(item.transactionDate || "");
         default:
-          return truncateDescription(item.description || 'Sem descrição');
+          return truncateDescription(item.description || "Sem descrição");
       }
     };
 
     const getMainDataLabel = () => {
-      switch(sortBy) {
+      switch (sortBy) {
         case "description":
           return "Descrição";
         case "amount":
@@ -267,31 +290,25 @@ export default function ExpenseList() {
     };
 
     return (
-      <View style={[
-        styles.listItem,
-        {
-          borderLeftColor: getExpenseBorderColor(item.id)
-        }
-      ]}>
-        <Text style={styles.itemNumber}>
-          {index + 1}
-        </Text>
+      <View
+        style={[
+          styles.listItem,
+          {
+            borderLeftColor: getExpenseBorderColor(item.id),
+          },
+        ]}
+      >
+        <Text style={styles.itemNumber}>{index + 1}</Text>
 
         <View style={styles.itemData}>
           <View style={styles.topRow}>
             <View style={styles.mainDataContainer}>
-              <Text style={styles.mainDataLabel}>
-                {getMainDataLabel()}
-              </Text>
-              <Text style={styles.mainDataValue}>
-                {getMainData()}
-              </Text>
+              <Text style={styles.mainDataLabel}>{getMainDataLabel()}</Text>
+              <Text style={styles.mainDataValue}>{getMainData()}</Text>
             </View>
 
             <View style={styles.amountContainer}>
-              <Text style={styles.amountLabel}>
-                Valor
-              </Text>
+              <Text style={styles.amountLabel}>Valor</Text>
               <Text style={styles.amountValue}>
                 {formatBrazilianCurrency(item.amount || 0)}
               </Text>
@@ -300,36 +317,26 @@ export default function ExpenseList() {
 
           <View style={styles.topRow}>
             <View style={styles.methodContainer}>
-              <Text style={styles.methodLabel}>
-                Método
-              </Text>
+              <Text style={styles.methodLabel}>Método</Text>
               <Text style={styles.methodValue}>
-                {(item.method || 'N/A').toUpperCase()}
+                {(item.method || "N/A").toUpperCase()}
               </Text>
             </View>
 
             <View style={styles.dateContainer}>
-              <Text style={styles.dateLabel}>
-                Hora
-              </Text>
+              <Text style={styles.dateLabel}>Hora</Text>
               <Text style={styles.dateValue}>
-                {formatBrazilianTime(item.transactionDate || '')}
+                {formatBrazilianTime(item.transactionDate || "")}
               </Text>
             </View>
           </View>
 
-          <Pressable 
+          <Pressable
             style={styles.detailsButton}
             onPress={() => handleShowDetails(item)}
           >
-            <Text style={styles.detailsButtonText}>
-              Ver Detalhes
-            </Text>
-            <FontAwesome 
-              name="eye" 
-              size={12} 
-              color={Colors.white} 
-            />
+            <Text style={styles.detailsButtonText}>Ver Detalhes</Text>
+            <FontAwesome name="eye" size={12} color={Colors.white} />
           </Pressable>
         </View>
       </View>
@@ -338,112 +345,105 @@ export default function ExpenseList() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Header title="Lista de Gastos"/>
-
-      {/* ALERTA DE TELA BLOQUEADA */}
-      {isScreenBlocked ? (
-        <View style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          paddingHorizontal: 20,
-          paddingVertical: 40,
-        }}>
-          <CashAvailabilityAlert 
-            mode="blocking" 
-            cashStatus={cashStatus}
-            style={{
-              marginHorizontal: 0,
-              marginVertical: 0,
-            }}
+      <Header title="Lista de Gastos" />
+      <View style={styles.container}>
+        {/* Busca */}
+        <View style={styles.searchContainer}>
+          <SearchInput
+            searchQuery={search}
+            onSearchChange={setSearch}
+            placeholder="Digite para buscar gastos..."
+            sortOptions={sortOptions}
+            selectedSort={sortBy}
+            onSortChange={handleSortChange}
+            showSortOptions={true}
+            multipleSelection={false}
           />
         </View>
-      ) : (
-        <View style={styles.container}>
-          {/* Busca */}
-          <View style={styles.searchContainer}>
-            <SearchInput
-              searchQuery={search}
-              onSearchChange={setSearch}
-              placeholder="Digite para buscar gastos..."
-              sortOptions={sortOptions}
-              selectedSort={sortBy}
-              onSortChange={handleSortChange}
-              showSortOptions={true}
-              multipleSelection={false}
-            />
-          </View>
 
-          {/* Lista de Gastos */}
-          <View style={styles.listContainer}>
-            {expensesLoading && expenses.length === 0 ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={Colors.blue.primary} />
-                <Text style={styles.loadingText}>Carregando gastos...</Text>
+        {/* Lista de Gastos */}
+        <View style={styles.listContainer}>
+          {expensesLoading && expenses.length === 0 ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={Colors.blue.primary} />
+              <Text style={styles.loadingText}>Carregando gastos...</Text>
+            </View>
+          ) : filteredExpenses.length === 0 ? (
+            <ScrollView
+              contentContainerStyle={styles.emptyStateContainer}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={handleRefresh}
+                  colors={[Colors.blue.primary]}
+                  tintColor={Colors.blue.primary}
+                />
+              }
+            >
+              <View style={styles.emptyState}>
+                <FontAwesome
+                  name="file-text-o"
+                  size={48}
+                  color={Colors.gray.medium}
+                />
+                <Text style={styles.emptyStateText}>
+                  {search
+                    ? `Nenhum gasto encontrado para "${search}"`
+                    : "Nenhum gasto registrado no momento"}
+                </Text>
+                <Text style={styles.emptyStateSubtext}>
+                  Puxe para baixo para atualizar
+                </Text>
               </View>
-            ) : filteredExpenses.length === 0 ? (
-              <ScrollView
-                contentContainerStyle={styles.emptyStateContainer}
-                refreshControl={
-                  <RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={handleRefresh}
-                    colors={[Colors.blue.primary]}
-                    tintColor={Colors.blue.primary}
-                  />
-                }
-              >
-                <View style={styles.emptyState}>
-                  <FontAwesome 
-                    name="file-text-o" 
-                    size={48} 
-                    color={Colors.gray.medium} 
-                  />
-                  <Text style={styles.emptyStateText}>
-                    {search ? 
-                      `Nenhum gasto encontrado para "${search}"` : 
-                      "Nenhum gasto registrado no momento"
-                    }
-                  </Text>
-                  <Text style={styles.emptyStateSubtext}>
-                    Puxe para baixo para atualizar
-                  </Text>
-                </View>
-              </ScrollView>
-            ) : (
-              <FlatList
-                data={filteredExpenses}
-                renderItem={renderExpenseItem}
-                keyExtractor={(item: any) => item.id}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.listContent}
-                refreshControl={
-                  <RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={handleRefresh}
-                    colors={[Colors.blue.primary]}
-                    tintColor={Colors.blue.primary}
-                  />
-                }
-                removeClippedSubviews={true}
-                maxToRenderPerBatch={5}
-                windowSize={5}
-                initialNumToRender={5}
-                getItemLayout={(data, index) => ({
-                  length: 120, // Altura aproximada de cada item
-                  offset: 120 * index,
-                  index,
-                })}
-              />
-            )}
-          </View>
+            </ScrollView>
+          ) : (
+            <FlatList
+              data={filteredExpenses}
+              renderItem={renderExpenseItem}
+              keyExtractor={(item: any) => item.id}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.listContent}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={handleRefresh}
+                  colors={[Colors.blue.primary]}
+                  tintColor={Colors.blue.primary}
+                />
+              }
+              removeClippedSubviews={true}
+              maxToRenderPerBatch={5}
+              windowSize={5}
+              initialNumToRender={5}
+              getItemLayout={(data, index) => ({
+                length: 120, // Altura aproximada de cada item
+                offset: 120 * index,
+                index,
+              })}
+            />
+          )}
         </View>
-      )}
+      </View>
 
       {/* Floating Action Button */}
       <View style={styles.fabContainer}>
-        <Pressable style={styles.fabButton} onPress={handleAddExpense}>
-          <Feather name="plus" size={32} color={Colors.white} />
+        <Pressable
+          style={[
+            styles.fabButton,
+            isButtomBlocked ? styles.disabeleButton : styles.enableButton,
+          ]}
+          onPress={() => {
+            if (isButtomBlocked) {
+              ToastAndroid.show(
+                "Para adiciona uma despesa é preciso que o caixa esteja aberto",
+                ToastAndroid.LONG
+              );
+              return;
+            }
+            handleAddExpense();
+          }}
+        >
+          <Feather name="plus" size={40} color={Colors.white} />
         </Pressable>
       </View>
 
@@ -460,7 +460,7 @@ export default function ExpenseList() {
       <FeedbackModal
         visible={modalVisible}
         message={modalMessage}
-        type={modalIsSuccess ? 'success' : 'error'}
+        type={modalIsSuccess ? "success" : "error"}
         onClose={handleCloseModal}
       />
     </View>
