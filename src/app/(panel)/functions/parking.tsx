@@ -16,7 +16,7 @@ import {
   RefreshControl,
   ScrollView,
   Text,
-  View
+  View,
 } from "react-native";
 
 export default function Parking() {
@@ -26,9 +26,9 @@ export default function Parking() {
   const { cashData, cashStatus } = useCashContext();
 
   // Funções utilitárias locais para verificar status do caixa
-  const isCashOpen = (): boolean => cashStatus === 'open';
-  const isCashClosed = (): boolean => cashStatus === 'closed';
-  const isCashNotCreated = (): boolean => cashStatus === 'not_created';
+  const isCashOpen = (): boolean => cashStatus === "open";
+  const isCashClosed = (): boolean => cashStatus === "closed";
+  const isCashNotCreated = (): boolean => cashStatus === "not_created";
 
   // Verificar se a tela deve ser bloqueada
   const isScreenBlocked = isCashNotCreated() || isCashClosed();
@@ -45,22 +45,28 @@ export default function Parking() {
   ];
 
   // Hooks para dados
-  const { getCapacityParking, loading: capacityLoading, error: capacityError } = useParking();
-  const { 
-    vehicles, 
-    loading: vehiclesLoading, 
-    error, 
-    hasMore, 
-    loadInitial, 
-    loadMore 
+  const {
+    getCapacityParking,
+    loading: capacityLoading,
+    error: capacityError,
+  } = useParking();
+  const {
+    vehicles,
+    loading: vehiclesLoading,
+    error,
+    hasMore,
+    loadInitial,
+    loadMore,
   } = useParkedVehicles(cashData?.id || "");
 
   const [capacityData, setCapacityData] = useState({
     percentage: 0,
     quantityVehicles: 0,
-    capacityMax: 0
+    capacityMax: 0,
   });
-  const [capacityErrorState, setCapacityErrorState] = useState<string | null>(null);
+  const [capacityErrorState, setCapacityErrorState] = useState<string | null>(
+    null
+  );
   const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -88,7 +94,9 @@ export default function Parking() {
     if (result.success) {
       setCapacityData(result.data);
     } else {
-      setCapacityErrorState(result.message || 'Erro ao carregar capacidade do pátio');
+      setCapacityErrorState(
+        result.message || "Erro ao carregar capacidade do pátio"
+      );
     }
   };
 
@@ -102,37 +110,42 @@ export default function Parking() {
 
   // Gera cores aleatórias para cada veículo usando useMemo
   const vehicleColors = useMemo(() => {
-    const colors: {[key: string]: string} = {};
-    vehicles.forEach(vehicle => {
+    const colors: { [key: string]: string } = {};
+    vehicles.forEach((vehicle) => {
       colors[vehicle.id] = generateRandomColor();
     });
     return colors;
   }, [vehicles]);
 
-  const getVehicleBorderColor = useCallback((vehicleId: string) => {
-    return vehicleColors[vehicleId] || Colors.blue.primary;
-  }, [vehicleColors]);
+  const getVehicleBorderColor = useCallback(
+    (vehicleId: string) => {
+      return vehicleColors[vehicleId] || Colors.blue.primary;
+    },
+    [vehicleColors]
+  );
 
   const calculateElapsedTime = (entryTime: string) => {
     try {
       const entry = new Date(entryTime);
       const now = currentTime;
       const diffMs = now.getTime() - entry.getTime();
-      
-      if (diffMs < 0) return '00:00:00';
-      
+
+      if (diffMs < 0) return "00:00:00";
+
       const hours = Math.floor(diffMs / (1000 * 60 * 60));
       const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-      
-      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+      return `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
     } catch (error) {
-      return '00:00:00';
+      return "00:00:00";
     }
   };
 
   const handleSortChange = (sortKey: string | string[]) => {
-    if (typeof sortKey === 'string') {
+    if (typeof sortKey === "string") {
       setSortBy(sortKey);
     }
   };
@@ -140,9 +153,9 @@ export default function Parking() {
   // Filtra e ordena os veículos
   const filteredVehicles = useMemo(() => {
     const searchTerm = search.toLowerCase();
-    
+
     let filtered = vehicles.filter((vehicle) => {
-      switch(sortBy) {
+      switch (sortBy) {
         case "plate":
           return vehicle.plate.toLowerCase().includes(searchTerm);
         case "category":
@@ -205,8 +218,8 @@ export default function Parking() {
         observation: vehicle.observation || "",
         billingMethodId: vehicle.billingMethod?.id || "",
         billingMethodTitle: vehicle.billingMethod?.title || "",
-        photoType: vehicle.photoType || ""
-      }
+        photoType: vehicle.photoType || "",
+      },
     });
   };
 
@@ -218,16 +231,16 @@ export default function Parking() {
 
   const handlePrintVehicle = (vehicle: any) => {
     // TODO: Implementar impressão
-    console.log('Imprimir veículo:', vehicle.id);
+    console.log("Imprimir veículo:", vehicle.id);
   };
 
   const renderVehicleItem = ({ item, index }: { item: any; index: number }) => {
     // Verifica se o veículo está deletado
-    const isDeleted = item.deletedAt || item.status === 'DELETED';
-    
+    const isDeleted = item.deletedAt || item.status === "DELETED";
+
     // Determina o dado principal baseado na opção selecionada
     const getMainData = () => {
-      switch(sortBy) {
+      switch (sortBy) {
         case "plate":
           return item.plate;
         case "category":
@@ -240,7 +253,7 @@ export default function Parking() {
     };
 
     const getMainDataLabel = () => {
-      switch(sortBy) {
+      switch (sortBy) {
         case "plate":
           return "Placa";
         case "category":
@@ -253,70 +266,81 @@ export default function Parking() {
     };
 
     return (
-      <View style={[
-        styles.listItem,
-        isDeleted && styles.listItemDeleted,
-        {
-          borderLeftColor: isDeleted ? Colors.gray[400] : getVehicleBorderColor(item.id)
-        }
-      ]}>
-        <Text style={[
-          styles.itemNumber,
-          isDeleted && styles.itemNumberDeleted
-        ]}>
+      <View
+        style={[
+          styles.listItem,
+          isDeleted && styles.listItemDeleted,
+          {
+            borderLeftColor: isDeleted
+              ? Colors.gray[400]
+              : getVehicleBorderColor(item.id),
+          },
+        ]}
+      >
+        <Text
+          style={[styles.itemNumber, isDeleted && styles.itemNumberDeleted]}
+        >
           {index + 1}
         </Text>
 
         <View style={styles.itemData}>
           <View style={styles.topRow}>
             <View style={styles.mainDataContainer}>
-              <Text style={[
-                styles.mainDataLabel,
-                isDeleted && styles.mainDataLabelDeleted
-              ]}>
+              <Text
+                style={[
+                  styles.mainDataLabel,
+                  isDeleted && styles.mainDataLabelDeleted,
+                ]}
+              >
                 {getMainDataLabel()}
               </Text>
-              <Text style={[
-                styles.mainDataValue,
-                isDeleted && styles.mainDataValueDeleted
-              ]}>
+              <Text
+                style={[
+                  styles.mainDataValue,
+                  isDeleted && styles.mainDataValueDeleted,
+                ]}
+              >
                 {getMainData()}
               </Text>
             </View>
 
             <View style={styles.timeContainer}>
-              <Text style={[
-                styles.timeLabel,
-                isDeleted && styles.timeLabelDeleted
-              ]}>
-                {isDeleted ? 'Status' : 'Tempo'}
+              <Text
+                style={[styles.timeLabel, isDeleted && styles.timeLabelDeleted]}
+              >
+                {isDeleted ? "Status" : "Tempo"}
               </Text>
-              <Text style={[
-                styles.timeValue,
-                isDeleted && styles.timeValueDeleted
-              ]}>
-                {isDeleted ? 'Desativado' : (item.entryTime ? calculateElapsedTime(item.entryTime) : '00:00:00')}
+              <Text
+                style={[styles.timeValue, isDeleted && styles.timeValueDeleted]}
+              >
+                {isDeleted
+                  ? "Desativado"
+                  : item.entryTime
+                  ? calculateElapsedTime(item.entryTime)
+                  : "00:00:00"}
               </Text>
             </View>
           </View>
 
-          <Pressable 
+          <Pressable
             style={[
               styles.detailsButton,
-              isDeleted && styles.detailsButtonDeleted
+              isDeleted && styles.detailsButtonDeleted,
             ]}
             onPress={() => handleShowDetails(item)}
           >
-            <Text style={[
-              styles.detailsButtonText,
-              isDeleted && styles.detailsButtonTextDeleted
-            ]}>
+            <Text
+              style={[
+                styles.detailsButtonText,
+                isDeleted && styles.detailsButtonTextDeleted,
+              ]}
+            >
               Detalhes Completos
             </Text>
-            <FontAwesome 
-              name="chevron-right" 
-              size={12} 
-              color={isDeleted ? Colors.gray[500] : Colors.white} 
+            <FontAwesome
+              name="chevron-right"
+              size={12}
+              color={isDeleted ? Colors.gray[500] : Colors.white}
             />
           </Pressable>
         </View>
@@ -327,45 +351,39 @@ export default function Parking() {
   const renderBattery = () => {
     const percentage = capacityData.percentage;
     const batteryColor = getBatteryColor(percentage);
-    
+
     // Se houver erro na capacidade, mostra tela de erro
     if (capacityErrorState) {
       return (
         <View style={styles.batteryContainer}>
           <View style={styles.batteryHeader}>
             <Text style={styles.batteryTitle}>Capacidade do Pátio</Text>
-            <FontAwesome 
-              name="exclamation-triangle" 
-              size={20} 
-              color={Colors.red[500]} 
+            <FontAwesome
+              name="exclamation-triangle"
+              size={20}
+              color={Colors.red[500]}
             />
           </View>
-          
+
           <View style={styles.batteryErrorContainer}>
-            <FontAwesome 
-              name="exclamation-circle" 
-              size={48} 
-              color={Colors.red[500]} 
+            <FontAwesome
+              name="exclamation-circle"
+              size={48}
+              color={Colors.red[500]}
             />
-            <Text style={styles.batteryErrorText}>
-              {capacityErrorState}
-            </Text>
-            <Pressable 
+            <Text style={styles.batteryErrorText}>{capacityErrorState}</Text>
+            <Pressable
               style={styles.batteryRetryButton}
               onPress={loadCapacityData}
             >
-              <FontAwesome 
-                name="refresh" 
-                size={16} 
-                color={Colors.white} 
-              />
+              <FontAwesome name="refresh" size={16} color={Colors.white} />
               <Text style={styles.batteryRetryText}>Tentar novamente</Text>
             </Pressable>
           </View>
         </View>
       );
     }
-    
+
     return (
       <View style={styles.batteryContainer}>
         <View style={styles.batteryHeader}>
@@ -376,7 +394,7 @@ export default function Parking() {
             <Text style={styles.batteryPercentage}>{percentage}%</Text>
           )}
         </View>
-        
+
         <View style={styles.batteryBody}>
           <View style={styles.batteryOuter}>
             {capacityLoading ? (
@@ -384,25 +402,26 @@ export default function Parking() {
                 <ActivityIndicator size="small" color={Colors.blue.primary} />
               </View>
             ) : (
-              <View 
+              <View
                 style={[
                   styles.batteryInner,
-                  { 
+                  {
                     width: `${Math.min(percentage, 100)}%`,
-                    backgroundColor: batteryColor
-                  }
-                ]} 
+                    backgroundColor: batteryColor,
+                  },
+                ]}
               />
             )}
           </View>
         </View>
-        
+
         <View style={styles.batteryInfo}>
           {capacityLoading ? (
             <Text style={styles.batteryText}>Carregando capacidade...</Text>
           ) : (
             <Text style={styles.batteryText}>
-              {capacityData.quantityVehicles} de {capacityData.capacityMax} vagas ocupadas
+              {capacityData.quantityVehicles} de {capacityData.capacityMax}{" "}
+              vagas ocupadas
             </Text>
           )}
         </View>
@@ -412,20 +431,22 @@ export default function Parking() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Header title="Pátio"/>
+      <Header title="Pátio" />
 
       {/* ALERTA DE TELA BLOQUEADA */}
       {isScreenBlocked ? (
-        <View style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          paddingHorizontal: 20,
-          paddingVertical: 40,
-        }}>
-          <CashAvailabilityAlert 
-            mode="blocking" 
-            cashStatus={cashStatus} 
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            paddingHorizontal: 20,
+            paddingVertical: 40,
+          }}
+        >
+          <CashAvailabilityAlert
+            mode="blocking"
+            cashStatus={cashStatus}
             style={{
               marginHorizontal: 0,
               marginVertical: 0,
@@ -437,114 +458,117 @@ export default function Parking() {
           {/* Bateria de Capacidade */}
           {renderBattery()}
 
-        {/* Busca */}
-        <View style={styles.searchContainer}>
-          <SearchInput
-            searchQuery={search}
-            onSearchChange={setSearch}
-            placeholder="Digite para buscar veículos..."
-            sortOptions={sortOptions}
-            selectedSort={sortBy}
-            onSortChange={handleSortChange}
-            showSortOptions={true}
-            multipleSelection={false}
-          />
-        </View>
-
-        {/* Lista de Veículos */}
-        <View style={styles.listContainer}>
-          {vehiclesLoading && vehicles.length === 0 ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={Colors.blue.primary} />
-              <Text style={styles.loadingText}>Carregando veículos...</Text>
-            </View>
-          ) : filteredVehicles.length === 0 ? (
-            <ScrollView
-              contentContainerStyle={styles.emptyStateContainer}
-              refreshControl={
-                <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={handleRefresh}
-                  colors={[Colors.blue.primary]}
-                  tintColor={Colors.blue.primary}
-                />
-              }
-            >
-              <View style={styles.emptyState}>
-                <FontAwesome 
-                  name="car" 
-                  size={48} 
-                  color={Colors.gray.medium} 
-                />
-                <Text style={styles.emptyStateText}>
-                  {search ? 
-                    `Nenhum veículo encontrado para "${search}"` : 
-                    "Nenhum veículo no pátio no momento"
-                  }
-                </Text>
-                <Text style={styles.emptyStateSubtext}>
-                  Puxe para baixo para atualizar
-                </Text>
-              </View>
-            </ScrollView>
-          ) : (
-            <FlatList
-              data={filteredVehicles}
-              renderItem={renderVehicleItem}
-              keyExtractor={(item: any) => item.id}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.listContent}
-              refreshControl={
-                <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={handleRefresh}
-                  colors={[Colors.blue.primary]}
-                  tintColor={Colors.blue.primary}
-                />
-              }
-              ListFooterComponent={() => {
-                if (hasMore && vehicles.length > 0) {
-                  return (
-                    <View style={styles.loadingMore}>
-                      <Pressable 
-                        style={[
-                          styles.loadMoreButton,
-                          loadingMore && styles.loadMoreButtonDisabled
-                        ]}
-                        onPress={handleLoadMore}
-                        disabled={loadingMore}
-                      >
-                        <FontAwesome 
-                          name={loadingMore ? "spinner" : "chevron-down"} 
-                          size={16} 
-                          color={loadingMore ? Colors.gray[400] : Colors.white} 
-                        />
-                        <Text style={[
-                          styles.loadMoreButtonText,
-                          loadingMore && styles.loadMoreButtonTextDisabled
-                        ]}>
-                          {loadingMore ? 'Carregando...' : 'Carregar Mais'}
-                        </Text>
-                      </Pressable>
-                    </View>
-                  );
-                }
-                
-                return null;
-              }}
-              removeClippedSubviews={true}
-              maxToRenderPerBatch={5}
-              windowSize={5}
-              initialNumToRender={5}
-              getItemLayout={(data, index) => ({
-                length: 100, // Altura aproximada de cada item
-                offset: 100 * index,
-                index,
-              })}
+          {/* Busca */}
+          <View style={styles.searchContainer}>
+            <SearchInput
+              searchQuery={search}
+              onSearchChange={setSearch}
+              placeholder="Digite para buscar veículos..."
+              sortOptions={sortOptions}
+              selectedSort={sortBy}
+              onSortChange={handleSortChange}
+              showSortOptions={true}
+              multipleSelection={false}
             />
-          )}
+          </View>
+
+          {/* Lista de Veículos */}
+          <View style={styles.listContainer}>
+            {vehiclesLoading && vehicles.length === 0 ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={Colors.blue.primary} />
+                <Text style={styles.loadingText}>Carregando veículos...</Text>
+              </View>
+            ) : filteredVehicles.length === 0 ? (
+              <ScrollView
+                contentContainerStyle={styles.emptyStateContainer}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={handleRefresh}
+                    colors={[Colors.blue.primary]}
+                    tintColor={Colors.blue.primary}
+                  />
+                }
+              >
+                <View style={styles.emptyState}>
+                  <FontAwesome
+                    name="car"
+                    size={48}
+                    color={Colors.gray.medium}
+                  />
+                  <Text style={styles.emptyStateText}>
+                    {search
+                      ? `Nenhum veículo encontrado para "${search}"`
+                      : "Nenhum veículo no pátio no momento"}
+                  </Text>
+                  <Text style={styles.emptyStateSubtext}>
+                    Puxe para baixo para atualizar
+                  </Text>
+                </View>
+              </ScrollView>
+            ) : (
+              <FlatList
+                data={filteredVehicles}
+                renderItem={renderVehicleItem}
+                keyExtractor={(item: any) => item.id}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.listContent}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={handleRefresh}
+                    colors={[Colors.blue.primary]}
+                    tintColor={Colors.blue.primary}
+                  />
+                }
+                ListFooterComponent={() => {
+                  if (hasMore && vehicles.length > 0) {
+                    return (
+                      <View style={styles.loadingMore}>
+                        <Pressable
+                          style={[
+                            styles.loadMoreButton,
+                            loadingMore && styles.loadMoreButtonDisabled,
+                          ]}
+                          onPress={handleLoadMore}
+                          disabled={loadingMore}
+                        >
+                          <FontAwesome
+                            name={loadingMore ? "spinner" : "chevron-down"}
+                            size={16}
+                            color={
+                              loadingMore ? Colors.gray[400] : Colors.white
+                            }
+                          />
+                          <Text
+                            style={[
+                              styles.loadMoreButtonText,
+                              loadingMore && styles.loadMoreButtonTextDisabled,
+                            ]}
+                          >
+                            {loadingMore ? "Carregando..." : "Carregar Mais"}
+                          </Text>
+                        </Pressable>
+                      </View>
+                    );
+                  }
+
+                  return null;
+                }}
+                removeClippedSubviews={true}
+                maxToRenderPerBatch={5}
+                windowSize={5}
+                initialNumToRender={5}
+                getItemLayout={(data, index) => ({
+                  length: 100, // Altura aproximada de cada item
+                  offset: 100 * index,
+                  index,
+                })}
+              />
+            )}
+          </View>
         </View>
-      </View>
       )}
 
       {/* Modal de Detalhes */}

@@ -17,18 +17,18 @@ import {
   RefreshControl,
   ScrollView,
   Text,
-  View
+  View,
 } from "react-native";
 
 export default function ListExit() {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("plate");
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState<Date>(new Date());
   const { cashData, cashStatus } = useCashContext();
 
   // Funções utilitárias locais para verificar status do caixa
-  const isCashClosed = (): boolean => cashStatus === 'closed';
-  const isCashNotCreated = (): boolean => cashStatus === 'not_created';
+  const isCashClosed = (): boolean => cashStatus === "closed";
+  const isCashNotCreated = (): boolean => cashStatus === "not_created";
 
   // Verificar se a tela deve ser bloqueada
   const isScreenBlocked = isCashNotCreated() || isCashClosed();
@@ -45,28 +45,22 @@ export default function ListExit() {
   ];
 
   // Hook para dados dos veículos
-  const { 
-    vehicles, 
-    loading: vehiclesLoading, 
-    error: vehiclesError, 
-    hasMore, 
-    loadInitial, 
-    loadMore 
+  const {
+    vehicles,
+    loading: vehiclesLoading,
+    error: vehiclesError,
+    hasMore,
+    loadInitial,
+    loadMore,
   } = useParkedVehicles(cashData?.id || "");
 
-  const {
-    fetchVehicle,
-    loading,
-    success,
-    error,
-    message,
-  } = useFetchVehicle();
+  const { fetchVehicle, loading, success, error, message } = useFetchVehicle();
 
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalMessage, setModalMessage] = useState("");
-  const [modalIsSuccess, setModalIsSuccess] = useState(false);
+  const [loadingMore, setLoadingMore] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [modalMessage, setModalMessage] = useState<string>("");
+  const [modalIsSuccess, setModalIsSuccess] = useState<boolean>(false);
   const [vehicleData, setVehicleData] = useState<any>(null);
   const [loadingVehicleId, setLoadingVehicleId] = useState<string | null>(null);
 
@@ -95,11 +89,11 @@ export default function ListExit() {
       router.push({
         pathname: "/functions/informationExit",
         params: {
-          vehicleData: JSON.stringify(vehicleData)
-        }
+          vehicleData: JSON.stringify(vehicleData),
+        },
       });
     }
-    
+
     if (error) {
       setModalMessage(error);
       setModalIsSuccess(false);
@@ -113,21 +107,23 @@ export default function ListExit() {
       const entry = new Date(entryTime);
       const now = currentTime;
       const diffMs = now.getTime() - entry.getTime();
-      
-      if (diffMs < 0) return '00:00:00';
-      
+
+      if (diffMs < 0) return "00:00:00";
+
       const hours = Math.floor(diffMs / (1000 * 60 * 60));
       const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-      
-      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+      return `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
     } catch (error) {
-      return '00:00:00';
+      return "00:00:00";
     }
   };
 
   const handleSortChange = (sortKey: string | string[]) => {
-    if (typeof sortKey === 'string') {
+    if (typeof sortKey === "string") {
       setSortBy(sortKey);
     }
   };
@@ -135,9 +131,9 @@ export default function ListExit() {
   // Filtra e ordena os veículos
   const filteredVehicles = useMemo(() => {
     const searchTerm = search.toLowerCase();
-    
+
     let filtered = vehicles.filter((vehicle) => {
-      switch(sortBy) {
+      switch (sortBy) {
         case "plate":
           return vehicle.plate.toLowerCase().includes(searchTerm);
         case "category":
@@ -184,9 +180,9 @@ export default function ListExit() {
     try {
       console.log("Registrando saída do veículo:", vehicle.id, vehicle.plate);
       setLoadingVehicleId(vehicle.id); // Definir loading específico para este veículo
-      
+
       const result = await fetchVehicle(vehicle.id, vehicle.plate);
-      
+
       if (result?.data) {
         // Armazenar dados do veículo para passar como parâmetro
         setVehicleData(result.data);
@@ -207,11 +203,11 @@ export default function ListExit() {
 
   const renderVehicleItem = ({ item, index }: { item: any; index: number }) => {
     // Verifica se o veículo está deletado
-    const isDeleted = item.deletedAt || item.status === 'DELETED';
-    
+    const isDeleted = item.deletedAt || item.status === "DELETED";
+
     // Determina o dado principal baseado na opção selecionada
     const getMainData = () => {
-      switch(sortBy) {
+      switch (sortBy) {
         case "plate":
           return item.plate;
         case "category":
@@ -224,7 +220,7 @@ export default function ListExit() {
     };
 
     const getMainDataLabel = () => {
-      switch(sortBy) {
+      switch (sortBy) {
         case "plate":
           return "Placa";
         case "category":
@@ -237,68 +233,76 @@ export default function ListExit() {
     };
 
     return (
-      <View style={[
-        styles.listItem,
-        isDeleted && styles.listItemDeleted
-      ]}>
-        <Text style={[
-          styles.itemNumber,
-          isDeleted && styles.itemNumberDeleted
-        ]}>
+      <View style={[styles.listItem, isDeleted && styles.listItemDeleted]}>
+        <Text
+          style={[styles.itemNumber, isDeleted && styles.itemNumberDeleted]}
+        >
           {index + 1}
         </Text>
 
         <View style={styles.itemData}>
           <View style={styles.topRow}>
             <View style={styles.mainDataContainer}>
-              <Text style={[
-                styles.mainDataLabel,
-                isDeleted && styles.mainDataLabelDeleted
-              ]}>
+              <Text
+                style={[
+                  styles.mainDataLabel,
+                  isDeleted && styles.mainDataLabelDeleted,
+                ]}
+              >
                 {getMainDataLabel()}
               </Text>
-              <Text style={[
-                styles.mainDataValue,
-                isDeleted && styles.mainDataValueDeleted
-              ]}>
+              <Text
+                style={[
+                  styles.mainDataValue,
+                  isDeleted && styles.mainDataValueDeleted,
+                ]}
+              >
                 {getMainData()}
               </Text>
             </View>
 
             <View style={styles.timeContainer}>
-              <Text style={[
-                styles.timeLabel,
-                isDeleted && styles.timeLabelDeleted
-              ]}>
-                {isDeleted ? 'Status' : 'Tempo'}
+              <Text
+                style={[styles.timeLabel, isDeleted && styles.timeLabelDeleted]}
+              >
+                {isDeleted ? "Status" : "Tempo"}
               </Text>
-              <Text style={[
-                styles.timeValue,
-                isDeleted && styles.timeValueDeleted
-              ]}>
-                {isDeleted ? 'Desativado' : (item.entryTime ? calculateElapsedTime(item.entryTime) : '00:00:00')}
+              <Text
+                style={[styles.timeValue, isDeleted && styles.timeValueDeleted]}
+              >
+                {isDeleted
+                  ? "Desativado"
+                  : item.entryTime
+                  ? calculateElapsedTime(item.entryTime)
+                  : "00:00:00"}
               </Text>
             </View>
           </View>
 
-          <Pressable 
+          <Pressable
             style={[
               styles.detailsButton,
-              isDeleted && styles.detailsButtonDeleted
+              isDeleted && styles.detailsButtonDeleted,
             ]}
             onPress={() => handleRegisterExit(item)}
-            disabled={isDeleted || loadingVehicleId === item.id}
+            disabled={
+              Boolean(isDeleted) || Boolean(loadingVehicleId === item.id)
+            }
           >
-            <Text style={[
-              styles.detailsButtonText,
-              isDeleted && styles.detailsButtonTextDeleted
-            ]}>
-              {loadingVehicleId === item.id ? 'Carregando...' : 'Registrar Saída'}
+            <Text
+              style={[
+                styles.detailsButtonText,
+                isDeleted && styles.detailsButtonTextDeleted,
+              ]}
+            >
+              {loadingVehicleId === item.id
+                ? "Carregando..."
+                : "Registrar Saída"}
             </Text>
-            <FontAwesome 
-              name={loadingVehicleId === item.id ? "spinner" : "sign-out"} 
-              size={12} 
-              color={isDeleted ? Colors.gray[500] : Colors.white} 
+            <FontAwesome
+              name={loadingVehicleId === item.id ? "spinner" : "sign-out"}
+              size={12}
+              color={isDeleted ? Colors.gray[500] : Colors.white}
             />
           </Pressable>
         </View>
@@ -308,19 +312,21 @@ export default function ListExit() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Header title="Saída de Veículos"/>
+      <Header title="Saída de Veículos" />
 
       {/* ALERTA DE TELA BLOQUEADA */}
       {isScreenBlocked ? (
-        <View style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          paddingHorizontal: 20,
-          paddingVertical: 40,
-        }}>
-          <CashAvailabilityAlert 
-            mode="blocking" 
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            paddingHorizontal: 20,
+            paddingVertical: 40,
+          }}
+        >
+          <CashAvailabilityAlert
+            mode="blocking"
             cashStatus={cashStatus}
             style={{
               marginHorizontal: 0,
@@ -356,7 +362,7 @@ export default function ListExit() {
                 contentContainerStyle={styles.emptyStateContainer}
                 refreshControl={
                   <RefreshControl
-                    refreshing={refreshing}
+                    refreshing={Boolean(refreshing)}
                     onRefresh={handleRefresh}
                     colors={[Colors.blue.primary]}
                     tintColor={Colors.blue.primary}
@@ -364,16 +370,15 @@ export default function ListExit() {
                 }
               >
                 <View style={styles.emptyState}>
-                  <FontAwesome 
-                    name="car" 
-                    size={48} 
-                    color={Colors.gray.medium} 
+                  <FontAwesome
+                    name="car"
+                    size={48}
+                    color={Colors.gray.medium}
                   />
                   <Text style={styles.emptyStateText}>
-                    {search ? 
-                      `Nenhum veículo encontrado para "${search}"` : 
-                      "Nenhum veículo no pátio no momento"
-                    }
+                    {search
+                      ? `Nenhum veículo encontrado para "${search}"`
+                      : "Nenhum veículo no pátio no momento"}
                   </Text>
                   <Text style={styles.emptyStateSubtext}>
                     Puxe para baixo para atualizar
@@ -385,11 +390,11 @@ export default function ListExit() {
                 data={filteredVehicles}
                 renderItem={renderVehicleItem}
                 keyExtractor={(item: any) => item.id}
-                showsVerticalScrollIndicator={false}
+                showsVerticalScrollIndicator={Boolean(false)}
                 contentContainerStyle={styles.listContent}
                 refreshControl={
                   <RefreshControl
-                    refreshing={refreshing}
+                    refreshing={Boolean(refreshing)}
                     onRefresh={handleRefresh}
                     colors={[Colors.blue.primary]}
                     tintColor={Colors.blue.primary}
@@ -399,33 +404,37 @@ export default function ListExit() {
                   if (hasMore && vehicles.length > 0) {
                     return (
                       <View style={styles.loadingMore}>
-                        <Pressable 
+                        <Pressable
                           style={[
                             styles.loadMoreButton,
-                            loadingMore && styles.loadMoreButtonDisabled
+                            loadingMore && styles.loadMoreButtonDisabled,
                           ]}
                           onPress={handleLoadMore}
-                          disabled={loadingMore}
+                          disabled={Boolean(loadingMore)}
                         >
-                          <FontAwesome 
-                            name={loadingMore ? "spinner" : "chevron-down"} 
-                            size={16} 
-                            color={loadingMore ? Colors.gray[400] : Colors.white} 
+                          <FontAwesome
+                            name={loadingMore ? "spinner" : "chevron-down"}
+                            size={16}
+                            color={
+                              loadingMore ? Colors.gray[400] : Colors.white
+                            }
                           />
-                          <Text style={[
-                            styles.loadMoreButtonText,
-                            loadingMore && styles.loadMoreButtonTextDisabled
-                          ]}>
-                            {loadingMore ? 'Carregando...' : 'Carregar Mais'}
+                          <Text
+                            style={[
+                              styles.loadMoreButtonText,
+                              loadingMore && styles.loadMoreButtonTextDisabled,
+                            ]}
+                          >
+                            {loadingMore ? "Carregando..." : "Carregar Mais"}
                           </Text>
                         </Pressable>
                       </View>
                     );
                   }
-                  
+
                   return null;
                 }}
-                removeClippedSubviews={true}
+                removeClippedSubviews={Boolean(true)}
                 maxToRenderPerBatch={5}
                 windowSize={5}
                 initialNumToRender={5}
@@ -442,9 +451,9 @@ export default function ListExit() {
 
       {/* Modal de Feedback */}
       <FeedbackModal
-        visible={modalVisible}
-        message={modalMessage}
-        type={modalIsSuccess ? 'success' : 'error'}
+        visible={Boolean(modalVisible)}
+        message={String(modalMessage)}
+        type={Boolean(modalIsSuccess) ? "success" : "error"}
         onClose={handleCloseModal}
       />
     </View>

@@ -43,10 +43,10 @@ export default function SearchInput({
     if (multipleSelection) {
       // Múltiplas seleções
       const currentSelection = Array.isArray(selectedSort) ? selectedSort : [];
-      
+
       if (currentSelection.includes(sortKey)) {
         // Remove a opção se já estiver selecionada
-        const newSelection = currentSelection.filter(key => key !== sortKey);
+        const newSelection = currentSelection.filter((key) => key !== sortKey);
         onSortChange(newSelection);
       } else {
         // Adiciona a opção se não estiver selecionada
@@ -84,7 +84,11 @@ export default function SearchInput({
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => onSearchChange("")}>
-              <Ionicons name="close-circle" size={20} color={Colors.gray[500]} />
+              <Ionicons
+                name="close-circle"
+                size={20}
+                color={Colors.gray[500]}
+              />
             </TouchableOpacity>
           )}
         </View>
@@ -120,7 +124,8 @@ export default function SearchInput({
                 <Text
                   style={[
                     styles.sortOptionText,
-                    isOptionSelected(option.key) && styles.sortOptionTextSelected,
+                    isOptionSelected(option.key) &&
+                      styles.sortOptionTextSelected,
                   ]}
                 >
                   {option.label}
@@ -135,8 +140,7 @@ export default function SearchInput({
 }
 
 const styles = StyleSheet.create({
-  container: {
-  },
+  container: {},
   searchContainer: {
     paddingTop: 16,
   },
@@ -179,7 +183,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderWidth: 2,
     borderColor: Colors.blue.dark,
-    gap: 4
+    gap: 4,
   },
   sortOptionSelected: {
     backgroundColor: Colors.blue.primary,
