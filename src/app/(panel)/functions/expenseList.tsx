@@ -32,11 +32,6 @@ export default function ExpenseList() {
   // Verificar se a tela deve ser bloqueada
   const isButtomBlocked = isCashNotCreated() || isCashClosed();
 
-  // Funções de callback para os botões do alerta
-  const handleBackPress = () => {
-    router.back();
-  };
-
   const sortOptions = [
     { key: "description", label: "Descrição", icon: "list" },
     { key: "amount", label: "Valor", icon: "cash" },
