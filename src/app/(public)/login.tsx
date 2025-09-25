@@ -1,10 +1,14 @@
-import Colors from "@/src/constants/Colors";
-import { styles } from "@/src/styles/login/loginStyles";
+import Colors from "@/constants/Colors";
+import { styles } from "@/styles/login/loginStyles";
+import Constants from "expo-constants";
 import { LinearGradient } from "expo-linear-gradient";
+import * as Notifications from "expo-notifications";
+import * as SecureStore from "expo-secure-store";
 import React from "react";
 import {
   ActivityIndicator,
   Image,
+  Platform,
   Text,
   TouchableOpacity,
   View,
@@ -13,48 +17,82 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import { TextInput } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import ApiErrorModal from "@/src/components/ApiErrorModal";
-import { useAuth } from "@/src/context/AuthContext";
-import { useUserLogin } from "@/src/hooks/auth/useLogin";
+import FeedbackModal from "@/components/FeedbackModal";
+import { useAuth } from "@/context/AuthContext";
+import { useUserLogin } from "@/hooks/auth/useLogin";
 import { useRouter } from "expo-router";
 
 export default function Login() {
   const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
+  const [pushToken, setPushToken] = React.useState<string | null>(null);
 
   const { login, loading, error, clearError } = useUserLogin();
   const auth = useAuth();
   const router = useRouter();
 
+  React.useEffect(() => {
+    async function requestAndroidNotificationsPermission() {
+      try {
+        if (Platform.OS !== "android") {
+          return;
+        }
+
+        // Cria canal de notificação (Android)
+        try {
+          await Notifications.setNotificationChannelAsync("default", {
+            name: "default",
+            importance: Notifications.AndroidImportance.DEFAULT,
+          });
+        } catch (channelErr) {
+          // Erro ao criar canal de notificação
+        }
+
+        const settings = await Notifications.getPermissionsAsync();
+        let granted = settings.granted || settings.ios?.status === Notifications.IosAuthorizationStatus.AUTHORIZED;
+
+        if (!granted) {
+          const ask = await Notifications.requestPermissionsAsync();
+          granted = ask.granted || ask.ios?.status === Notifications.IosAuthorizationStatus.AUTHORIZED;
+        }
+
+        if (!granted) {
+          return; // silencioso se negado
+        }
+
+        const projectId = Constants.expoConfig?.extra?.eas?.projectId || Constants.easConfig?.projectId;
+        const tokenResponse = await Notifications.getExpoPushTokenAsync({ projectId });
+        const token = tokenResponse.data;
+        setPushToken(token);
+        await SecureStore.setItemAsync("expoPushToken", token);
+      } catch (e) {
+        // Erro ao solicitar permissões de notificação ou obter token
+      }
+    }
+
+    requestAndroidNotificationsPermission();
+  }, []);
+
   async function handleLogin() {
     try {
-      console.log("Iniciando login...");
-
-      const { token, role } = await login({ username, password });
-
-      console.log("Login bem-sucedido. Token:", token);
-      console.log("Role recebido:", role);
+      const { token, role } = await login({ username, password, expoPushToken: pushToken || undefined });
 
       await auth.login(token);
-      console.log("Contexto de autenticação atualizado.");
 
-      if (role === "ADMIN") {
-        console.log("Redirecionando para admin...");
+      if (role === "ADMIN" || role === "MANAGER") {
         router.replace("/home/admin");
-      } else {
-        console.log("Redirecionando para employee...");
+      } else if (role === "NORMAL") {
         router.replace("/home/normal");
       }
     } catch (err) {
-      console.log("Erro no handleLogin:", err);
     }
   }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.background.primary }}>
       <Image
-        source={require("@/src/assets/images/splash-icon-blue.png")}
+        source={require("../../assets/images/splash-icon-blue.png")}
         style={styles.heroImage}
       />
 
@@ -116,7 +154,15 @@ export default function Login() {
         </View>
       </KeyboardAwareScrollView>
 
-      <ApiErrorModal visible={!!error} message={error} onClose={clearError} />
+      <FeedbackModal
+        visible={!!error}
+        message={error || ''}
+        type="error"
+        onClose={clearError}
+        dismissible={true}
+        autoNavigateOnSuccess={false}
+        navigateDelay={2000}
+      />
     </SafeAreaView>
   );
 }

@@ -1,10 +1,10 @@
-import Colors from "@/src/constants/Colors";
+import Colors from "@/constants/Colors";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
-    backgroundColor: Colors.zinc,
+    backgroundColor: Colors.gray.zinc,
     height: 120,
     justifyContent: "space-between",
     alignItems: "center",
@@ -19,20 +19,20 @@ export const styles = StyleSheet.create({
   brandMain: {
     fontSize: 35,
     fontWeight: "bold",
-    color: Colors.lightGray,
+    color: Colors.gray.light,
     textTransform: "uppercase",
     marginRight: 5,
   },
   brandSub: {
     fontSize: 21,
-    color: Colors.lightGray,
+    color: Colors.gray.light,
     marginBottom: 5,
   },
   iconCircle: {
     width: 50,
     height: 50,
     borderRadius: 30,
-    backgroundColor: Colors.zinc,
+    backgroundColor: Colors.gray.zinc,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 10,
@@ -75,7 +75,7 @@ export const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: Colors.blueLogo,
+    backgroundColor: Colors.blue.logo,
   },
   parkingContent: {
     flex: 1,
@@ -95,12 +95,12 @@ export const styles = StyleSheet.create({
   numberFree: {
     fontFamily: "Roboto_700Bold",
     fontSize: 50,
-    color: Colors.greenDark,
+    color: Colors.green.dark,
   },
   labelFree: {
     fontFamily: "Roboto_600SemiBold",
     fontSize: 18,
-    color: Colors.greenDark,
+    color: Colors.green.dark,
     marginTop: -10,
   },
   usedParking: {
@@ -111,12 +111,12 @@ export const styles = StyleSheet.create({
   numberUsed: {
     fontFamily: "Roboto_700Bold",
     fontSize: 50,
-    color: Colors.red,
+    color: Colors.red.dark,
   },
   labelUsed: {
     fontFamily: "Roboto_600SemiBold",
     fontSize: 18,
-    color: Colors.red,
+    color: Colors.red.dark,
     marginTop: -10,
   },
   detailsParking: {
@@ -130,7 +130,7 @@ export const styles = StyleSheet.create({
   dividerVertical: {
     width: 1,
     height: "60%", // altura proporcional ao container
-    backgroundColor: Colors.mediumGray,
+    backgroundColor: Colors.gray.light,
     alignSelf: "center",
     marginHorizontal: 8,
   },
@@ -146,18 +146,18 @@ export const styles = StyleSheet.create({
   bottomBar: {
     height: "16%",
     width: "100%",
-    backgroundColor: Colors.zinc,
+    backgroundColor: Colors.gray.zinc,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-around",
     borderTopWidth: 1,
-    borderTopColor: Colors.mediumGray,
+    borderTopColor: Colors.border.medium,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderTopRightRadius: 42,
     borderTopLeftRadius: 42,
     elevation: 8,
-    shadowColor: "#000",
+    shadowColor: Colors.shadow.light,
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
@@ -168,7 +168,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 5,
-    backgroundColor: Colors.buttongreen,
+    backgroundColor: Colors.button.success,
   },
   buttonExit: {
     width: 50,
@@ -176,7 +176,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 5,
-    backgroundColor: Colors.buttonRed,
+    backgroundColor: Colors.button.danger,
   },
   buttonPatio: {
     width: 50,
@@ -184,6 +184,14 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 5,
-    backgroundColor: Colors.buttonBlue,
+    backgroundColor: Colors.button.primary,
+  },
+  buttonDashboard: {
+    width: 50,
+    height: 60,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 5,
+    backgroundColor: Colors.button.warning,
   },
 });

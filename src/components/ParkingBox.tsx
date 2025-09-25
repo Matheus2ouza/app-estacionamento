@@ -1,4 +1,5 @@
-import Colors from '@/src/constants/Colors';
+import Colors from '@/constants/Colors';
+import { useAuth } from '@/context/AuthContext';
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import React from 'react';
@@ -16,10 +17,11 @@ interface ParkingBoxProps {
 }
 
 const ParkingBox: React.FC<ParkingBoxProps> = ({ cashStatus, onRefresh, parkingData }) => {
+  const { role } = useAuth();
   const mockParkingData = {
     free: 42,
     used: 99,
-    details: [99, 99, 99], // carro, moto, carro grande
+    details: [99, 99], // carro, moto
   };
 
   const renderParkingData = () => {
@@ -27,7 +29,7 @@ const ParkingBox: React.FC<ParkingBoxProps> = ({ cashStatus, onRefresh, parkingD
       return (
         <View style={styles.noDataContainer}>
           <Text style={styles.noDataText}>
-            Pátio fechado{'\n'}Abra o caixa para ver as vagas
+            {role === 'NORMAL' ? 'Pátio fechado, aguarde o administrador abrir o caixa para ver as vagas' : 'Pátio fechado\nAbra o caixa para ver as vagas'}
           </Text>
         </View>
       );
@@ -68,17 +70,6 @@ const ParkingBox: React.FC<ParkingBoxProps> = ({ cashStatus, onRefresh, parkingD
           <View style={styles.iconDescriptionRow}>
             <FontAwesome name="motorcycle" size={18} color={Colors.text.primary} />
             <Text style={styles.iconText}>{dataToShow.details[1]}</Text>
-          </View>
-
-          <View style={styles.dividerVertical} />
-
-          <View style={styles.iconDescriptionRow}>
-            <MaterialCommunityIcons
-              name="car-estate"
-              size={22}
-              color={Colors.text.primary}
-            />
-            <Text style={styles.iconText}>{dataToShow.details[2]}</Text>
           </View>
         </View>
       </View>
@@ -194,13 +185,14 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "center",
     flexDirection: "row",
-    justifyContent: "center",
-    gap: 15,
+    justifyContent: "space-around",
+    paddingHorizontal: 20,
   },
   iconDescriptionRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginHorizontal: 10,
+    justifyContent: "center",
+    flex: 1,
   },
   iconText: {
     fontSize: 12,

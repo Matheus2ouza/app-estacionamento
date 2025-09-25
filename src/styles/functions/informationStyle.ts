@@ -1,4 +1,4 @@
-import Colors from "@/src/constants/Colors";
+import Colors from "@/constants/Colors";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
@@ -11,14 +11,14 @@ export const styles = StyleSheet.create({
     height: '25%',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.darkGray,
+    backgroundColor: Colors.gray.dark,
     marginTop: 15,
     borderRadius: 10
   },
   letra: {
     fontSize: 95,
     fontFamily: "Montserrat_700Bold",
-    color: Colors.white
+    color: Colors.text.inverse
   },
   datas: {
     width: '90%',

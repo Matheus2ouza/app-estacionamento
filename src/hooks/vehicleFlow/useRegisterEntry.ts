@@ -1,74 +1,66 @@
-import { VehicleApi } from "@/src/api/vehicleFlowService";
-import { useAuth } from "@/src/context/AuthContext";
+import { VehicleApi } from "@/api/vehicleFlowService";
+import { RegisterVehicleData } from "@/types/vehicleTypes/vehicles";
 import { useState } from "react";
 
 const useRegisterVehicle = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const { userId } = useAuth();
+  const [message, setMessage] = useState<string | null>(null);
 
-  const registerVehicle = async (plate: string, category: string) => {
+  const registerVehicle = async (data: RegisterVehicleData) => {
     setLoading(true);
     setError(null);
     setSuccess(false);
+    setMessage(null);
 
     try {
-      if (!plate.trim()) {
+      if (!data.plate.trim()) {
         throw new Error("Por favor, insira a placa do veículo.");
       }
 
-      const plateRegex = /^[A-Z]{3}[0-9][A-Z][0-9]{2}$|^[A-Z]{3}[0-9]{4}$/i;
-      if (!plateRegex.test(plate)) {
-        throw new Error("Placa inválida. Formato esperado: ABC1234 ou ABC1D23");
+      const plateRegex = /^[A-Z]{3}[-]?[0-9]{4}$|^[A-Z]{3}[0-9][A-Z][0-9]{2}$/i;
+      if (!plateRegex.test(data.plate)) {
+        throw new Error("Placa inválida. Formato esperado: ABC1234, ABC-1234 ou ABC1D23");
       }
 
-      const validCategories = ["carro", "carroGrande", "moto"] as const;
-      if (!validCategories.includes(category as any)) {
-        throw new Error(
-          "Categoria inválida. Escolha entre: Carro, Carro Grande ou Moto."
-        );
+      const validCategories = ["carro", "moto"] as const;
+      if (!validCategories.includes(data.category as any)) {
+        throw new Error("Categoria inválida. Escolha entre: Carro ou Moto.");
       }
 
-      if (!category) {
+      if (!data.category) {
         throw new Error("Por favor, selecione a categoria do veículo.");
       }
 
-      const payload = {
-        plate: plate.toUpperCase().trim(),
-        category,
-        operatorId: userId,
+      if (data.observation === "" || data.observation === undefined) {
+        data.observation = null;
+      }
+
+      const payload: RegisterVehicleData = {
+        plate: data.plate.toUpperCase().trim(),
+        category: data.category,
+        observation: data.observation,
+        billingMethod: data.billingMethod,
+        cashRegisterId: data.cashRegisterId,
       };
 
-      const response = await VehicleApi.registerEntry(payload);
+      const response = await VehicleApi.registerEntry(payload, data.photo || "");
 
-      // Trata ambos os cenários de sucesso:
-      // 1. Ticket gerado com sucesso
-      // 2. Entrada registrada mas ticket falhou (timeout)
-      if (response.success) {
-        console.log(response.ticket)
-        setSuccess(true);
-        return {
-          success: true,
-          message: response.message, // Mensagem original do backend
-          pdfBase64: response.ticket || null, // Pode ser null
-          hasTicket: !!response.ticket, // Flag para verificação fácil
-        };
-      } else {
-        throw new Error(response.message || "Erro ao registrar entrada.");
-      }
-    } catch (err: any) {
-      const errorMessage =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Erro ao registrar a entrada. Tente novamente.";
-
-      console.error("Erro no registerVehicle:", errorMessage);
+      setSuccess(true);
+      setMessage(response.message || "Entrada registrada com sucesso.");
+      return {
+        success: true,
+        message: response.message || "Entrada registrada com sucesso.",
+        ticket: response.ticket,
+      };
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || "Erro ao registrar entrada do veículo.";
       setError(errorMessage);
-      return { 
-        success: false, 
+      setMessage(errorMessage);
+      return {
+        success: false,
         message: errorMessage,
-        hasTicket: false
       };
     } finally {
       setLoading(false);
@@ -80,10 +72,7 @@ const useRegisterVehicle = () => {
     loading,
     error,
     success,
-    reset: () => {
-      setError(null);
-      setSuccess(false);
-    },
+    message,
   };
 };
 

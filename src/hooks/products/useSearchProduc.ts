@@ -1,47 +1,65 @@
-import { ProductApi } from "@/src/api/productsService";
+import { useProductCache } from "@/context/ProductCacheContext";
+import { Product } from "@/types/productsTypes/products";
 import { useState } from "react";
 
-const useSearchProducts = () => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+// Hook para produtos com paginação
+export function useProductsPagination(limit: number = 10) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const { loadProductsFromAPI, getAllCachedProducts, loading, error } = useProductCache();
 
-  const searchProducts = async () => {
-    setLoading(true);
-    setError(null);
+  const loadInitial = async () => {
+    setProducts([]);
+    setNextCursor(null);
+    setHasMore(true);
 
     try {
-      const productsList = await ProductApi.listProducts();
+      const response = await loadProductsFromAPI(undefined, limit);
 
-      if (productsList.success) {
-        return {
-          success: true,
-          list: productsList.list || [],
-        };
-      } else {
-        throw new Error(productsList.error || "Erro ao buscar produtos");
+      if (response.success) {
+        setProducts(response.data.products);
+        setNextCursor(response.data.nextCursor || null);
+        setHasMore(response.data.hasMore);
       }
     } catch (err: any) {
-      const errorMessage =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Erro ao buscar os produtos.";
-
-      setError(errorMessage);
-      return {
-        success: false,
-        message: errorMessage,
-        list: [],
-      };
-    } finally {
-      setLoading(false);
+      console.error('🔍 Paginação: Erro', err);
     }
   };
 
+  const loadMore = async () => {
+    if (!nextCursor || loading || !hasMore) {
+      return;
+    }
+
+    try {
+      const response = await loadProductsFromAPI(nextCursor, limit);
+      
+      if (response.success) {
+        setProducts(prev => [...prev, ...response.data.products]);
+        setNextCursor(response.data.nextCursor || null);
+        setHasMore(response.data.hasMore);
+      }
+    } catch (err: any) {
+      console.error('🔍 Paginação: Erro', err);
+    }
+  };
+  
+  // Função para obter todos os produtos do cache
+  const getAllProducts = () => {
+    return getAllCachedProducts();
+  };
+
   return {
-    searchProducts,
+    products,
     loading,
     error,
+    nextCursor,
+    hasMore,
+    loadInitial,
+    loadMore,
+    getAllProducts
   };
-};
+}
 
-export default useSearchProducts;
+export default useProductsPagination;

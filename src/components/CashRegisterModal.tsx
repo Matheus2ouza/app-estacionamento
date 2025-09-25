@@ -1,4 +1,4 @@
-import { useLogout } from '@/src/hooks/auth/useLogout'; // Importe o hook de logout
+import { useLogout } from '@/hooks/auth/useLogout';
 import React, { useState } from 'react';
 import { Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Colors from '../constants/Colors';
@@ -6,10 +6,11 @@ import Colors from '../constants/Colors';
 type Props = {
   visible: boolean;
   role: String | null;
-  mode?: 'open' | 'reopen'; // Novo: modo do modal
+  mode?: 'open' | 'reopen' | 'close'; // Suporta abrir, reabrir ou fechar
   onClose: () => void;
   onOpenCashRegister: (initialValue: string) => void;
-  onReopenCash?: () => void; // Novo: função para reabrir caixa
+  onReopenCash?: () => void; // Função para reabrir caixa
+  onCloseCash?: () => void; // Novo: função para fechar caixa sem valor
 };
 
 const CashRegisterModal = ({ 
@@ -18,7 +19,8 @@ const CashRegisterModal = ({
   mode = 'open',
   onClose, 
   onOpenCashRegister,
-  onReopenCash 
+  onReopenCash,
+  onCloseCash,
 }: Props) => {
   const [initialValue, setInitialValue] = useState('');
   const { handleLogout } = useLogout(); // Obtenha a função de logout
@@ -26,36 +28,45 @@ const CashRegisterModal = ({
   const handleOpenCash = () => {
     if (mode === 'reopen' && onReopenCash) {
       onReopenCash();
-    } else if (initialValue.trim()) {
+      return;
+    }
+    if (mode === 'close' && onCloseCash) {
+      onCloseCash();
+      return;
+    }
+    if (mode === 'open' && initialValue.trim()) {
       onOpenCashRegister(initialValue);
+      setInitialValue('');
     }
   };
 
+  const handleClose = () => {
+    // Limpar o campo quando fechar o modal
+    setInitialValue('');
+    onClose();
+  };
+
   const getTitle = () => {
-    if (mode === 'reopen') {
-      return 'Reabrir Caixa';
-    }
+    if (mode === 'reopen') return 'Reabrir Caixa';
+    if (mode === 'close') return 'Fechar Caixa';
     return 'Abrir Caixa';
   };
 
   const getMessage = () => {
-    if (mode === 'reopen') {
-      return 'Deseja reabrir o caixa?';
-    }
+    if (mode === 'reopen') return 'Deseja reabrir o caixa?';
+    if (mode === 'close') return 'Deseja fechar o caixa?';
     return 'Para abrir o caixa digite o valor em caixa';
   };
 
   const getButtonText = () => {
-    if (mode === 'reopen') {
-      return 'Reabrir caixa';
-    }
+    if (mode === 'reopen') return 'Reabrir caixa';
+    if (mode === 'close') return 'Fechar caixa';
     return 'Abrir caixa';
   };
 
   const getCancelButtonText = () => {
-    if (mode === 'reopen') {
-      return 'Cancelar';
-    }
+    if (mode === 'reopen') return 'Cancelar';
+    if (mode === 'close') return 'Cancelar';
     return 'Não abrir';
   };
 
@@ -64,11 +75,10 @@ const CashRegisterModal = ({
       visible={visible}
       animationType="fade"
       transparent={true}
-      onRequestClose={role === 'ADMIN' ? onClose : () => {}}
+      onRequestClose={handleClose} // agora sempre chama handleClose
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
-          {role === 'ADMIN' ? (
             <>
               <Text style={styles.title}>{getTitle()}</Text>
               <Text style={styles.message}>{getMessage()}</Text>
@@ -76,7 +86,7 @@ const CashRegisterModal = ({
               {mode === 'open' && (
                 <TextInput
                   style={styles.input}
-                  placeholder="Valor inicial do caixa"
+                  placeholder="Ex: 17,50 ou 17.50"
                   placeholderTextColor="#999"
                   keyboardType="numeric"
                   value={initialValue}
@@ -87,7 +97,7 @@ const CashRegisterModal = ({
               <View style={styles.buttonContainer}>
                 <TouchableOpacity 
                   style={[styles.button, styles.cancelButton]} 
-                  onPress={onClose}
+                  onPress={handleClose}
                 >
                   <Text style={styles.buttonText}>{getCancelButtonText()}</Text>
                 </TouchableOpacity>
@@ -101,26 +111,10 @@ const CashRegisterModal = ({
                 </TouchableOpacity>
               </View>
             </>
-          ) : (
-            <>
-              <Text style={styles.title}>Caixa não aberto</Text>
-              <Text style={styles.message}>
-                Entre em contato com o administrador para que ele possa abrir o caixa.
-              </Text>
-              
-              {/* Botão de logout para não-ADMIN */}
-              <TouchableOpacity 
-                style={styles.logoutButton}
-                onPress={handleLogout}
-              >
-                <Text style={styles.buttonText}>Sair</Text>
-              </TouchableOpacity>
-            </>
-          )}
         </View>
       </View>
     </Modal>
-  );
+  );  
 };
 
 const styles = StyleSheet.create({

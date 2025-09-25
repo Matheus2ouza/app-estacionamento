@@ -5,3 +5,10 @@ export interface PrimaryButtonProps {
   disabled?: boolean;
 }
 
+export interface SecondaryButtonProps {
+  title: string;
+  onPress: () => void;
+  style?: any;
+  disabled?: boolean;
+}
+
