@@ -20,7 +20,7 @@ export const styles = StyleSheet.create({
     elevation: 8,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "700",
     color: Colors.text.primary,
     marginTop: 5,
@@ -28,10 +28,10 @@ export const styles = StyleSheet.create({
   },
   emptyProductsText: {
     fontSize: 14,
-    color: Colors.text.secondary,
+    color: Colors.text.tertiary,
     fontStyle: "italic",
     textAlign: "center",
-    paddingVertical: 12,
+    textDecorationLine: "underline",
   },
   actionButtonsContainer: {
     flexDirection: "row",
@@ -56,7 +56,7 @@ export const styles = StyleSheet.create({
     elevation: 6,
   },
   addProductButtonText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "600",
     color: Colors.white,
   },
